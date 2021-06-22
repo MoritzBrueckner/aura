@@ -3,19 +3,28 @@ package aura;
 import kha.math.FastVector3;
 
 class Listener {
-	public var position(default, null): FastVector3;
-	public var rotation(default, null): FastVector3;
+	public var location: FastVector3;
+
+	public var look(default, null): FastVector3;
+	public var right(default, null): FastVector3;
 
 	public function new() {
-		this.position = new FastVector3(0, 0, 0);
-		this.rotation = new FastVector3(0, 0, 0);
+		this.location = new FastVector3(0, 0, 0);
+
+		this.look = new FastVector3(0, 1, 0);
+		this.right = new FastVector3(1, 0, 0);
 	}
 
-	public inline function setPosition(position: FastVector3) {
-		this.position = position;
-	}
+	/**
+		Set the listener's view direction. `look` points directly in the view
+		direction, `right` is `perpendicular` to `look` and is used internally
+		to get the sign of the angle between a channel and the listener.
 
-	public inline function setRotation(rightVector: FastVector3) {
-		this.rotation = rightVector;
+		Both parameters must be normalized.
+	**/
+	public function setViewDirection(look: FastVector3, right: FastVector3) {
+		// TODO: Assert length == 1
+		this.look = look;
+		this.right = right;
 	}
 }

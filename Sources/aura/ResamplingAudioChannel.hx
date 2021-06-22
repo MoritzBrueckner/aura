@@ -32,17 +32,23 @@ class ResamplingAudioChannel extends SoundChannel {
 
 		var requestedSamplesIndex = 0;
 		while (requestedSamplesIndex < requestedLength) {
-			for (i in 0...minI(sampleLength(sampleRate) - position, requestedLength - requestedSamplesIndex)) {
+			for (i in 0...minI(sampleLength(sampleRate) - playbackPosition, requestedLength - requestedSamplesIndex)) {
 				// Make sure that we store the actual float position
 				floatPosition += pitch;
-				position = Std.int(floatPosition);
+				playbackPosition = Std.int(floatPosition);
 
-				var sampledVal = sampleFloatPos(floatPosition, i % 2 == 0, sampleRate);
+				var sampledVal: Float = sampleFloatPos(floatPosition, i % 2 == 0, sampleRate);
+
+				var b = (i % 2 == 0) ? ~balance : balance;
+				// https://sites.uci.edu/computermusic/2013/03/29/constant-power-panning-using-square-root-of-intensity/
+				sampledVal *= Math.sqrt(b); // 3dB increase in center position, TODO: make configurable (0, 3, 6 dB)?
+				// sampledVal *= minF(1.0, b * 2);
+
 				requestedSamples[requestedSamplesIndex++] = sampledVal;
 			}
 
 			if (floatPosition >= sampleLength(sampleRate)) {
-				position = 0;
+				playbackPosition = 0;
 				floatPosition = floatPosition % 1; // Keep fraction
 				if (!looping) {
 					finished = true;
@@ -117,6 +123,6 @@ class ResamplingAudioChannel extends SoundChannel {
 
 	override public function pause() {
 		super.pause();
-		floatPosition = position;
+		floatPosition = playbackPosition;
 	}
 }

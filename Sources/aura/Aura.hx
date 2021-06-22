@@ -23,6 +23,8 @@ import aura.MathUtils;
 
 // @:access(kha.audio2.Audio1)
 class Aura {
+	public static var listener: Listener;
+
 	public static var mixChannels: Map<String, MixerChannel>;
 	public static var masterChannel: MixerChannel;
 
@@ -39,6 +41,8 @@ class Aura {
 
 	public static function init(channelSize: Int = 16) {
 		@:privateAccess MixerChannel.channelSize = channelSize;
+
+		listener = new Listener();
 
 		masterChannel = new MixerChannel();
 		var musicChannel = new MixerChannel();

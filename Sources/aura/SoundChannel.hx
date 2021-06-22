@@ -11,7 +11,7 @@ class SoundChannel extends AudioChannel {
 	/**
 		Current playback position in seconds.
 	**/
-	var position: Int = 0;
+	var playbackPosition: Int = 0;
 	var looping: Bool = false;
 	var finished: Bool = false;
 
@@ -29,12 +29,12 @@ class SoundChannel extends AudioChannel {
 
 		var requestedSamplesIndex = 0;
 		while (requestedSamplesIndex < requestedLength) {
-			for (i in 0...minI(data.length - position, requestedLength - requestedSamplesIndex)) {
-				requestedSamples[requestedSamplesIndex++] = data[position++];
+			for (i in 0...minI(data.length - playbackPosition, requestedLength - requestedSamplesIndex)) {
+				requestedSamples[requestedSamplesIndex++] = data[playbackPosition++];
 			}
 
-			if (position >= data.length) {
-				position = 0;
+			if (playbackPosition >= data.length) {
+				playbackPosition = 0;
 				if (!looping) {
 					finished = true;
 					break;
@@ -58,7 +58,7 @@ class SoundChannel extends AudioChannel {
 	}
 
 	public function stop(): Void {
-		position = 0;
+		playbackPosition = 0;
 		finished = true;
 	}
 
@@ -79,15 +79,15 @@ class SoundChannel extends AudioChannel {
 	/**
 		Return the channel's current playback position in seconds.
 	**/
-	public inline function getPosition(): Float {
-		return position / kha.audio2.Audio.samplesPerSecond / NUM_CHANNELS;
+	public inline function getPlaybackPosition(): Float {
+		return playbackPosition / kha.audio2.Audio.samplesPerSecond / NUM_CHANNELS;
 	}
 
 	/**
 		Set the channel's current playback position in seconds.
 	**/
-	public inline function setPosition(value: Float) {
-		position = Math.round(value * kha.audio2.Audio.samplesPerSecond * NUM_CHANNELS);
-		position = maxI(minI(position, data.length), 0);
+	public inline function setPlaybackPosition(value: Float) {
+		playbackPosition = Math.round(value * kha.audio2.Audio.samplesPerSecond * NUM_CHANNELS);
+		playbackPosition = maxI(minI(playbackPosition, data.length), 0);
 	}
 }

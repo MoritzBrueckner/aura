@@ -3,6 +3,8 @@
 **/
 package aura;
 
+import kha.math.FastVector3;
+
 @:pure inline function maxI(a: Int, b: Int): Int {
 	return a > b ? a : b;
 }
@@ -21,4 +23,24 @@ package aura;
 
 @:pure inline function lerp(valA: Float, valB: Float, fac: Float) {
 	return valA * (1 - fac) + valB * fac;
+}
+
+@:pure inline function clampF(val: Float, min: Float = 0.0, max: Float = 1.0): Float {
+	return maxF(min, minF(max, val));
+}
+
+/**
+	Returns the cosine of the angle between two vectors. Vectors must be normalized
+	for correct results.
+**/
+@:pure inline function getAngle(vecA: FastVector3, vecB: FastVector3): Float {
+	return vecA.dot(vecB);
+}
+
+/**
+	Projects the given point to a plane described by its normal vector. The
+	origin of the plane is assumed to be at (0, 0, 0).
+**/
+@:pure inline function projectPointOntoPlane(point: FastVector3, planeNormal: FastVector3): FastVector3 {
+	return point.sub(planeNormal.mult(planeNormal.dot(point)));
 }
