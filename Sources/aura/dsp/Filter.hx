@@ -4,7 +4,7 @@ import haxe.ds.Vector;
 
 import kha.arrays.Float32Array;
 
-import aura.FrequencyUtils;
+import aura.utils.FrequencyUtils;
 
 /**
 	A simple IIR (infinite impulse response) lowpass/bandpass/highpass filter

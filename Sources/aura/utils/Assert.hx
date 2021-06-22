@@ -1,4 +1,4 @@
-package aura;
+package aura.utils;
 
 class Assert {
 	// TODO: Set this via compile flag

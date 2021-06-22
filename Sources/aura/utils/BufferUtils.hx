@@ -1,4 +1,4 @@
-package aura;
+package aura.utils;
 
 import kha.FastFloat;
 import kha.arrays.Float32Array;

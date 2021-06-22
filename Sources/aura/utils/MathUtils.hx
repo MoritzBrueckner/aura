@@ -1,7 +1,7 @@
 /**
 	Various math helper functions.
 **/
-package aura;
+package aura.utils;
 
 import kha.math.FastVector3;
 

@@ -2,12 +2,12 @@
 // See https://github.com/Kode/Kha/blob/master/Sources/kha/audio2/ResamplingAudioChannel.hx
 // =============================================================================
 
-package aura;
+package aura.channels;
 
 import kha.arrays.Float32Array;
 import kha.audio2.ResamplingAudioChannel as KhaResamplingAudioChanneL;
 
-import aura.MathUtils;
+import aura.utils.MathUtils;
 
 class ResamplingAudioChannel extends SoundChannel {
 	public var sampleRate: Hertz;

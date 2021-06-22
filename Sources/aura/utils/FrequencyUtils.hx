@@ -1,7 +1,7 @@
-package aura;
+package aura.utils;
 
-import aura.Assert.assert;
-import aura.Assert.*;
+import aura.utils.Assert.assert;
+import aura.utils.Assert.*;
 
 @:pure inline function frequencyToFactor(freq: Hertz, maxFreq: Hertz): Float {
 	// assert(freq < maxFreq, Debug);

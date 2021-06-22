@@ -1,9 +1,9 @@
-package aura;
+package aura.channels;
 
-import aura.BufferUtils.clearBuffer;
 import kha.arrays.Float32Array;
 
-import aura.MathUtils;
+import aura.utils.BufferUtils.clearBuffer;
+import aura.utils.MathUtils;
 
 class SoundChannel extends AudioChannel {
 	public static inline var NUM_CHANNELS = 2;

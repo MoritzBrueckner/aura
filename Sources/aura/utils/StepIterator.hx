@@ -3,7 +3,7 @@
 //	https://code.haxe.org/category/data-structures/step-iterator.html
 // =============================================================================
 
-package aura;
+package aura.utils;
 
 /**
 	Use this as a static extension:

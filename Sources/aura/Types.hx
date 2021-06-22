@@ -1,6 +1,6 @@
 package aura;
 
-import aura.MathUtils.clampF;
+import aura.utils.MathUtils.clampF;
 
 /**
 	Integer representing a Hertz value.

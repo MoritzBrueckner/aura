@@ -1,10 +1,13 @@
-package aura;
+package aura.channels;
 
 import kha.math.FastVector3;
 import kha.arrays.Float32Array;
 
-import aura.MathUtils;
+import aura.utils.MathUtils;
 
+/**
+	Base class of all audio channels.
+**/
 abstract class AudioChannel {
 	/**
 		The sound's volume relative to the volume of the sound file.

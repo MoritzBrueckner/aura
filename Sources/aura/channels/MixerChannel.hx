@@ -1,14 +1,16 @@
-package aura;
+package aura.channels;
 
 import haxe.ds.Vector;
 
 import kha.FastFloat;
 import kha.arrays.Float32Array;
 
-import aura.BufferUtils.clearBuffer;
 import aura.dsp.DSP;
+import aura.utils.BufferUtils.clearBuffer;
 
-
+/**
+	A channel that mixes together the output of multiple input channels.
+**/
 class MixerChannel extends AudioChannel {
 	/**
 		The amount of inputs a MixerChannel can hold. Set this value via

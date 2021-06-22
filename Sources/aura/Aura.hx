@@ -8,7 +8,6 @@
 
 package aura;
 
-import aura.BufferUtils.clearBuffer;
 import haxe.ds.Vector;
 
 #if cpp
@@ -18,10 +17,12 @@ import sys.thread.Mutex;
 import kha.arrays.Float32Array;
 import kha.audio2.Audio1;
 
-import aura.Assert;
-import aura.MathUtils;
+import aura.channels.MixerChannel;
+import aura.channels.ResamplingAudioChannel;
+import aura.utils.Assert;
+import aura.utils.BufferUtils.clearBuffer;
+import aura.utils.MathUtils;
 
-// @:access(kha.audio2.Audio1)
 class Aura {
 	public static var listener: Listener;
 
