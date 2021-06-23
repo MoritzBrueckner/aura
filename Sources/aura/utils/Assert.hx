@@ -65,7 +65,7 @@ enum abstract AssertLevel(Int) from Int to Int {
 			case "Debug": Debug;
 			case "Warning": Warning;
 			case "Error": Error;
-			case "Critical": Critical;
+			case "Critical" | null: Critical;
 			default: throw 'Could not convert string to AssertLevel: $s';
 		}
 	}
