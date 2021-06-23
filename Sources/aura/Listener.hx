@@ -23,7 +23,8 @@ class Listener {
 		Both parameters must be normalized.
 	**/
 	public function setViewDirection(look: FastVector3, right: FastVector3) {
-		// TODO: Assert length == 1
+		assert(look.length == 1 && right.length == 1, Debug);
+
 		this.look = look;
 		this.right = right;
 	}
