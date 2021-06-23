@@ -20,9 +20,6 @@ class MixerChannel extends AudioChannel {
 
 	public var initialVolume(default, null): FastFloat;
 
-
-	// TODO: change to internal channel super type/interface, which the
-	// MixerChannel class also extends/implements
 	var inputChannels: Vector<AudioChannel>;
 
 	/**

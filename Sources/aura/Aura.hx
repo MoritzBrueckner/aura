@@ -29,7 +29,6 @@ class Aura {
 	public static var mixChannels: Map<String, MixerChannel>;
 	public static var masterChannel: MixerChannel;
 
-	// TODO: Make size dynamic (overallocate? Shrink again after a while?)
 	public static var sampleCaches: Vector<kha.arrays.Float32Array>;
 
 	/**
