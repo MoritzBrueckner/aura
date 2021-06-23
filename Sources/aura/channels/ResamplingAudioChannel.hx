@@ -44,7 +44,7 @@ class ResamplingAudioChannel extends SoundChannel {
 				sampledVal *= Math.sqrt(b); // 3dB increase in center position, TODO: make configurable (0, 3, 6 dB)?
 				// sampledVal *= minF(1.0, b * 2);
 
-				requestedSamples[requestedSamplesIndex++] = sampledVal;
+				requestedSamples[requestedSamplesIndex++] = sampledVal * volume * dstAttenuation;
 			}
 
 			if (floatPosition >= sampleLength(sampleRate)) {

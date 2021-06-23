@@ -9,6 +9,8 @@ import aura.utils.MathUtils;
 	Base class of all audio channels.
 **/
 abstract class AudioChannel {
+	static inline var REFERENCE_DST = 1.0;
+
 	/**
 		The sound's volume relative to the volume of the sound file.
 	**/
@@ -17,9 +19,15 @@ abstract class AudioChannel {
 
 	public var location: FastVector3 = new FastVector3(0, 0, 0);
 
+	public var attenuationMode = AttenuationMode.Inverse;
+	public var attenuationFactor = 1.0;
+	public var maxDistance = 10.0;
+	// public var minDistance = 1;
+
 	var treeLevel: Int = 0;
 
 	var paused: Bool = false;
+	var dstAttenuation: Float = 1.0;
 
 	public abstract function nextSamples(requestedSamples: Float32Array, requestedLength: Int, sampleRate: Hertz): Void;
 
@@ -36,12 +44,9 @@ abstract class AudioChannel {
 
 		if (dirToChannel.length == 0) {
 			this.balance = Balance.CENTER;
+			this.dstAttenuation = 1.0;
 			return;
 		}
-
-		var distance = dirToChannel.length / 4; // TODO Falloff distance
-		var dstVolume = Math.max(0, 4 - distance) / 4 * volume;
-
 
 		// Project the channel position (relative to the listener) to the plane
 		// described by the listener's look and right vectors
@@ -61,6 +66,20 @@ abstract class AudioChannel {
 
 		this.balance = angle;
 
-		// volume *= dstVolume;
+		var dst = maxF(REFERENCE_DST, dirToChannel.length);
+		this.dstAttenuation = switch (attenuationMode) {
+			case Linear:
+				1 - attenuationFactor * (dst - REFERENCE_DST) / (maxDistance - REFERENCE_DST);
+			case Inverse:
+				REFERENCE_DST / (REFERENCE_DST + attenuationFactor * (dst - REFERENCE_DST));
+			case Exponential:
+				Math.pow(dst / REFERENCE_DST, -attenuationFactor);
+		}
 	}
+}
+
+enum abstract AttenuationMode(Int) {
+	var Linear;
+	var Inverse;
+	var Exponential;
 }

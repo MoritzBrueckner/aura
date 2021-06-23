@@ -30,7 +30,7 @@ class SoundChannel extends AudioChannel {
 		var requestedSamplesIndex = 0;
 		while (requestedSamplesIndex < requestedLength) {
 			for (i in 0...minI(data.length - playbackPosition, requestedLength - requestedSamplesIndex)) {
-				requestedSamples[requestedSamplesIndex++] = data[playbackPosition++];
+				requestedSamples[requestedSamplesIndex++] = data[playbackPosition++] * volume * dstAttenuation;
 			}
 
 			if (playbackPosition >= data.length) {
