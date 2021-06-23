@@ -1,15 +1,16 @@
 package aura.utils;
 
-import aura.utils.Assert.assert;
 import aura.utils.Assert.*;
 
 @:pure inline function frequencyToFactor(freq: Hertz, maxFreq: Hertz): Float {
-	// assert(freq < maxFreq, Debug);
+	assert(freq < maxFreq, Debug);
+
 	return freq / maxFreq;
 }
 
 @:pure inline function factorToFrequency(factor: Float, maxFreq: Hertz): Hertz {
-	// assert(0.0 < fac && fac < 1.0, Debug);
+	assert(0.0 < factor && factor < 1.0, Debug);
+
 	return Std.int(factor * maxFreq);
 }
 
