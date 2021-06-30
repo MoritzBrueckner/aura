@@ -2,6 +2,10 @@ package aura.channels;
 
 import haxe.ds.Vector;
 
+#if cpp
+import sys.thread.Mutex;
+#end
+
 import kha.FastFloat;
 import kha.arrays.Float32Array;
 
@@ -12,6 +16,10 @@ import aura.utils.BufferUtils.clearBuffer;
 	A channel that mixes together the output of multiple input channels.
 **/
 class MixerChannel extends AudioChannel {
+	#if cpp
+	static var mutex: Mutex = new Mutex();
+	#end
+
 	/**
 		The amount of inputs a MixerChannel can hold. Set this value via
 		`Aura.init(channelSize)`.

@@ -24,6 +24,10 @@ import aura.utils.BufferUtils.clearBuffer;
 import aura.utils.MathUtils;
 
 class Aura {
+	#if cpp
+	static var mutex: Mutex = new Mutex();
+	#end
+
 	public static var listener: Listener;
 
 	public static var mixChannels: Map<String, MixerChannel>;
