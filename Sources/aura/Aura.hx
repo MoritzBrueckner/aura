@@ -127,6 +127,8 @@ class Aura {
 		@param buffer The buffer into which to write the output samples.
 	**/
 	static function audioCallback(samplesBox: kha.internal.IntBox, buffer: kha.audio2.Buffer): Void {
+		Time.update();
+
 		var samples = samplesBox.value;
 
 		var sampleCache = getSampleCache(0, samples);

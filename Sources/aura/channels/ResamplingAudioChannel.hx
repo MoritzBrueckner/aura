@@ -34,7 +34,7 @@ class ResamplingAudioChannel extends SoundChannel {
 		while (requestedSamplesIndex < requestedLength) {
 			for (i in 0...minI(sampleLength(sampleRate) - playbackPosition, requestedLength - requestedSamplesIndex)) {
 				// Make sure that we store the actual float position
-				floatPosition += pitch;
+				floatPosition += pitch * dopplerRatio;
 				playbackPosition = Std.int(floatPosition);
 
 				var sampledVal: Float = sampleFloatPos(floatPosition, i % 2 == 0, sampleRate);
