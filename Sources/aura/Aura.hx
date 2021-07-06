@@ -10,10 +10,6 @@ package aura;
 
 import haxe.ds.Vector;
 
-#if cpp
-import sys.thread.Mutex;
-#end
-
 import kha.arrays.Float32Array;
 import kha.audio2.Audio1;
 
@@ -24,10 +20,6 @@ import aura.utils.BufferUtils.clearBuffer;
 import aura.utils.MathUtils;
 
 class Aura {
-	#if cpp
-	static var mutex: Mutex = new Mutex();
-	#end
-
 	public static var listener: Listener;
 
 	public static var mixChannels: Map<String, MixerChannel>;
@@ -146,18 +138,9 @@ class Aura {
 
 		clearBuffer(sampleCache, samples);
 
-		#if cpp
-		mutex.acquire();
-		#end
-
-		// Copy reference to master channel for thread safety in case the master
-		// channel is replaced while the playback happens
-		// TODO: Investigate if this assignment is actually atomic in cpp
+		// Copy reference to masterChannel for some more thread safety.
+		// TODO: Investigate if other solutions are required here
 		var master = masterChannel;
-
-		#if cpp
-		mutex.release();
-		#end
 
 		if (master != null) {
 			master.nextSamples(sampleCache, samples, buffer.samplesPerSecond);
