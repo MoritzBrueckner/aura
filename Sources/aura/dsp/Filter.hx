@@ -11,11 +11,10 @@ import aura.utils.FrequencyUtils;
 	with a slope of 12 dB/octave.
 **/
 class Filter implements DSP {
-	public var buf: Vector<Vector<Float>>;
-
-	var cutoff = 1.0;
-
 	public var mode: FilterMode;
+
+	var buf: Vector<Vector<Float>>;
+	var cutoff = 1.0;
 
 	public inline function new(mode: FilterMode) {
 		this.mode = mode;
