@@ -7,6 +7,11 @@ import aura.utils.MathUtils.clampF;
 **/
 typedef Hertz = Int;
 
+/**
+	Float representing milliseconds.
+**/
+typedef Millisecond = Float;
+
 abstract Balance(Float) from Float to Float {
 	public static inline var LEFT: Balance = 0.0;
 	public static inline var CENTER: Balance = 0.5;
