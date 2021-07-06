@@ -92,7 +92,8 @@ abstract class AudioChannel {
 			var vs = this.velocity.dot(dist) / dist.length;
 
 			var soundSpeed = SPEED_OF_SOUND * Time.delta;
-			dopplerRatio = (soundSpeed + vr) / (soundSpeed + vs) * dopplerFactor;
+			dopplerRatio = (soundSpeed + vr) / (soundSpeed + vs);
+			dopplerRatio = Math.pow(dopplerRatio, dopplerFactor);
 		}
 
 		listener.velocity = listener.location.sub(listener.lastLocation);
