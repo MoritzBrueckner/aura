@@ -11,7 +11,7 @@ class CircularBuffer<T> {
 	var length(get, null): Int;
 
 	public inline function new(size: Int) {
-		assert(size != 0, Warning);
+		assert(Warning, size != 0);
 
 		this.data = new Vector<T>(size);
 		this.length = size;

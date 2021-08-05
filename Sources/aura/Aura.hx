@@ -64,7 +64,7 @@ class Aura {
 			mixerChannel = masterChannel;
 		}
 
-		assert(sound.uncompressedData != null, Critical);
+		assert(Critical, sound.uncompressedData != null);
 
 		// TODO: Like Kha, only use resampling channel if pitch is used or if samplerate of sound and system differs
 		var channel = new ResamplingAudioChannel(loop, sound.sampleRate, mixerChannel);
