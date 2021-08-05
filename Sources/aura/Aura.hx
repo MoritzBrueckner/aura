@@ -10,6 +10,7 @@ package aura;
 
 import haxe.ds.Vector;
 
+import kha.Assets;
 import kha.arrays.Float32Array;
 import kha.audio2.Audio1;
 
@@ -57,6 +58,47 @@ class Aura {
 		sampleCaches = new Vector(8);
 
 		kha.audio2.Audio.audioCallback = audioCallback;
+	}
+
+	public static function loadSounds(sounds: AuraLoadConfig, done: Void->Void) {
+		final length = sounds.compressed.length + sounds.uncompressed.length;
+		var count = 0;
+
+		for (soundName in sounds.compressed) {
+			Assets.loadSound(soundName, (sound: kha.Sound) -> {
+				if (sound.compressedData == null) {
+					throw 'Cannot compress already uncompressed sound ${soundName}!';
+				}
+
+				if (++count == length) {
+					done();
+					return;
+				}
+			});
+		}
+
+		for (soundName in sounds.uncompressed) {
+			Assets.loadSound(soundName, (sound: kha.Sound) -> {
+				if (sound.uncompressedData == null) {
+					sound.uncompress(() -> {
+						if (++count == length) {
+							done();
+							return;
+						}
+					});
+				}
+				else {
+					if (++count == length) {
+						done();
+						return;
+					}
+				}
+			});
+		}
+	}
+
+	public static inline function getSound(soundName: String): Null<kha.Sound> {
+		return Assets.sounds.get(soundName);
 	}
 
 	public static function play(sound: kha.Sound, loop: Bool = false, mixerChannel: Null<MixerChannel> = null): Null<ResamplingAudioChannel> {
@@ -157,4 +199,10 @@ class Aura {
 			}
 		}
 	}
+}
+
+@:structInit
+class AuraLoadConfig {
+	public final compressed: Array<String> = [];
+	public final uncompressed: Array<String> = [];
 }
