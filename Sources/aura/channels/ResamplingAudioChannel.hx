@@ -5,7 +5,6 @@
 package aura.channels;
 
 import kha.arrays.Float32Array;
-import kha.audio2.ResamplingAudioChannel as KhaResamplingAudioChanneL;
 
 import aura.utils.MathUtils;
 
