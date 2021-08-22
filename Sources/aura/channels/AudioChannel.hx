@@ -1,8 +1,8 @@
 package aura.channels;
 
-import kha.math.FastVector3;
 import kha.arrays.Float32Array;
 
+import aura.math.Vec3;
 import aura.utils.MathUtils;
 
 /**
@@ -18,9 +18,9 @@ abstract class AudioChannel {
 	public var volume: Float = 1.0;
 	public var balance = Balance.CENTER;
 
-	public var location: FastVector3 = new FastVector3(0, 0, 0);
-	public var lastLocation: FastVector3 = new FastVector3(0, 0, 0);
-	public var velocity: FastVector3 = new FastVector3(0, 0, 0);
+	public var location: Vec3 = new Vec3(0, 0, 0);
+	public var lastLocation: Vec3 = new Vec3(0, 0, 0);
+	public var velocity: Vec3 = new Vec3(0, 0, 0);
 
 	public var attenuationMode = AttenuationMode.Inverse;
 	public var attenuationFactor = 1.0;
