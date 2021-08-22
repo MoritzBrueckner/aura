@@ -106,7 +106,7 @@ class MixerChannel extends AudioChannel {
 
 
 	public function nextSamples(requestedSamples: Float32Array, requestedLength: Int, sampleRate: Hertz): Void {
-		var sampleCacheIndividual = Aura.getSampleCache(treeLevel, requestedLength);
+		final sampleCacheIndividual = Aura.getSampleCache(treeLevel, requestedLength);
 
 		if (sampleCacheIndividual == null) {
 			clearBuffer(requestedSamples, requestedLength);

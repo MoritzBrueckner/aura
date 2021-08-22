@@ -19,7 +19,7 @@ abstract class AudioChannel {
 	public var balance = Balance.CENTER;
 
 	public var location: Vec3 = new Vec3(0, 0, 0);
-	public var lastLocation: Vec3 = new Vec3(0, 0, 0);
+	var lastLocation: Vec3 = new Vec3(0, 0, 0);
 	public var velocity: Vec3 = new Vec3(0, 0, 0);
 
 	public var attenuationMode = AttenuationMode.Inverse;
@@ -46,8 +46,8 @@ abstract class AudioChannel {
 		channel and the location and rotation of the current listener.
 	**/
 	public function update3D() {
-		var listener = Aura.listener;
-		var dirToChannel = location.sub(listener.location);
+		final listener = Aura.listener;
+		final dirToChannel = location.sub(listener.location);
 
 		if (dirToChannel.length == 0) {
 			this.balance = Balance.CENTER;
@@ -57,7 +57,7 @@ abstract class AudioChannel {
 
 		// Project the channel position (relative to the listener) to the plane
 		// described by the listener's look and right vectors
-		var up = listener.right.cross(listener.look).normalized();
+		final up = listener.right.cross(listener.look).normalized();
 		var projectedChannelPos = projectPointOntoPlane(dirToChannel, up);
 
 		projectedChannelPos = projectedChannelPos.normalized();
@@ -73,7 +73,7 @@ abstract class AudioChannel {
 
 		this.balance = angle;
 
-		var dst = maxF(REFERENCE_DST, dirToChannel.length);
+		final dst = maxF(REFERENCE_DST, dirToChannel.length);
 		this.dstAttenuation = switch (attenuationMode) {
 			case Linear:
 				1 - attenuationFactor * (dst - REFERENCE_DST) / (maxDistance - REFERENCE_DST);
@@ -87,11 +87,11 @@ abstract class AudioChannel {
 			dopplerRatio = 1.0;
 		}
 		else {
-			var dist = this.location.sub(listener.location);
-			var vr = listener.velocity.dot(dist) / dist.length;
-			var vs = this.velocity.dot(dist) / dist.length;
+			final dist = this.location.sub(listener.location);
+			final vr = listener.velocity.dot(dist) / dist.length;
+			final vs = this.velocity.dot(dist) / dist.length;
 
-			var soundSpeed = SPEED_OF_SOUND * Time.delta;
+			final soundSpeed = SPEED_OF_SOUND * Time.delta;
 			dopplerRatio = (soundSpeed + vr) / (soundSpeed + vs);
 			dopplerRatio = Math.pow(dopplerRatio, dopplerFactor);
 		}

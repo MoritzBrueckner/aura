@@ -39,7 +39,7 @@ class HaasEffect implements DSP {
 	}
 
 	public function setDelay(delay: Millisecond) {
-		var prev = diffSamples;
+		final prev = diffSamples;
 		this.diffSamples = msToSamples(48000, delay);
 		if (prev != diffSamples) {
 			this.delayChannelIdx = (diffSamples > 0) ? 0 : 1;

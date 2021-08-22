@@ -42,8 +42,8 @@ class Aura {
 		listener = new Listener();
 
 		masterChannel = new MixerChannel();
-		var musicChannel = new MixerChannel();
-		var fxChannel = new MixerChannel();
+		final musicChannel = new MixerChannel();
+		final fxChannel = new MixerChannel();
 
 		mixChannels = [
 			"master" => masterChannel,
@@ -109,10 +109,10 @@ class Aura {
 		assert(Critical, sound.uncompressedData != null);
 
 		// TODO: Like Kha, only use resampling channel if pitch is used or if samplerate of sound and system differs
-		var channel = new ResamplingAudioChannel(loop, sound.sampleRate, mixerChannel);
+		final channel = new ResamplingAudioChannel(loop, sound.sampleRate, mixerChannel);
 		@:privateAccess channel.data = sound.uncompressedData;
 
-		var foundChannel = mixerChannel.addInputChannel(channel);
+		final foundChannel = mixerChannel.addInputChannel(channel);
 
 		return foundChannel ? channel : null;
 	}
@@ -165,9 +165,8 @@ class Aura {
 	static function audioCallback(samplesBox: kha.internal.IntBox, buffer: kha.audio2.Buffer): Void {
 		Time.update();
 
-		var samples = samplesBox.value;
-
-		var sampleCache = getSampleCache(0, samples);
+		final samples = samplesBox.value;
+		final sampleCache = getSampleCache(0, samples);
 
 		if (sampleCache == null) {
 			for (i in 0...samples) {

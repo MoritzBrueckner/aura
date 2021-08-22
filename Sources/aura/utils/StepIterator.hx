@@ -22,9 +22,8 @@ inline function step(iter: IntIterator, step: Int) {
 
 private class StepIterator {
 	var currentIndex: Int;
-	var end: Int;
-
-	var step: Int;
+	final end: Int;
+	final step: Int;
 
 	public inline function new(start: Int, end: Int, step: Int) {
 		this.currentIndex = start;

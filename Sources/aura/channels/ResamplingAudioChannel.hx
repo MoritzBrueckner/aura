@@ -37,7 +37,7 @@ class ResamplingAudioChannel extends SoundChannel {
 
 				var sampledVal: Float = sampleFloatPos(floatPosition, i % 2 == 0, sampleRate);
 
-				var b = (i % 2 == 0) ? ~balance : balance;
+				final b = (i % 2 == 0) ? ~balance : balance;
 				// https://sites.uci.edu/computermusic/2013/03/29/constant-power-panning-using-square-root-of-intensity/
 				sampledVal *= Math.sqrt(b); // 3dB increase in center position, TODO: make configurable (0, 3, 6 dB)?
 				// sampledVal *= minF(1.0, b * 2);
@@ -79,10 +79,10 @@ class ResamplingAudioChannel extends SoundChannel {
 
 		// TODO: Locate clicks (could be an issue with the sound file itself)
 
-		var factor = this.sampleRate / sampleRate;
+		final factor = this.sampleRate / sampleRate;
 
 		position = Std.int(position / 2);
-		var pos = factor * position;
+		final pos = factor * position;
 		var pos1 = Math.floor(pos);
 		var pos2 = Math.floor(pos + 1);
 		pos1 *= 2;
@@ -113,7 +113,7 @@ class ResamplingAudioChannel extends SoundChannel {
 	}
 
 	inline function sampleLength(sampleRate: Int): Int {
-		var value = Math.ceil(data.length * (sampleRate / this.sampleRate));
+		final value = Math.ceil(data.length * (sampleRate / this.sampleRate));
 		return value % 2 == 0 ? value : value + 1;
 	}
 

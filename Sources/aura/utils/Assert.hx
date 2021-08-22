@@ -16,8 +16,8 @@ class Assert {
 	static var assertThreshold = AssertLevel.Critical;
 
 	public static macro function assert(levelExpr: ExprOf<AssertLevel>, condition: ExprOf<Bool>): Expr {
-		var level: AssertLevel = AssertLevel.fromExpr(levelExpr);
-		var assertThreshold = AssertLevel.fromString(Context.definedValue("AURA_ASSERT_LEVEL"));
+		final level: AssertLevel = AssertLevel.fromExpr(levelExpr);
+		final assertThreshold = AssertLevel.fromString(Context.definedValue("AURA_ASSERT_LEVEL"));
 
 		if (level < assertThreshold) {
 			return macro {};

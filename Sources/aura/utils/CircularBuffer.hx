@@ -5,7 +5,7 @@ import haxe.ds.Vector;
 @:generic
 class CircularBuffer<T> {
 
-	var data: Vector<T>;
+	final data: Vector<T>;
 	var readHead: Int;
 	var writeHead: Int;
 	var length(get, null): Int;

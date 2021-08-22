@@ -13,7 +13,7 @@ import aura.utils.FrequencyUtils;
 class Filter implements DSP {
 	public var mode: FilterMode;
 
-	var buf: Vector<Vector<Float>>;
+	final buf: Vector<Vector<Float>>;
 	var cutoff = 1.0;
 
 	public inline function new(mode: FilterMode) {
@@ -31,7 +31,7 @@ class Filter implements DSP {
 	public function process(buffer: Float32Array, bufferLength: Int) {
 		for (i in 0...bufferLength) {
 			// Channel index, buffer is interleaved
-			var c = i % 2;
+			final c = i % 2;
 
 			// http://www.martin-finke.de/blog/articles/audio-plugins-013-filter/
 			buf[c][0] += cutoff * (buffer[i] - buf[c][0]);

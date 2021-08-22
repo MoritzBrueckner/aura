@@ -28,7 +28,7 @@ class Listener {
 
 		Both parameters must be normalized.
 	**/
-	public function setViewDirection(look: Vec3, right: Vec3) {
+	public inline function setViewDirection(look: Vec3, right: Vec3) {
 		assert(Debug, look.length == 1 && right.length == 1);
 
 		this.look = look;
