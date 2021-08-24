@@ -28,86 +28,98 @@ project.addLibrary('aura');
 
 # Usage
 
-Load a sound with Kha:
+- Load sounds (and automatically uncompress them when needed):
 
-```haxe
-kha.Assets.loadSound("MySoundFile", (mySound: Sound) -> {
-    // All the code inside {} is executed after the sound was loaded
-});
-```
+  ```haxe
+  import aura.Aura;
 
-Play a sound:
+  ...
 
-```haxe
-import aura.Aura;
+  var sounds: AuraLoadConfig = {
+      uncompressed: [  // <-- List of sounds to uncompress
+          "MySoundFile",
+      ],
+      compressed: [  // <-- List of sounds to remain compressed
+          "AnotherSoundFile",
+      ]
+  };
 
-...
+  Aura.loadSounds(sounds, () -> {
+      // All the code inside {} is executed after the sounds were loaded and uncompressed
 
-// Plays the sound `mySound` without repeat on the master channel
-Aura.play(mySound);
+      // You can access the loaded sounds with `Aura.getSound()`
+      mySound: kha.Sound = Aura.getSound("MySoundFile");
+  });
+  ```
 
-// Plays the sound `mySound`with repeat on the master channel
-Aura.play(mySound, true);
+- Play a sound:
 
-// Plays a sound `mySound` without repeat on the predefined fx channel
-Aura.play(mySound, false, Aura.mixChannels["fx"]);
-```
+  ```haxe
+  // Plays the sound `mySound` without repeat on the master channel
+  Aura.play(mySound);
 
-Create a `MixerChannel` to control a group of sounds:
+  // Plays the sound `mySound` with repeat on the master channel
+  Aura.play(mySound, true);
 
-```haxe
-import aura.channels.MixerChannel;
+  // Plays the sound `mySound` without repeat on the predefined fx channel
+  Aura.play(mySound, false, Aura.mixChannels["fx"]);
+  ```
 
-...
+- Create a `MixerChannel` to control a group of sounds:
 
-var voiceChannel = MixerChannel();
-// Mix the output of `voiceChannel` into the master channel
-Aura.masterChannel.addInputChannel(voiceChannel);
-```
+  ```haxe
+  import aura.channels.MixerChannel;
 
-Add a lowpass filter to the master channel:
+  ...
 
-```haxe
-import aura.dsp.Filter;
+  var voiceChannel = MixerChannel();
+  // Mix the output of `voiceChannel` into the master channel
+  Aura.masterChannel.addInputChannel(voiceChannel);
+  ```
 
-...
+- Add a lowpass filter to the master channel:
 
-Aura.play(mySound);
+  ```haxe
+  import aura.dsp.Filter;
 
-var lowPass = new Filter(LowPass);
-lowPass.setCutoffFreq(1000); // Frequency in Hertz
+  ...
 
-Aura.masterChannel.addInsert(lowPass);
-```
+  Aura.play(mySound);
 
-2D sound:
+  var lowPass = new Filter(LowPass);
+  lowPass.setCutoffFreq(1000); // Frequency in Hertz
 
-```haxe
-var mySoundChannel = Aura.play(mySound);
+  Aura.masterChannel.addInsert(lowPass);
+  ```
 
-// Some utility constants
-mySoundChannel.balance = LEFT;
-mySoundChannel.balance = CENTER;
-mySoundChannel.balance = RIGHT;
+- 2D sound:
 
-// Set angle in degrees between -180 (left) and 180 (right)
-// You can also use Rad(value) for radians
-mySoundChannel.balance = Balance.fromAngle(Deg(30));
-```
+  ```haxe
+  var mySoundChannel = Aura.play(mySound);
 
-3D sound:
+  // Some utility constants
+  mySoundChannel.balance = LEFT;
+  mySoundChannel.balance = CENTER; // Default
+  mySoundChannel.balance = RIGHT;
 
-```haxe
-var mySoundChannel = Aura.play(mySound);
+  // Set angle in degrees between -90 (left) and 90 (right)
+  // You can also use Rad(value) for radians in [-pi/2, pi/2]
+  mySoundChannel.balance = Balance.fromAngle(Deg(30));
+  ```
 
-// Set the 3D location of the sound
-mySoundChannel.location.x = -1.0;
-mySoundChannel.location.y = 1.0;
-mySoundChannel.location.z = 0.2;
+- 3D sound:
 
-// Set the 3D location of the listener
-Aura.listener.location.x = 2.0;
+  ```haxe
+  var mySoundChannel = Aura.play(mySound);
 
-// Apply the changes to make them audible
-channel.update3D();
-```
+  // Set the 3D location of the sound
+  mySoundChannel.location.x = -1.0;
+  mySoundChannel.location.y = 1.0;
+  mySoundChannel.location.z = 0.2;
+
+  // Set the 3D location of the listener
+  Aura.listener.location.x = 2.0;
+
+  // Apply the changes to make them audible
+  mySoundChannel.update3D();
+  ```
