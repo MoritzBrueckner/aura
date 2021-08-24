@@ -20,7 +20,7 @@ In your project directory, create a folder called `Libraries`. Then, open a comm
 git clone https://gitlab.com/MoritzBrueckner/aura.git
 ```
 
-Then, add the following line to your project's `khafile.js` (if you're using Armory, you don't need to do this step):
+Then, add the following line to your project's `khafile.js` (if you're using [Armory](https://armory3d.org/), you can skip this step):
 
 ```js
 project.addLibrary('aura');
