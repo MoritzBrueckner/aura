@@ -48,7 +48,7 @@ project.addLibrary('aura');
       // All the code inside {} is executed after the sounds were loaded and uncompressed
 
       // You can access the loaded sounds with `Aura.getSound()`
-      mySound: kha.Sound = Aura.getSound("MySoundFile");
+      var mySound: kha.Sound = Aura.getSound("MySoundFile");
   });
   ```
 
