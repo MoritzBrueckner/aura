@@ -62,12 +62,7 @@ class ResamplingAudioChannel extends SoundChannel {
 			requestedSamples[requestedSamplesIndex++] = 0;
 		}
 
-		// TODO: Do not call this here, instead let the mixer channel mix
-		// all of its sounds together and then apply inserts
-
-		// For this, set https://github.com/Kode/Kha/blob/f7b6f21b60f1c47402e6fafd519a3d7418d1bf8a/Sources/kha/audio2/Audio1.hx#L35
-		// to MasterChannel.mix instead and re-use the same/adapted mix function
-		// mixerChannel.processInserts(requestedSamples, requestedLength);
+		processInserts(requestedSamples, requestedLength);
 	}
 
 	inline function sampleFloatPos(position: Float, even: Bool, sampleRate: Hertz): Float {

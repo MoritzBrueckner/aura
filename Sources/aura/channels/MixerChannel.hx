@@ -9,7 +9,6 @@ import sys.thread.Mutex;
 import kha.FastFloat;
 import kha.arrays.Float32Array;
 
-import aura.dsp.DSP;
 import aura.utils.BufferUtils.clearBuffer;
 
 /**
@@ -34,8 +33,6 @@ class MixerChannel extends AudioChannel {
 		Temporary copy of inputChannels for thread safety.
 	**/
 	var inputChannelsCopy: Vector<AudioChannel>;
-
-	var inserts: Array<DSP> = [];
 
 	public function new(channel: ResamplingAudioChannel = null) {
 		inputChannels = new Vector<AudioChannel>(channelSize);
@@ -88,22 +85,6 @@ class MixerChannel extends AudioChannel {
 		mutex.release();
 		#end
 	}
-
-	public inline function addInsert(insert: DSP): DSP {
-		inserts.push(insert);
-		return insert;
-	}
-
-	public inline function removeInsert(insert: DSP) {
-		inserts.remove(insert);
-	}
-
-	public inline function processInserts(buffer: Float32Array, bufferLength: Int) {
-		for (insert in inserts) {
-			insert.process(buffer, bufferLength);
-		}
-	}
-
 
 	public function nextSamples(requestedSamples: Float32Array, requestedLength: Int, sampleRate: Hertz): Void {
 		final sampleCacheIndividual = Aura.getSampleCache(treeLevel, requestedLength);

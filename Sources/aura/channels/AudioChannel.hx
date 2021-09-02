@@ -2,6 +2,7 @@ package aura.channels;
 
 import kha.arrays.Float32Array;
 
+import aura.dsp.DSP;
 import aura.math.Vec3;
 import aura.utils.MathUtils;
 
@@ -34,6 +35,8 @@ abstract class AudioChannel {
 	var paused: Bool = false;
 	var dstAttenuation: Float = 1.0;
 	var dopplerRatio: Float = 1.0;
+
+	var inserts: Array<DSP> = [];
 
 	public abstract function nextSamples(requestedSamples: Float32Array, requestedLength: Int, sampleRate: Hertz): Void;
 
@@ -101,6 +104,21 @@ abstract class AudioChannel {
 
 		this.velocity = this.location.sub(this.lastLocation);
 		this.lastLocation.setFrom(this.location);
+	}
+
+	public inline function addInsert(insert: DSP): DSP {
+		inserts.push(insert);
+		return insert;
+	}
+
+	public inline function removeInsert(insert: DSP) {
+		inserts.remove(insert);
+	}
+
+	public inline function processInserts(buffer: Float32Array, bufferLength: Int) {
+		for (insert in inserts) {
+			insert.process(buffer, bufferLength);
+		}
 	}
 }
 

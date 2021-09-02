@@ -45,6 +45,8 @@ class SoundChannel extends AudioChannel {
 		while (requestedSamplesIndex < requestedLength) {
 			requestedSamples[requestedSamplesIndex++] = 0;
 		}
+
+		processInserts(requestedSamples, requestedLength);
 	}
 
 	public function play(): Void {
