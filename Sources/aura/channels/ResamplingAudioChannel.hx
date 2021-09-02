@@ -77,8 +77,6 @@ class ResamplingAudioChannel extends SoundChannel {
 		// Also replaced 'even' to correct the stereo output (buffer is interleaved)
 		// var even = position % 2 == 0;
 
-		// TODO: Locate clicks (could be an issue with the sound file itself)
-
 		final factor = this.sampleRate / sampleRate;
 
 		position = Std.int(position / 2);
