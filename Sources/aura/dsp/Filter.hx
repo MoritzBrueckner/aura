@@ -47,11 +47,11 @@ class Filter implements DSP {
 	}
 
 	public inline function setCutoffFreq(cutoffFreq: Hertz) {
-		cutoff = frequencyToFactor(cutoffFreq, sampleRateToMaxFreq(48000));
+		cutoff = frequencyToFactor(cutoffFreq, sampleRateToMaxFreq(Aura.sampleRate));
 	}
 
 	public inline function getCutoffFreq(): Hertz {
-		return factorToFrequency(cutoff, sampleRateToMaxFreq(48000));
+		return factorToFrequency(cutoff, sampleRateToMaxFreq(Aura.sampleRate));
 	}
 }
 

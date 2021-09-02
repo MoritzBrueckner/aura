@@ -21,6 +21,8 @@ import aura.utils.BufferUtils.clearBuffer;
 import aura.utils.MathUtils;
 
 class Aura {
+	public static var sampleRate(default, null): Int;
+
 	public static var listener: Listener;
 
 	public static var mixChannels: Map<String, MixerChannel>;
@@ -37,6 +39,8 @@ class Aura {
 	static var lastAllocationTimer: Int = 0;
 
 	public static function init(channelSize: Int = 16) {
+		sampleRate = kha.audio2.Audio.samplesPerSecond;
+
 		@:privateAccess MixerChannel.channelSize = channelSize;
 
 		listener = new Listener();
