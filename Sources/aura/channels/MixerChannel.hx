@@ -135,7 +135,7 @@ class MixerChannel extends AudioChannel {
 			channel.nextSamples(sampleCacheIndividual, requestedLength, sampleRate);
 
 			for (i in 0...requestedLength) {
-				requestedSamples[i] += sampleCacheIndividual[i] * channel.volume;
+				requestedSamples[i] += sampleCacheIndividual[i];
 			}
 		}
 		// for (channel in internalStreamChannels) {
@@ -146,6 +146,10 @@ class MixerChannel extends AudioChannel {
 		// 		sampleCacheAccumulated[i] += sampleCacheIndividual[i] * channel.volume;
 		// 	}
 		// }
+
+		for (i in 0...requestedLength) {
+			requestedSamples[i] *= this.volume;
+		}
 
 		processInserts(requestedSamples, requestedLength);
 	}
