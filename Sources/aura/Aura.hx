@@ -64,40 +64,53 @@ class Aura {
 		kha.audio2.Audio.audioCallback = audioCallback;
 	}
 
-	public static function loadSounds(sounds: AuraLoadConfig, done: Void->Void) {
+	public static function loadSounds(sounds: AuraLoadConfig, done: Void->Void, ?failed: Void->Void) {
 		final length = sounds.compressed.length + sounds.uncompressed.length;
 		var count = 0;
 
-		for (soundName in sounds.compressed) {
-			Assets.loadSound(soundName, (sound: kha.Sound) -> {
-				if (sound.compressedData == null) {
-					throw 'Cannot compress already uncompressed sound ${soundName}!';
-				}
+		try {
+			for (soundName in sounds.compressed) {
+				Assets.loadSound(soundName, (sound: kha.Sound) -> {
+					if (sound.compressedData == null) {
+						throw 'Cannot compress already uncompressed sound ${soundName}!';
+					}
 
-				if (++count == length) {
-					done();
-					return;
-				}
-			});
-		}
-
-		for (soundName in sounds.uncompressed) {
-			Assets.loadSound(soundName, (sound: kha.Sound) -> {
-				if (sound.uncompressedData == null) {
-					sound.uncompress(() -> {
-						if (++count == length) {
-							done();
-							return;
-						}
-					});
-				}
-				else {
 					if (++count == length) {
 						done();
 						return;
 					}
-				}
-			});
+				});
+			}
+
+			for (soundName in sounds.uncompressed) {
+				Assets.loadSound(soundName, (sound: kha.Sound) -> {
+					if (sound.uncompressedData == null) {
+						sound.uncompress(() -> {
+							if (++count == length) {
+								done();
+								return;
+							}
+						});
+					}
+					else {
+						if (++count == length) {
+							done();
+							return;
+						}
+					}
+				});
+			}
+		}
+		catch (e) {
+			trace(
+				"Could not load sounds, make sure that all sounds are named\n"
+				+ "  correctly and that they are included in the khafile.js.\n"
+				+ "Original error: " + e.details()
+			);
+
+			if (failed != null) {
+				failed();
+			}
 		}
 	}
 
