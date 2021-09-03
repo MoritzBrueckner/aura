@@ -6,7 +6,6 @@ import haxe.ds.Vector;
 import sys.thread.Mutex;
 #end
 
-import kha.FastFloat;
 import kha.arrays.Float32Array;
 
 import aura.utils.BufferUtils.clearBuffer;
