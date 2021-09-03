@@ -4,7 +4,6 @@
 
 package aura.channels;
 
-import kha.FastFloat;
 import kha.arrays.Float32Array;
 
 import aura.utils.MathUtils;

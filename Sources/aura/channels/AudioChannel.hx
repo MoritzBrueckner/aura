@@ -1,14 +1,11 @@
 package aura.channels;
 
-import kha.FastFloat;
 import kha.arrays.Float32Array;
 
 import aura.Message;
 import aura.dsp.DSP;
-import aura.math.Vec3;
 import aura.utils.Fifo;
 import aura.utils.Interpolator.LinearInterpolator;
-import aura.utils.MathUtils;
 
 /**
 	Base class of all audio channels in the audio thread.

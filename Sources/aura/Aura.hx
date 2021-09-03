@@ -8,7 +8,6 @@
 
 package aura;
 
-import aura.utils.Fifo;
 import haxe.ds.Vector;
 
 import kha.Assets;
