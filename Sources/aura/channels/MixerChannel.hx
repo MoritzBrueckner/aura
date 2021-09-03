@@ -149,8 +149,36 @@ class MixerChannel extends BaseChannel {
 		processInserts(requestedSamples, requestedLength);
 	}
 
-	// TODO: Bubble down to individual channels
-	public function play(): Void {}
-	public function pause(): Void {}
-	public function stop(): Void {}
+	/**
+		Calls `play()` for all input channels.
+	**/
+	public function play(): Void {
+		for (inputChannel in inputChannels) {
+			if (inputChannel != null) {
+				inputChannel.play();
+			}
+		}
+	}
+
+	/**
+		Calls `pause()` for all input channels.
+	**/
+	public function pause(): Void {
+		for (inputChannel in inputChannels) {
+			if (inputChannel != null) {
+				inputChannel.pause();
+			}
+		}
+	}
+
+	/**
+		Calls `stop()` for all input channels.
+	**/
+	public function stop(): Void {
+		for (inputChannel in inputChannels) {
+			if (inputChannel != null) {
+				inputChannel.stop();
+			}
+		}
+	}
 }
