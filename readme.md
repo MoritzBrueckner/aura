@@ -95,31 +95,31 @@ project.addLibrary('aura');
 - 2D sound:
 
   ```haxe
-  var mySoundChannel = Aura.play(mySound);
+  var mySoundHandle = Aura.play(mySound);
 
   // Some utility constants
-  mySoundChannel.balance = LEFT;
-  mySoundChannel.balance = CENTER; // Default
-  mySoundChannel.balance = RIGHT;
+  mySoundHandle.setBalance(LEFT);
+  mySoundHandle.setBalance(CENTER); // Default
+  mySoundHandle.setBalance(RIGHT);
 
   // Set angle in degrees between -90 (left) and 90 (right)
   // You can also use Rad(value) for radians in [-pi/2, pi/2]
-  mySoundChannel.balance = Balance.fromAngle(Deg(30));
+  mySoundHandle.setBalance(Deg(30));
   ```
 
 - 3D sound:
 
   ```haxe
-  var mySoundChannel = Aura.play(mySound);
+  var mySoundHandle = Aura.play(mySound);
 
   // Set the 3D location of the sound
-  mySoundChannel.location.x = -1.0;
-  mySoundChannel.location.y = 1.0;
-  mySoundChannel.location.z = 0.2;
+  mySoundHandle.location.x = -1.0;
+  mySoundHandle.location.y = 1.0;
+  mySoundHandle.location.z = 0.2;
 
   // Set the 3D location of the listener
   Aura.listener.location.x = 2.0;
 
   // Apply the changes to make them audible
-  mySoundChannel.update3D();
+  mySoundHandle.update3D();
   ```
