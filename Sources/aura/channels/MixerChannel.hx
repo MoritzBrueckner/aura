@@ -25,8 +25,6 @@ class MixerChannel extends BaseChannel {
 	**/
 	static var channelSize: Int;
 
-	public var initialVolume(default, null): FastFloat;
-
 	var inputChannels: Vector<BaseChannel>;
 
 	/**
@@ -36,8 +34,6 @@ class MixerChannel extends BaseChannel {
 
 	public function new(channel: ResamplingAudioChannel = null) {
 		inputChannels = new Vector<BaseChannel>(channelSize);
-
-		// this.initialVolume = channel.volume;
 	}
 
 	/**
