@@ -14,7 +14,7 @@ import aura.utils.BufferUtils.clearBuffer;
 /**
 	A channel that mixes together the output of multiple input channels.
 **/
-class MixerChannel extends AudioChannel {
+class MixerChannel extends BaseChannel {
 	#if cpp
 	static var mutex: Mutex = new Mutex();
 	#end
@@ -27,15 +27,15 @@ class MixerChannel extends AudioChannel {
 
 	public var initialVolume(default, null): FastFloat;
 
-	var inputChannels: Vector<AudioChannel>;
+	var inputChannels: Vector<BaseChannel>;
 
 	/**
 		Temporary copy of inputChannels for thread safety.
 	**/
-	var inputChannelsCopy: Vector<AudioChannel>;
+	var inputChannelsCopy: Vector<BaseChannel>;
 
 	public function new(channel: ResamplingAudioChannel = null) {
-		inputChannels = new Vector<AudioChannel>(channelSize);
+		inputChannels = new Vector<BaseChannel>(channelSize);
 
 		// this.initialVolume = channel.volume;
 	}
@@ -45,7 +45,7 @@ class MixerChannel extends AudioChannel {
 		successful, `false` if the amount of input channels is already maxed
 		out.
 	**/
-	public function addInputChannel(channel: AudioChannel): Bool {
+	public function addInputChannel(channel: BaseChannel): Bool {
 		var foundChannel = false;
 
 		#if cpp
@@ -69,7 +69,7 @@ class MixerChannel extends AudioChannel {
 		return foundChannel;
 	}
 
-	public function removeInputChannel(channel: AudioChannel) {
+	public function removeInputChannel(channel: BaseChannel) {
 		#if cpp
 		mutex.acquire();
 		#end

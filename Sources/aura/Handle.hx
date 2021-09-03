@@ -2,7 +2,7 @@ package aura;
 
 import kha.FastFloat;
 
-import aura.channels.AudioChannel;
+import aura.channels.BaseChannel;
 import aura.dsp.DSP;
 import aura.math.Vec3;
 import aura.utils.MathUtils;
@@ -10,7 +10,7 @@ import aura.utils.MathUtils;
 /**
 	Main-thread handle to a audio channel which works in the audio thread.
 **/
-@:access(aura.channels.AudioChannel)
+@:access(aura.channels.BaseChannel)
 class Handle {
 	static inline var REFERENCE_DST = 1.0;
 	static inline var SPEED_OF_SOUND = 343.4; // Air, m/s
@@ -18,7 +18,7 @@ class Handle {
 	/**
 		Link to the audio channel in the audio thread.
 	**/
-	var channel: AudioChannel;
+	var channel: BaseChannel;
 
 	/**
 		Whether the playback of the handle's channel is currently paused.
@@ -48,7 +48,7 @@ class Handle {
 	var _volume: Float = 1.0;
 	var _balance: Balance = Balance.CENTER;
 
-	public inline function new(channel: AudioChannel) {
+	public inline function new(channel: BaseChannel) {
 		this.channel = channel;
 	}
 

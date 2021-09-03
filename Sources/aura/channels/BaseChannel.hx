@@ -10,7 +10,7 @@ import aura.utils.Interpolator.LinearInterpolator;
 /**
 	Base class of all audio channels in the audio thread.
 **/
-abstract class AudioChannel {
+abstract class BaseChannel {
 	final messages: Fifo<Message> = new Fifo();
 
 	var treeLevel: Int = 0;

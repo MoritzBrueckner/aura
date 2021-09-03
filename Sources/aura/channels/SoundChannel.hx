@@ -5,7 +5,7 @@ import kha.arrays.Float32Array;
 import aura.utils.BufferUtils.clearBuffer;
 import aura.utils.MathUtils;
 
-class SoundChannel extends AudioChannel {
+class SoundChannel extends BaseChannel {
 	public static inline var NUM_CHANNELS = 2;
 
 	/**
