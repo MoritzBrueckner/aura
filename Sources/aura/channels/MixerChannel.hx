@@ -58,6 +58,8 @@ class MixerChannel extends BaseChannel {
 			}
 		}
 
+		updateChannelsCopy();
+
 		#if cpp
 		mutex.release();
 		#end
@@ -77,9 +79,25 @@ class MixerChannel extends BaseChannel {
 			}
 		}
 
+		updateChannelsCopy();
+
 		#if cpp
 		mutex.release();
 		#end
+	}
+
+	/**
+		Copy the references to the inputs channels for thread safety. This
+		function does not acquire any additional mutexes.
+		@see `MixerChannel.inputChannelsCopy`
+	**/
+	inline function updateChannelsCopy() {
+		inputChannelsCopy = inputChannels.copy();
+
+		// TODO: Streaming
+		// for (i in 0...channelCount) {
+		// 	internalStreamChannels[i] = streamChannels[i];
+		// }
 	}
 
 	public function synchronize() {
@@ -96,27 +114,17 @@ class MixerChannel extends BaseChannel {
 	}
 
 	public function nextSamples(requestedSamples: Float32Array, requestedLength: Int, sampleRate: Hertz): Void {
-		final sampleCacheIndividual = Aura.getSampleCache(treeLevel, requestedLength);
-
-		if (sampleCacheIndividual == null) {
+		// No input channel added yet, skip useless computations
+		if (inputChannelsCopy == null) {
 			clearBuffer(requestedSamples, requestedLength);
 			return;
 		}
 
-		// Copy references to channels for thread safety
-		// TODO: Move this out of this callback!
-		#if cpp
-		mutex.acquire();
-		#end
-		inputChannelsCopy = inputChannels.copy();
-
-		// TODO: Streaming
-		// for (i in 0...channelCount) {
-		// 	internalStreamChannels[i] = streamChannels[i];
-		// }
-		#if cpp
-		mutex.release();
-		#end
+		final sampleCacheIndividual = Aura.getSampleCache(treeLevel, requestedLength);
+		if (sampleCacheIndividual == null) {
+			clearBuffer(requestedSamples, requestedLength);
+			return;
+		}
 
 		for (channel in inputChannelsCopy) {
 			if (channel == null || !channel.isPlayable()) {
@@ -138,6 +146,7 @@ class MixerChannel extends BaseChannel {
 		// 	}
 		// }
 
+		// Apply volume of this channel
 		final stepVol = pVolume.getLerpStepSize(requestedLength);
 		for (i in 0...requestedLength) {
 			requestedSamples[i] *= pVolume.currentValue;
