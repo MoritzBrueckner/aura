@@ -148,6 +148,8 @@ class Aura {
 				// skip this "frame" instead (see [1] for reference).
 
 				trace("Unexpected allocation request in audio thread.");
+				final haveMsg = (cache == null) ? 'no cache' : '${cache.length}';
+				trace('  treeLevel: $treeLevel, wanted length: $length (have: $haveMsg)');
 
 				lastAllocationTimer = 0;
 				kha.audio2.Audio.disableGcInteractions = false;
