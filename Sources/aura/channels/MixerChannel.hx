@@ -75,7 +75,7 @@ class MixerChannel extends AudioChannel {
 		#end
 
 		for (i in 0...MixerChannel.channelSize) {
-			if (inputChannels[i] == channel) { // || inputChannels[i].finished) {
+			if (inputChannels[i] == channel) {
 				inputChannels[i] = null;
 				break;
 			}
@@ -123,7 +123,7 @@ class MixerChannel extends AudioChannel {
 		#end
 
 		for (channel in inputChannelsCopy) {
-			if (channel == null) { // || channel.finished) {
+			if (channel == null || !channel.isPlayable()) {
 				continue;
 			}
 
@@ -134,7 +134,7 @@ class MixerChannel extends AudioChannel {
 			}
 		}
 		// for (channel in internalStreamChannels) {
-		// 	if (channel == null || channel.finished)
+		// 	if (channel == null || !channel.isPlayable())
 		// 		continue;
 		// 	channel.nextSamples(sampleCacheIndividual, samples, buffer.samplesPerSecond);
 		// 	for (i in 0...samples) {

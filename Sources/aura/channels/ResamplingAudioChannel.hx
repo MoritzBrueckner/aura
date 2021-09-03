@@ -22,13 +22,6 @@ class ResamplingAudioChannel extends SoundChannel {
 	};
 
 	override public function nextSamples(requestedSamples: Float32Array, requestedLength: Int, sampleRate: Hertz): Void {
-		if (paused || finished) {
-			for (i in 0...requestedLength) {
-				requestedSamples[i] = 0;
-			}
-			return;
-		}
-
 		final lerpTime = Std.int(requestedLength / 2); // Stereo, 2 samples per frame
 		final stepBalance = pBalance.getLerpStepSize(lerpTime);
 		final stepDopplerRatio = pDopplerRatio.getLerpStepSize(lerpTime);

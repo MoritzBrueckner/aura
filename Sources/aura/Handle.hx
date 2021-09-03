@@ -20,6 +20,19 @@ class Handle {
 	**/
 	var channel: AudioChannel;
 
+	/**
+		Whether the playback of the handle's channel is currently paused.
+	**/
+	public var paused(get, never): Bool;
+	inline function get_paused(): Bool { return channel.paused; }
+
+	/**
+		Whether the playback of the handle's channel has finished.
+		On `MixerChannel`s this value is always `false`.
+	**/
+	public var finished(get, never): Bool;
+	inline function get_finished(): Bool { return channel.finished; }
+
 	public var location: Vec3 = new Vec3(0, 0, 0);
 	public var velocity: Vec3 = new Vec3(0, 0, 0);
 	var lastLocation: Vec3 = new Vec3(0, 0, 0);
@@ -37,6 +50,23 @@ class Handle {
 
 	public inline function new(channel: AudioChannel) {
 		this.channel = channel;
+	}
+
+	/**
+		Starts the playback. If the sound wasn't played before or was stopped,
+		the playback starts from the beginning. If it is paused, playback starts
+		from the position where it was paused.
+	**/
+	public inline function play() {
+		channel.sendMessage({ id: Play, data: null });
+	}
+
+	public inline function pause() {
+		channel.sendMessage({ id: Pause, data: null });
+	}
+
+	public inline function stop() {
+		channel.sendMessage({ id: Stop, data: null });
 	}
 
 	public inline function addInsert(insert: DSP): DSP {

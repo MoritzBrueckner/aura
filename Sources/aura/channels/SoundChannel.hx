@@ -13,7 +13,6 @@ class SoundChannel extends AudioChannel {
 	**/
 	var playbackPosition: Int = 0;
 	var looping: Bool = false;
-	var finished: Bool = false;
 
 	var data: Float32Array = null;
 
@@ -29,11 +28,6 @@ class SoundChannel extends AudioChannel {
 	}
 
 	public function nextSamples(requestedSamples: Float32Array, requestedLength: Int, sampleRate: Hertz): Void {
-		if (paused || finished) {
-			clearBuffer(requestedSamples, requestedLength);
-			return;
-		}
-
 		final lerpTime = Std.int(requestedLength / 2); // Stereo, 2 samples per frame
 		final stepBalance = pBalance.getLerpStepSize(lerpTime);
 		final stepDopplerRatio = pDopplerRatio.getLerpStepSize(lerpTime);

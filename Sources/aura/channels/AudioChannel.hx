@@ -15,7 +15,9 @@ abstract class AudioChannel {
 
 	var treeLevel: Int = 0;
 	var inserts: Array<DSP> = [];
+
 	var paused: Bool = false;
+	var finished: Bool = false;
 
 	// Parameters
 	var pVolume = new LinearInterpolator(1.0);
@@ -30,6 +32,10 @@ abstract class AudioChannel {
 	public abstract function pause(): Void;
 	public abstract function stop(): Void;
 
+	inline function isPlayable(): Bool {
+		return !paused && !finished;
+	}
+
 	inline function processInserts(buffer: Float32Array, bufferLength: Int) {
 		for (insert in inserts) {
 			insert.process(buffer, bufferLength);
@@ -38,10 +44,15 @@ abstract class AudioChannel {
 
 	inline function parseMessage(message: Message) {
 		switch (message.id) {
+			case Play: play();
+			case Pause: pause();
+			case Stop: stop();
+
 			case PVolume: pVolume.targetValue = cast message.data;
 			case PBalance: pBalance.targetValue = cast message.data;
 			case PDopplerRatio: pDopplerRatio.targetValue = cast message.data;
 			case PDstAttenuation: pDstAttenuation.targetValue = cast message.data;
+
 			default:
 		}
 	}
