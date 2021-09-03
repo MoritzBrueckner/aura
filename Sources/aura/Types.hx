@@ -21,7 +21,7 @@ abstract Balance(Float) from Float to Float {
 		this = clampF(value);
 	}
 
-	public static inline function fromAngle(angle: Angle): Balance {
+	@:from public static inline function fromAngle(angle: Angle): Balance {
 		return switch (angle) {
 			case Deg(deg): (deg + 90) / 180;
 			case Rad(rad): (rad + Math.PI / 2) / Math.PI;
