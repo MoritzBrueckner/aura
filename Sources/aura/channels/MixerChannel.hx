@@ -86,6 +86,19 @@ class MixerChannel extends AudioChannel {
 		#end
 	}
 
+	public function synchronize() {
+		for (inputChannel in inputChannels) {
+			if (inputChannel != null) {
+				inputChannel.synchronize();
+			}
+		}
+
+		var message: Null<Message>;
+		while ((message = messages.tryPop()) != null) {
+			parseMessage(message);
+		}
+	}
+
 	public function nextSamples(requestedSamples: Float32Array, requestedLength: Int, sampleRate: Hertz): Void {
 		final sampleCacheIndividual = Aura.getSampleCache(treeLevel, requestedLength);
 
@@ -95,6 +108,7 @@ class MixerChannel extends AudioChannel {
 		}
 
 		// Copy references to channels for thread safety
+		// TODO: Move this out of this callback!
 		#if cpp
 		mutex.acquire();
 		#end
@@ -128,9 +142,13 @@ class MixerChannel extends AudioChannel {
 		// 	}
 		// }
 
+		final stepVol = pVolume.getLerpStepSize(requestedLength);
 		for (i in 0...requestedLength) {
-			requestedSamples[i] *= this.volume;
+			requestedSamples[i] *= pVolume.currentValue;
+			pVolume.currentValue += stepVol;
 		}
+
+		pVolume.updateLast();
 
 		processInserts(requestedSamples, requestedLength);
 	}

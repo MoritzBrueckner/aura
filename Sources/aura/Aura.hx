@@ -8,6 +8,7 @@
 
 package aura;
 
+import aura.utils.Fifo;
 import haxe.ds.Vector;
 
 import kha.Assets;
@@ -118,7 +119,7 @@ class Aura {
 		return Assets.sounds.get(soundName);
 	}
 
-	public static function play(sound: kha.Sound, loop: Bool = false, mixerChannel: Null<MixerChannel> = null): Null<ResamplingAudioChannel> {
+	public static function play(sound: kha.Sound, loop: Bool = false, mixerChannel: Null<MixerChannel> = null): Null<Handle> {
 		if (mixerChannel == null) {
 			mixerChannel = masterChannel;
 		}
@@ -131,7 +132,7 @@ class Aura {
 
 		final foundChannel = mixerChannel.addInputChannel(channel);
 
-		return foundChannel ? channel : null;
+		return foundChannel ? new Handle(channel) : null;
 	}
 
 	public static function getSampleCache(treeLevel: Int, length: Int): Null<Float32Array> {
@@ -196,11 +197,12 @@ class Aura {
 			return;
 		}
 
-		clearBuffer(sampleCache, samples);
-
 		// Copy reference to masterChannel for some more thread safety.
 		// TODO: Investigate if other solutions are required here
 		var master = masterChannel;
+		master.synchronize();
+
+		clearBuffer(sampleCache, samples);
 
 		if (master != null) {
 			master.nextSamples(sampleCache, samples, buffer.samplesPerSecond);

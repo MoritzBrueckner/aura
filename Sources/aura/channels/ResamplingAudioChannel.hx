@@ -4,6 +4,7 @@
 
 package aura.channels;
 
+import kha.FastFloat;
 import kha.arrays.Float32Array;
 
 import aura.utils.MathUtils;
@@ -29,20 +30,38 @@ class ResamplingAudioChannel extends SoundChannel {
 			return;
 		}
 
+		final lerpTime = Std.int(requestedLength / 2); // Stereo, 2 samples per frame
+		final stepBalance = pBalance.getLerpStepSize(lerpTime);
+		final stepDopplerRatio = pDopplerRatio.getLerpStepSize(lerpTime);
+		final stepDstAttenuation = pDstAttenuation.getLerpStepSize(lerpTime);
+		final stepVol = pVolume.getLerpStepSize(lerpTime);
+
 		var requestedSamplesIndex = 0;
 		while (requestedSamplesIndex < requestedLength) {
-			for (i in 0...minI(sampleLength(sampleRate) - playbackPosition, requestedLength - requestedSamplesIndex)) {
+			var isLeft = true;
+
+			for (_ in 0...minI(sampleLength(sampleRate) - playbackPosition, requestedLength - requestedSamplesIndex)) {
 				// Make sure that we store the actual float position
-				floatPosition += pitch * dopplerRatio;
+				floatPosition += pitch * pDopplerRatio.currentValue;
 
-				var sampledVal: Float = sampleFloatPos(floatPosition, i % 2 == 0, sampleRate);
+				var sampledVal: Float = sampleFloatPos(floatPosition, isLeft, sampleRate);
 
-				final b = (i % 2 == 0) ? ~balance : balance;
+				final balance: Balance = pBalance.currentValue;
+				final b = (isLeft) ? ~balance : balance;
 				// https://sites.uci.edu/computermusic/2013/03/29/constant-power-panning-using-square-root-of-intensity/
 				sampledVal *= Math.sqrt(b); // 3dB increase in center position, TODO: make configurable (0, 3, 6 dB)?
 				// sampledVal *= minF(1.0, b * 2);
 
-				requestedSamples[requestedSamplesIndex++] = sampledVal * volume * dstAttenuation;
+				requestedSamples[requestedSamplesIndex++] = sampledVal * pVolume.currentValue * pDstAttenuation.currentValue;
+
+				if (!isLeft) {
+					pBalance.currentValue += stepBalance;
+					pDopplerRatio.currentValue += stepDopplerRatio;
+					pDstAttenuation.currentValue += stepDstAttenuation;
+					pVolume.currentValue += stepVol;
+				}
+
+				isLeft = !isLeft;
 			}
 
 			if (floatPosition >= sampleLength(sampleRate)) {
@@ -63,6 +82,11 @@ class ResamplingAudioChannel extends SoundChannel {
 		}
 
 		processInserts(requestedSamples, requestedLength);
+
+		pBalance.updateLast();
+		pDopplerRatio.updateLast();
+		pDstAttenuation.updateLast();
+		pVolume.updateLast();
 	}
 
 	inline function sampleFloatPos(position: Float, even: Bool, sampleRate: Hertz): Float {

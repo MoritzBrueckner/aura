@@ -21,16 +21,40 @@ class SoundChannel extends AudioChannel {
 		this.looping = looping;
 	}
 
+	public function synchronize() {
+		var message: Null<Message>;
+		while ((message = messages.tryPop()) != null) {
+			parseMessage(message);
+		}
+	}
+
 	public function nextSamples(requestedSamples: Float32Array, requestedLength: Int, sampleRate: Hertz): Void {
 		if (paused || finished) {
 			clearBuffer(requestedSamples, requestedLength);
 			return;
 		}
 
+		final lerpTime = Std.int(requestedLength / 2); // Stereo, 2 samples per frame
+		final stepBalance = pBalance.getLerpStepSize(lerpTime);
+		final stepDopplerRatio = pDopplerRatio.getLerpStepSize(lerpTime);
+		final stepDstAttenuation = pDstAttenuation.getLerpStepSize(lerpTime);
+		final stepVol = pVolume.getLerpStepSize(lerpTime);
+
 		var requestedSamplesIndex = 0;
 		while (requestedSamplesIndex < requestedLength) {
+			var isLeft = true;
+
 			for (_ in 0...minI(data.length - playbackPosition, requestedLength - requestedSamplesIndex)) {
-				requestedSamples[requestedSamplesIndex++] = data[playbackPosition++] * volume * dstAttenuation;
+				requestedSamples[requestedSamplesIndex++] = data[playbackPosition++] * pVolume.currentValue * pDstAttenuation.currentValue;
+
+				if (!isLeft) {
+					pBalance.currentValue += stepBalance;
+					pDopplerRatio.currentValue += stepDopplerRatio;
+					pDstAttenuation.currentValue += stepDstAttenuation;
+					pVolume.currentValue += stepVol;
+				}
+
+				isLeft = !isLeft;
 			}
 
 			if (playbackPosition >= data.length) {
@@ -47,6 +71,11 @@ class SoundChannel extends AudioChannel {
 		}
 
 		processInserts(requestedSamples, requestedLength);
+
+		pBalance.updateLast();
+		pDopplerRatio.updateLast();
+		pDstAttenuation.updateLast();
+		pVolume.updateLast();
 	}
 
 	public function play(): Void {
