@@ -40,6 +40,7 @@ class Aura {
 
 	public static function init(channelSize: Int = 16) {
 		sampleRate = kha.audio2.Audio.samplesPerSecond;
+		assert(Error, sampleRate != 0, "sampleRate must not be 0!");
 
 		@:privateAccess MixerChannel.channelSize = channelSize;
 
