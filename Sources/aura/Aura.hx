@@ -69,49 +69,59 @@ class Aura {
 		final length = sounds.compressed.length + sounds.uncompressed.length;
 		var count = 0;
 
-		try {
-			for (soundName in sounds.compressed) {
-				Assets.loadSound(soundName, (sound: kha.Sound) -> {
-					if (sound.compressedData == null) {
-						throw 'Cannot compress already uncompressed sound ${soundName}!';
-					}
-
-					if (++count == length) {
-						done();
-						return;
-					}
-				});
+		for (soundName in sounds.compressed) {
+			if (Assets.sounds.get(soundName + "Description") == null) {
+				onLoadingError(null, failed, soundName);
+				break;
 			}
+			Assets.loadSound(soundName, (sound: kha.Sound) -> {
+				if (sound.compressedData == null) {
+					throw 'Cannot compress already uncompressed sound ${soundName}!';
+				}
 
-			for (soundName in sounds.uncompressed) {
-				Assets.loadSound(soundName, (sound: kha.Sound) -> {
-					if (sound.uncompressedData == null) {
-						sound.uncompress(() -> {
-							if (++count == length) {
-								done();
-								return;
-							}
-						});
-					}
-					else {
+				if (++count == length) {
+					done();
+					return;
+				}
+			}, (error: kha.AssetError) -> { onLoadingError(error, failed, soundName); });
+		}
+
+		for (soundName in sounds.uncompressed) {
+			if (Assets.sounds.get(soundName + "Description") == null) {
+				trace(soundName);
+				onLoadingError(null, failed, soundName);
+				break;
+			}
+			Assets.loadSound(soundName, (sound: kha.Sound) -> {
+				if (sound.uncompressedData == null) {
+					sound.uncompress(() -> {
 						if (++count == length) {
 							done();
 							return;
 						}
+					});
+				}
+				else {
+					if (++count == length) {
+						done();
+						return;
 					}
-				});
-			}
+				}
+			}, (error: kha.AssetError) -> { onLoadingError(error, failed, soundName); });
 		}
-		catch (e) {
-			trace(
-				"Could not load sounds, make sure that all sounds are named\n"
-				+ "  correctly and that they are included in the khafile.js.\n"
-				+ "Original error: " + e.details()
-			);
+	}
 
-			if (failed != null) {
-				failed();
-			}
+	static function onLoadingError(error: Null<kha.AssetError>, failed: Null<Void->Void>, soundName: String) {
+		final errorInfo = error == null ? "" : "\nOriginal error: " + error.url + "..." + error.error;
+
+		trace(
+			'Could not load sound "$soundName", make sure that all sounds are named\n'
+			+ "  correctly and that they are included in the khafile.js."
+			+ errorInfo
+		);
+
+		if (failed != null) {
+			failed();
 		}
 	}
 
