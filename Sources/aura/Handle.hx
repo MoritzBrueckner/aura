@@ -18,7 +18,7 @@ class Handle {
 	/**
 		Link to the audio channel in the audio thread.
 	**/
-	var channel: BaseChannel;
+	final channel: BaseChannel;
 
 	/**
 		Whether the playback of the handle's channel is currently paused.
