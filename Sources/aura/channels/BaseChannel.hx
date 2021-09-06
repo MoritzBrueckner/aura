@@ -10,23 +10,25 @@ import aura.utils.Interpolator.LinearInterpolator;
 /**
 	Base class of all audio channels in the audio thread.
 **/
+@:allow(aura.Aura)
 abstract class BaseChannel {
 	final messages: Fifo<Message> = new Fifo();
 
+	final inserts: Array<DSP> = [];
+
+	// Parameters
+	final pVolume = new LinearInterpolator(1.0);
+	final pBalance = new LinearInterpolator(Balance.CENTER);
+	final pDopplerRatio = new LinearInterpolator(1.0);
+	final pDstAttenuation = new LinearInterpolator(1.0);
+
 	var treeLevel: Int = 0;
-	var inserts: Array<DSP> = [];
 
 	var paused: Bool = false;
 	var finished: Bool = false;
 
-	// Parameters
-	var pVolume = new LinearInterpolator(1.0);
-	var pBalance = new LinearInterpolator(Balance.CENTER);
-	var pDopplerRatio = new LinearInterpolator(1.0);
-	var pDstAttenuation = new LinearInterpolator(1.0);
-
 	abstract function synchronize(): Void;
-	public abstract function nextSamples(requestedSamples: Float32Array, requestedLength: Int, sampleRate: Hertz): Void;
+	abstract function nextSamples(requestedSamples: Float32Array, requestedLength: Int, sampleRate: Hertz): Void;
 
 	public abstract function play(): Void;
 	public abstract function pause(): Void;
@@ -42,7 +44,7 @@ abstract class BaseChannel {
 		}
 	}
 
-	inline function parseMessage(message: Message) {
+	function parseMessage(message: Message) {
 		switch (message.id) {
 			case Play: play();
 			case Pause: pause();

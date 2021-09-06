@@ -20,14 +20,14 @@ class SoundChannel extends BaseChannel {
 		this.looping = looping;
 	}
 
-	public function synchronize() {
+	function synchronize() {
 		var message: Null<Message>;
 		while ((message = messages.tryPop()) != null) {
 			parseMessage(message);
 		}
 	}
 
-	public function nextSamples(requestedSamples: Float32Array, requestedLength: Int, sampleRate: Hertz): Void {
+	function nextSamples(requestedSamples: Float32Array, requestedLength: Int, sampleRate: Hertz): Void {
 		final lerpTime = Std.int(requestedLength / 2); // Stereo, 2 samples per frame
 		final stepBalance = pBalance.getLerpStepSize(lerpTime);
 		final stepDopplerRatio = pDopplerRatio.getLerpStepSize(lerpTime);

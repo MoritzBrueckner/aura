@@ -21,7 +21,7 @@ class ResamplingAudioChannel extends SoundChannel {
 		this.mixerChannel = mixerChannel;
 	};
 
-	override public function nextSamples(requestedSamples: Float32Array, requestedLength: Int, sampleRate: Hertz): Void {
+	override function nextSamples(requestedSamples: Float32Array, requestedLength: Int, sampleRate: Hertz): Void {
 		final lerpTime = Std.int(requestedLength / 2); // Stereo, 2 samples per frame
 		final stepBalance = pBalance.getLerpStepSize(lerpTime);
 		final stepDopplerRatio = pDopplerRatio.getLerpStepSize(lerpTime);

@@ -99,7 +99,7 @@ class MixerChannel extends BaseChannel {
 		// }
 	}
 
-	public function synchronize() {
+	function synchronize() {
 		for (inputChannel in inputChannels) {
 			if (inputChannel != null) {
 				inputChannel.synchronize();
@@ -112,7 +112,7 @@ class MixerChannel extends BaseChannel {
 		}
 	}
 
-	public function nextSamples(requestedSamples: Float32Array, requestedLength: Int, sampleRate: Hertz): Void {
+	function nextSamples(requestedSamples: Float32Array, requestedLength: Int, sampleRate: Hertz): Void {
 		// No input channel added yet, skip useless computations
 		if (inputChannelsCopy == null) {
 			clearBuffer(requestedSamples, requestedLength);
