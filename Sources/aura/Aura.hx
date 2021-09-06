@@ -167,10 +167,10 @@ class Aura {
 			if (kha.audio2.Audio.disableGcInteractions) {
 				// This code is executed in the case that there are suddenly
 				// more samples requested while the GC interactions are turned
-				// off (because the number samples was sufficient for a longer
-				// time). We can't just turn on GC interactions, it will not
-				// take effect before the next audio callback invocation, so we
-				// skip this "frame" instead (see [1] for reference).
+				// off (because the number of samples was sufficient for a
+				// longer time). We can't just turn on GC interactions, it will
+				// not take effect before the next audio callback invocation, so
+				// we skip this "frame" instead (see [1] for reference).
 
 				trace("Unexpected allocation request in audio thread.");
 				final haveMsg = (cache == null) ? 'no cache' : '${cache.length}';

@@ -8,7 +8,7 @@ import aura.math.Vec3;
 import aura.utils.MathUtils;
 
 /**
-	Main-thread handle to a audio channel which works in the audio thread.
+	Main-thread handle to an audio channel which works in the audio thread.
 **/
 @:access(aura.channels.BaseChannel)
 class Handle {
@@ -33,7 +33,14 @@ class Handle {
 	public var finished(get, never): Bool;
 	inline function get_finished(): Bool { return channel.finished; }
 
+	/**
+		The location of this audio source in world space.
+	**/
 	public var location: Vec3 = new Vec3(0, 0, 0);
+
+	/**
+		The velocity of this audio source in world space.
+	**/
 	public var velocity: Vec3 = new Vec3(0, 0, 0);
 	var lastLocation: Vec3 = new Vec3(0, 0, 0);
 

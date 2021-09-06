@@ -23,8 +23,8 @@ class Listener {
 
 	/**
 		Set the listener's view direction. `look` points directly in the view
-		direction, `right` is `perpendicular` to `look` and is used internally
-		to get the sign of the angle between a channel and the listener.
+		direction, `right` is perpendicular to `look` and is used internally to
+		get the sign of the angle between a channel and the listener.
 
 		Both parameters must be normalized.
 	**/
