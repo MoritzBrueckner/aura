@@ -70,14 +70,16 @@ class Aura {
 		var count = 0;
 
 		for (soundName in sounds.compressed) {
-			if (Assets.sounds.get(soundName + "Description") == null) {
+			if (!doesSoundExist(soundName)) {
 				onLoadingError(null, failed, soundName);
 				break;
 			}
 			Assets.loadSound(soundName, (sound: kha.Sound) -> {
+				#if !kha_krom // Krom only uses uncompressedData
 				if (sound.compressedData == null) {
 					throw 'Cannot compress already uncompressed sound ${soundName}!';
 				}
+				#end
 
 				if (++count == length) {
 					done();
@@ -87,8 +89,7 @@ class Aura {
 		}
 
 		for (soundName in sounds.uncompressed) {
-			if (Assets.sounds.get(soundName + "Description") == null) {
-				trace(soundName);
+			if (!doesSoundExist(soundName)) {
 				onLoadingError(null, failed, soundName);
 				break;
 			}
@@ -123,6 +124,20 @@ class Aura {
 		if (failed != null) {
 			failed();
 		}
+	}
+
+	/**
+		Returns whether a sound exists and can be loaded.
+	**/
+	public static inline function doesSoundExist(soundName: String): Bool {
+		// Use reflection instead of Asset.sounds.get() to prevent errors on
+		// static targets. A sound's description is the sound's entry in
+		// files.json and not a kha.Sound, but get() returns a sound which would
+		// lead to a invalid cast exception.
+
+		// Relying on Kha internals ("Description" as name) is bad, but there is
+		// no good alternative...
+		return Reflect.field(Assets.sounds, soundName + "Description") != null;
 	}
 
 	public static inline function getSound(soundName: String): Null<kha.Sound> {
