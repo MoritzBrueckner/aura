@@ -11,11 +11,14 @@ package aura;
 import haxe.ds.Vector;
 
 import kha.Assets;
+import kha.SystemImpl;
 import kha.arrays.Float32Array;
 import kha.audio2.Audio1;
 
+import aura.channels.Html5StreamChannel;
 import aura.channels.MixerChannel;
 import aura.channels.ResamplingAudioChannel;
+import aura.channels.StreamChannel;
 import aura.utils.Assert;
 import aura.utils.BufferUtils.clearBuffer;
 import aura.utils.MathUtils;
@@ -158,6 +161,35 @@ class Aura {
 		final foundChannel = mixerChannel.addInputChannel(channel);
 
 		return foundChannel ? new Handle(channel) : null;
+	}
+
+	public static function stream(sound: kha.Sound, loop: Bool = false, mixerChannel: Null<MixerChannel> = null): Null<Handle> {
+		#if kha_krom // Krom only uses uncompressedData -> no streaming
+		return play(sound, loop, mixerChannel);
+		#else
+
+		if (mixerChannel == null) {
+			mixerChannel = masterChannel;
+		}
+
+		assert(Critical, sound.compressedData != null);
+
+		final khaChannel: Null<kha.audio1.AudioChannel> = kha.audio2.Audio1.stream(sound, loop);
+
+		if (khaChannel == null) {
+			return null;
+		}
+
+		#if (kha_html5 || kha_debug_html5)
+		final auraChannel = SystemImpl.mobileAudioPlaying ? new Html5StreamChannel(cast khaChannel) : new StreamChannel(cast khaChannel);
+		#else
+		final auraChannel = new StreamChannel(cast khaChannel);
+		#end
+
+		final foundChannel = mixerChannel.addInputChannel(auraChannel);
+
+		return foundChannel ? new Handle(auraChannel) : null;
+		#end
 	}
 
 	public static function getSampleCache(treeLevel: Int, length: Int): Null<Float32Array> {
