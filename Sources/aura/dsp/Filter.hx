@@ -13,6 +13,8 @@ import aura.utils.FrequencyUtils;
 class Filter implements DSP {
 	public var mode: FilterMode;
 
+	var inUse = false;
+
 	final buf: Vector<Vector<Float>>;
 	var cutoff = 1.0;
 

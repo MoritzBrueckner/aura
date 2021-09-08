@@ -16,6 +16,8 @@ import aura.utils.FrequencyUtils;
 	effect does nothing.
 **/
 class HaasEffect implements DSP {
+	var inUse = false;
+
 	var delayChannelIdx: Int;
 
 	var diffSamples: Int;

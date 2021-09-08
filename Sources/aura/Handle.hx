@@ -11,6 +11,7 @@ import aura.utils.MathUtils;
 	Main-thread handle to an audio channel which works in the audio thread.
 **/
 @:access(aura.channels.BaseChannel)
+@:access(aura.dsp.DSP)
 class Handle {
 	static inline var REFERENCE_DST = 1.0;
 	static inline var SPEED_OF_SOUND = 343.4; // Air, m/s
@@ -77,12 +78,17 @@ class Handle {
 	}
 
 	public inline function addInsert(insert: DSP): DSP {
+		assert(Error, !insert.inUse, "DSP objects can only belong to one unique channel");
+		insert.inUse = true;
 		channel.inserts.push(insert);
 		return insert;
 	}
 
 	public inline function removeInsert(insert: DSP) {
-		channel.inserts.remove(insert);
+		var found = channel.inserts.remove(insert);
+		if (found) {
+			insert.inUse = false;
+		}
 	}
 
 	/**
