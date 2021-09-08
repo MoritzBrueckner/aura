@@ -1,4 +1,4 @@
-![aura_banner.png](.gitlab/aura_banner.png)
+![aura_banner.png](.img/aura_banner_bright.png)
 
 *Aura* is a fast and lightweight 3D audio engine for [Kha](https://kha.tech/) to ease creating realistic sound atmospheres for your games and applications.
 

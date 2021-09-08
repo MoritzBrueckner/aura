@@ -1,0 +1,16 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: Aura
+Upstream-Contact: Moritz Brückner <gitlab@moritz-brueckner.de>
+Source: https://github.com/MoritzBrueckner/aura
+
+Files: Sources/*
+Copyright: 2021 Moritz Brückner & Aura Contributors
+License: Zlib
+
+Files: readme.md .gitattributes
+Copyright: 2021 Moritz Brückner & Aura Contributors
+License: CC0-1.0
+
+Files: .img/*
+Copyright: 2021 Moritz Brückner & Aura Contributors
+License: CC-BY-4.0
