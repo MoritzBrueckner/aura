@@ -25,6 +25,10 @@ import aura.math.Vec3;
 	return valA * (1 - fac) + valB * fac;
 }
 
+@:pure inline function clampI(val: Int, min: Int = 0, max: Int = 1): Int {
+	return maxI(min, minI(max, val));
+}
+
 @:pure inline function clampF(val: Float, min: Float = 0.0, max: Float = 1.0): Float {
 	return maxF(min, minF(max, val));
 }
