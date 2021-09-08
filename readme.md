@@ -7,7 +7,7 @@
 - Multiple attenuation models for 3D sound
 - Mix busses for modifying groups of sounds together
 - Doppler effect
-- Built-in DSP filters:
+- Built-in [DSP](https://en.wikipedia.org/wiki/Digital_signal_processing) filters:
   - High-/band-/lowpass filter
   - Haas effect
 - Extendable DSP system – easily write your own filters
@@ -131,7 +131,7 @@ Thanks to Haxe and Kha, Aura runs almost everywhere!
 The following targets were tested:
 
 | Target | Tested environments | Support | Notes |
-| --- | --- | --- | --- |
+| --- | --- | :---: | --- |
 | [Armorcore](https://github.com/armory3d/armorcore) (Krom) | Windows | ✔ | |
 | HTML5 | | ✔ | - No dedicated audio thread for non-streaming playback<br>- If `kha.SystemImpl.mobileAudioPlaying` is true, streamed playback is not included in the Aura mix pipeline (no DSP etc.) |
 | Hashlink/C | Windows | ❌ | Waiting for https://github.com/Kode/Kha/pull/1361 |
