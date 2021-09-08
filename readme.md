@@ -2,6 +2,13 @@
 
 *Aura* is a fast and lightweight 3D audio engine for [Kha](https://kha.tech/) to ease creating realistic sound atmospheres for your games and applications.
 
+# Table of Content
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Platform Support](#platform-support)
+- [License](#license)
+
 # Features
 
 - Multiple attenuation models for 3D sound
@@ -136,3 +143,13 @@ The following targets were tested:
 | HTML5 | | ✔ | - No dedicated audio thread for non-streaming playback<br>- If `kha.SystemImpl.mobileAudioPlaying` is true, streamed playback is not included in the Aura mix pipeline (no DSP etc.) |
 | Hashlink/C | Windows | ❌ | Waiting for https://github.com/Kode/Kha/pull/1361 |
 | hxcpp | Windows | ✔ | |
+
+# License
+
+This work is licensed under multiple licences, which are specified at [`.reuse/dep5`](.reuse/dep5) (complying to the [REUSE recommendations](https://reuse.software/)). The license texts can be found in the [`LICENSES`](LICENSES) directory.
+
+**Short summary**:
+
+- The entire source code in [`Sources/aura`](Sources/aura) is licensed under the Zlib license which is a very permissive license also used by Kha and Armory at the time of writing this. This is the important license for you if you include Aura code in your project.
+- This readme file and other configuration files are licensed under CC0-1.0.
+- All files in [`.img/`](.img) are licensed under CC-BY-4.0.
