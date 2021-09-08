@@ -7,11 +7,13 @@ package aura.channels;
 import kha.arrays.Float32Array;
 
 import aura.utils.MathUtils;
+import aura.utils.Interpolator.LinearInterpolator;
 
 class ResamplingAudioChannel extends SoundChannel {
 	public var sampleRate: Hertz;
-	public var pitch: Float = 1.0;
 	public var floatPosition: Float = 0.0;
+
+	final pPitch = new LinearInterpolator(1.0);
 
 	var mixerChannel: MixerChannel;
 
@@ -26,6 +28,7 @@ class ResamplingAudioChannel extends SoundChannel {
 		final stepBalance = pBalance.getLerpStepSize(lerpTime);
 		final stepDopplerRatio = pDopplerRatio.getLerpStepSize(lerpTime);
 		final stepDstAttenuation = pDstAttenuation.getLerpStepSize(lerpTime);
+		final stepPitch = pPitch.getLerpStepSize(lerpTime);
 		final stepVol = pVolume.getLerpStepSize(lerpTime);
 
 		var requestedSamplesIndex = 0;
@@ -34,7 +37,7 @@ class ResamplingAudioChannel extends SoundChannel {
 
 			for (_ in 0...minI(sampleLength(sampleRate) - playbackPosition, requestedLength - requestedSamplesIndex)) {
 				// Make sure that we store the actual float position
-				floatPosition += pitch * pDopplerRatio.currentValue;
+				floatPosition += pPitch.currentValue * pDopplerRatio.currentValue;
 
 				var sampledVal: Float = sampleFloatPos(floatPosition, isLeft, sampleRate);
 
@@ -50,6 +53,7 @@ class ResamplingAudioChannel extends SoundChannel {
 					pBalance.currentValue += stepBalance;
 					pDopplerRatio.currentValue += stepDopplerRatio;
 					pDstAttenuation.currentValue += stepDstAttenuation;
+					pPitch.currentValue += stepPitch;
 					pVolume.currentValue += stepVol;
 				}
 
@@ -78,6 +82,7 @@ class ResamplingAudioChannel extends SoundChannel {
 		pBalance.updateLast();
 		pDopplerRatio.updateLast();
 		pDstAttenuation.updateLast();
+		pPitch.updateLast();
 		pVolume.updateLast();
 	}
 
@@ -134,5 +139,14 @@ class ResamplingAudioChannel extends SoundChannel {
 	override public function pause() {
 		super.pause();
 		floatPosition = playbackPosition;
+	}
+
+	override function parseMessage(message: Message) {
+		switch (message.id) {
+			case PPitch: pPitch.targetValue = cast message.data;
+
+			default:
+				super.parseMessage(message);
+		}
 	}
 }

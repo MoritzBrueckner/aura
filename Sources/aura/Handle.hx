@@ -55,6 +55,7 @@ class Handle {
 	// Parameter cache for getter functions
 	var _volume: Float = 1.0;
 	var _balance: Balance = Balance.CENTER;
+	var _pitch: Float = 1.0;
 
 	public inline function new(channel: BaseChannel) {
 		this.channel = channel;
@@ -169,5 +170,14 @@ class Handle {
 
 	public inline function getBalance(): Balance {
 		return this._balance;
+	}
+
+	public inline function setPitch(pitch: Float) {
+		channel.sendMessage({ id: PPitch, data: maxF(0.0, pitch) });
+		this._pitch = pitch;
+	}
+
+	public inline function getPitch(): Float {
+		return this._pitch;
 	}
 }

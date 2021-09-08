@@ -14,6 +14,7 @@ enum abstract MessageID(Int) {
 	// Parameters
 	final PVolume;
 	final PBalance;
+	final PPitch;
 	final PDopplerRatio;
 	final PDstAttenuation;
 }
