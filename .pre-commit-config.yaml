@@ -1,6 +1,9 @@
 repos:
-- repo: local
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v2.3.0
+  hooks:
+  - id: trailing-whitespace
+- repo: https://github.com/fsfe/reuse-tool
   rev: latest
   hooks:
   - id: reuse
-  - id: trailing-whitespace
