@@ -7,7 +7,7 @@ Files: Sources/*
 Copyright: 2021 Moritz Brückner & Aura Contributors
 License: Zlib
 
-Files: readme.md .gitattributes
+Files: readme.md .gitattributes .gitignore
 Copyright: 2021 Moritz Brückner & Aura Contributors
 License: CC0-1.0
 
