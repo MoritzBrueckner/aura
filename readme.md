@@ -70,6 +70,11 @@ project.addLibrary('aura');
 
   // Plays the sound `mySound` without repeat on the predefined fx channel
   Aura.play(mySound, false, Aura.mixChannels["fx"]);
+  
+  // You can also stream sounds directly from disk. Whether a sound can be
+  // streamed highly depends on the target and whether the sound is compressed
+  // or not. Please consult the Kha sources if in doubt.
+  Aura.stream(mySound, false, Aura.mixChannels["music"]);
   ```
 
 - Create a `MixerChannel` to control a group of sounds:
