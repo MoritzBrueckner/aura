@@ -124,6 +124,8 @@ project.addLibrary('aura');
   ```haxe
   import kha.math.FastVector3;
 
+  ...
+
   var mySoundHandle = Aura.play(mySound);
 
   // Set the 3D location and view direction of the listener
@@ -138,6 +140,8 @@ project.addLibrary('aura');
   // Apply the changes to the sound to make them audible
   mySoundHandle.update3D();
   ```
+
+  Aura's own `Vec3` type can be implicitly converted from and to Kha or Iron vectors (3D and 4D)!
 
 # Platform Support
 
