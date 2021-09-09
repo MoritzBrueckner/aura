@@ -47,7 +47,7 @@ class Listener {
 	/**
 		Wrapper around `setViewDirection()` and `setLocation()`.
 	**/
-	public inline function update(location: Vec3, look: Vec3, right: Vec3) {
+	public inline function set(location: Vec3, look: Vec3, right: Vec3) {
 		inline setViewDirection(look, right);
 		inline setLocation(location);
 	}

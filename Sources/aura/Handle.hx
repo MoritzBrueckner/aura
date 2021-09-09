@@ -34,23 +34,23 @@ class Handle {
 	public var finished(get, never): Bool;
 	inline function get_finished(): Bool { return channel.finished; }
 
-	/**
-		The location of this audio source in world space.
-	**/
-	public var location: Vec3 = new Vec3(0, 0, 0);
-
-	/**
-		The velocity of this audio source in world space.
-	**/
-	public var velocity: Vec3 = new Vec3(0, 0, 0);
-	var lastLocation: Vec3 = new Vec3(0, 0, 0);
-
 	public var dopplerFactor = 1.0;
 
 	public var attenuationMode = AttenuationMode.Inverse;
 	public var attenuationFactor = 1.0;
 	public var maxDistance = 10.0;
 	// public var minDistance = 1;
+
+	/**
+		The location of this audio source in world space.
+	**/
+	var location: Vec3 = new Vec3(0, 0, 0);
+	var lastLocation: Vec3 = new Vec3(0, 0, 0);
+
+	/**
+		The velocity of this audio source in world space.
+	**/
+	var velocity: Vec3 = new Vec3(0, 0, 0);
 
 	// Parameter cache for getter functions
 	var _volume: Float = 1.0;
@@ -159,6 +159,19 @@ class Handle {
 		channel.sendMessage({ id: PDstAttenuation, data: dstAttenuation });
 	}
 
+	/**
+		Reset all the audible 3D sound parameters (balance, doppler effect etc.)
+		which are calculated by `update3D()`. This function does *not* reset the
+		location value of the sound, so if you call `update3D()` again, you will
+		hear the sound at the same position as before you called `reset3D()`.
+	**/
+	public inline function reset3D() {
+		setBalance(Balance.CENTER);
+
+		channel.sendMessage({ id: PDopplerRatio, data: 1.0 });
+		channel.sendMessage({ id: PDstAttenuation, data: 1.0 });
+	}
+
 	public inline function setVolume(volume: Float) {
 		channel.sendMessage({ id: PVolume, data: maxF(0.0, volume) });
 		this._volume = volume;
@@ -184,5 +197,12 @@ class Handle {
 
 	public inline function getPitch(): Float {
 		return this._pitch;
+	}
+
+	/**
+		Set the location of this audio source in world space.
+	**/
+	public inline function setLocation(location: Vec3) {
+		this.location = location;
 	}
 }

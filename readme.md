@@ -132,15 +132,19 @@ project.addDefine("AURA_WITH_IRON");
   var mySoundHandle = Aura.play(mySound);
 
   // Set the 3D location and view direction of the listener
-  Aura.listener.update(cam.worldPosition, cam.look, cam.right);
+  Aura.listener.set(cam.worldPosition, cam.look, cam.right);
 
-  // Set the 3D location of the sound
-  mySoundHandle.location.x = -1.0;
-  mySoundHandle.location.y = 1.0;
-  mySoundHandle.location.z = 0.2;
+  // Set the 3D location of the sound independent of the math API used
+  mySoundHandle.setLocation(new kha.math.FastVector3(-1.0, 1.0, 0.2));
+  mySoundHandle.setLocation(new iron.math.Vec3(-1.0, 1.0, 0.2));
+  mySoundHandle.setLocation(new aura.math.Vec3(-1.0, 1.0, 0.2));
 
-  // Apply the changes to the sound to make them audible
+  // Apply the changes to the sound to make them audible (!)
   mySoundHandle.update3D();
+
+  // Switch back to 2D sound. The sound's saved location will not be reset, but
+  // you won't hear it at that location anymore.
+  mySoundHandle.reset3D();
   ```
 
   Aura's own `Vec3` type can be implicitly converted from and to Kha or Iron vectors (3D and 4D)!
