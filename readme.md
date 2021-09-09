@@ -151,7 +151,7 @@ Thanks to Haxe and Kha, Aura runs almost everywhere!
 
 The following targets were tested:
 
-| Target | Tested environments | Support | Notes |
+| Target | Tested environments | Supported | Notes |
 | --- | --- | :---: | --- |
 | [Armorcore](https://github.com/armory3d/armorcore) (Krom) | Windows | ✔ | |
 | HTML5 | | ✔ | - No dedicated audio thread for non-streaming playback<br>- If `kha.SystemImpl.mobileAudioPlaying` is true, streamed playback is not included in the Aura mix pipeline (no DSP etc.) |
