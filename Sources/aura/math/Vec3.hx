@@ -14,9 +14,19 @@ abstract Vec3(FastVector3) from FastVector3 to FastVector3 {
 		return new FastVector3(v.x, v.y, v.z);
 	}
 
+	@:from
+	public static inline function fromKhaVec4(v: kha.math.FastVector4): Vec3 {
+		return new FastVector3(v.x, v.y, v.z);
+	}
+
 	#if (AURA_WITH_IRON || armory)
 	@:from
 	public static inline function fromIronVec3(v: iron.math.Vec3) : Vec3{
+		return new FastVector3(v.x, v.y, v.z);
+	}
+
+	@:from
+	public static inline function fromIronVec4(v: iron.math.Vec4) : Vec3{
 		return new FastVector3(v.x, v.y, v.z);
 	}
 	#end
