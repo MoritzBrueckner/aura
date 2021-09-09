@@ -1,5 +1,6 @@
 // =============================================================================
-// Based on https://github.com/Kode/Kha/blob/master/Sources/kha/audio2/Audio1.hx
+// audioCallback() and getSampleCache() are roughly based on
+// https://github.com/Kode/Kha/blob/master/Sources/kha/audio2/Audio1.hx
 //
 // References:
 // [1]: https://github.com/Kode/Kha/blob/3a3e9e6d51b1d6e3309a80cd795860da3ea07355/Backends/Kinc-hxcpp/main.cpp#L186-L233

@@ -81,7 +81,7 @@ class Filter implements DSP {
 	}
 
 	/**
-		Get the cutoff frequency of this filter. `channels` state frpm which
+		Get the cutoff frequency of this filter. `channels` state from which
 		channels to get the cutoff value, if it's `Both`, the left channel's
 		cutoff frequency is returned.
 	**/

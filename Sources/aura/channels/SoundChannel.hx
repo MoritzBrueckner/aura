@@ -2,7 +2,6 @@ package aura.channels;
 
 import kha.arrays.Float32Array;
 
-import aura.utils.BufferUtils.clearBuffer;
 import aura.utils.MathUtils;
 
 class SoundChannel extends BaseChannel {

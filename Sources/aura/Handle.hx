@@ -115,17 +115,16 @@ class Handle {
 		var angle = getAngle(listener.look, projectedChannelPos);
 
 		// The calculated angle cosine looks like this on the unit circle:
-		//  /  1  \
-		// 0   x   0    , where x is the listener
-		//  \ -1  /
+		//   /  1  \
+		//  0   x   0   , where x is the listener and top is on the front
+		//   \ -1  /
 
-		// Make center 0.5, use absolute angle to prevent phase flipping
+		// Make the center 0.5, use absolute angle to prevent phase flipping.
 		// We loose front/back information here, but that's ok
 		angle = Math.abs(angle * 0.5);
 
 		// The angle cosine doesn't contain side information, so if the sound is
-		// to the right of the listener, we must invert the angle to get from
-		// 0 (left) to 1 (right)
+		// to the right of the listener, we must invert the angle
 		if (getAngle(listener.right, projectedChannelPos) > 0) {
 			angle = 1 - angle;
 		}
