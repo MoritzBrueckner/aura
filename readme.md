@@ -21,16 +21,22 @@
 
 # Installation
 
-In your project directory, create a folder called `Libraries`. Then, open a command line in that folder and execute the following command:
+In your project directory, create a folder called `Libraries`. Then, open a command line in that folder and execute the following command (Git must be installed on your machine):
 
 ```
-git clone https://gitlab.com/MoritzBrueckner/aura.git
+git clone https://github.com/MoritzBrueckner/aura.git
 ```
 
 Then, add the following line to your project's `khafile.js` (if you're using [Armory](https://armory3d.org/), you can skip this step):
 
 ```js
 project.addLibrary('aura');
+```
+
+If you're using Iron, but not Armory, please also add the following to your Khafile to be able to use Iron's vector classes with Aura:
+
+```js
+project.addDefine("AURA_WITH_IRON");
 ```
 
 # Usage
@@ -122,10 +128,6 @@ project.addLibrary('aura');
 - 3D sound:
 
   ```haxe
-  import kha.math.FastVector3;
-
-  ...
-
   var cam = getCurrentCamera(); // <-- dummy function
   var mySoundHandle = Aura.play(mySound);
 
