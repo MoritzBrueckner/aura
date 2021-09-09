@@ -126,10 +126,10 @@ project.addLibrary('aura');
 
   ...
 
+  var cam = getCurrentCamera(); // <-- dummy function
   var mySoundHandle = Aura.play(mySound);
 
   // Set the 3D location and view direction of the listener
-  var cam = getCurrentCamera(); // <-- dummy function
   Aura.listener.update(cam.worldPosition, cam.look, cam.right);
 
   // Set the 3D location of the sound
