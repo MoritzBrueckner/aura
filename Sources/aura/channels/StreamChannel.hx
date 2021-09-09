@@ -2,6 +2,8 @@ package aura.channels;
 
 import kha.arrays.Float32Array;
 
+import aura.threading.Message;
+
 /**
 	Wrapper around `kha.audio2.StreamChannel` (for now).
 **/

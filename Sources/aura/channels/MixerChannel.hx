@@ -9,6 +9,7 @@ import sys.thread.Mutex;
 import kha.arrays.Float32Array;
 
 import aura.utils.BufferUtils.clearBuffer;
+import aura.threading.Message;
 
 /**
 	A channel that mixes together the output of multiple input channels.

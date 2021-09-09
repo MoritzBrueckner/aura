@@ -2,6 +2,8 @@ package aura.channels;
 
 import kha.arrays.Float32Array;
 
+import aura.threading.Message;
+
 #if (kha_html5 || kha_debug_html5)
 /**
 	Wrapper around `kha.js.AEAudioChannel` (for now).

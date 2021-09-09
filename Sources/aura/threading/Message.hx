@@ -1,4 +1,4 @@
-package aura;
+package aura.threading;
 
 @:structInit
 class Message {

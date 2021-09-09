@@ -2,9 +2,9 @@ package aura.channels;
 
 import kha.arrays.Float32Array;
 
-import aura.Message;
 import aura.dsp.DSP;
-import aura.utils.Fifo;
+import aura.threading.Fifo;
+import aura.threading.Message;
 import aura.utils.Interpolator.LinearInterpolator;
 
 /**

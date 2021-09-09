@@ -1,4 +1,4 @@
-package aura.utils;
+package aura.threading;
 
 /**
 	Non-blocking first in/first out queue for thread synchronization. On targets

@@ -8,6 +8,7 @@ import kha.arrays.Float32Array;
 
 import aura.utils.MathUtils;
 import aura.utils.Interpolator.LinearInterpolator;
+import aura.threading.Message;
 
 class ResamplingAudioChannel extends AudioChannel {
 	public var sampleRate: Hertz;

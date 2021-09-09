@@ -3,6 +3,7 @@ package aura.channels;
 import kha.arrays.Float32Array;
 
 import aura.utils.MathUtils;
+import aura.threading.Message;
 
 class AudioChannel extends BaseChannel {
 	public static inline var NUM_CHANNELS = 2;
