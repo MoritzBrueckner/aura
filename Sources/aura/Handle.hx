@@ -109,15 +109,23 @@ class Handle {
 		// Project the channel position (relative to the listener) to the plane
 		// described by the listener's look and right vectors
 		final up = listener.right.cross(listener.look).normalized();
-		var projectedChannelPos = projectPointOntoPlane(dirToChannel, up);
+		final projectedChannelPos = projectPointOntoPlane(dirToChannel, up).normalized();
 
-		projectedChannelPos = projectedChannelPos.normalized();
+		// Angle cosine
 		var angle = getAngle(listener.look, projectedChannelPos);
 
-		angle *= 0.5;
+		// The calculated angle cosine looks like this on the unit circle:
+		//  /  1  \
+		// 0   x   0    , where x is the listener
+		//  \ -1  /
 
-		// The sound is right to the listener, we need this to account for the
-		// missing "side information" in the angle cosine
+		// Make center 0.5, use absolute angle to prevent phase flipping
+		// We loose front/back information here, but that's ok
+		angle = Math.abs(angle * 0.5);
+
+		// The angle cosine doesn't contain side information, so if the sound is
+		// to the right of the listener, we must invert the angle to get from
+		// 0 (left) to 1 (right)
 		if (getAngle(listener.right, projectedChannelPos) > 0) {
 			angle = 1 - angle;
 		}
@@ -150,6 +158,7 @@ class Handle {
 		this.lastLocation.setFrom(this.location);
 
 		setBalance(angle);
+
 		channel.sendMessage({ id: PDopplerRatio, data: dopplerRatio });
 		channel.sendMessage({ id: PDstAttenuation, data: dstAttenuation });
 	}
