@@ -34,7 +34,7 @@ abstract class BaseChannel {
 	public abstract function pause(): Void;
 	public abstract function stop(): Void;
 
-	inline function isPlayable(): Bool {
+	function isPlayable(): Bool {
 		return !paused && !finished;
 	}
 

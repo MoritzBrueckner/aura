@@ -25,6 +25,7 @@ class MixerChannel extends BaseChannel {
 	static var channelSize: Int;
 
 	var inputChannels: Vector<BaseChannel>;
+	var numUsedInputs: Int = 0;
 
 	/**
 		Temporary copy of inputChannels for thread safety.
@@ -50,6 +51,7 @@ class MixerChannel extends BaseChannel {
 		for (i in 0...MixerChannel.channelSize) {
 			if (inputChannels[i] == null) { // || inputChannels[i].finished) {
 				inputChannels[i] = channel;
+				numUsedInputs++;
 				channel.treeLevel = this.treeLevel + 1;
 
 				foundChannel = true;
@@ -74,6 +76,7 @@ class MixerChannel extends BaseChannel {
 		for (i in 0...MixerChannel.channelSize) {
 			if (inputChannels[i] == channel) {
 				inputChannels[i] = null;
+				numUsedInputs--;
 				break;
 			}
 		}
@@ -97,6 +100,10 @@ class MixerChannel extends BaseChannel {
 		// for (i in 0...channelCount) {
 		// 	internalStreamChannels[i] = streamChannels[i];
 		// }
+	}
+
+	override function isPlayable(): Bool {
+		return super.isPlayable() && numUsedInputs != 0;
 	}
 
 	function synchronize() {
