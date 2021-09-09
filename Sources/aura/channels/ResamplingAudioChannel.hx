@@ -9,7 +9,7 @@ import kha.arrays.Float32Array;
 import aura.utils.MathUtils;
 import aura.utils.Interpolator.LinearInterpolator;
 
-class ResamplingAudioChannel extends SoundChannel {
+class ResamplingAudioChannel extends AudioChannel {
 	public var sampleRate: Hertz;
 	public var floatPosition: Float = 0.0;
 
