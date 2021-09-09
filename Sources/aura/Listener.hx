@@ -4,7 +4,7 @@ import aura.math.Vec3;
 
 @:allow(aura.Handle)
 class Listener {
-	public var location: Vec3;
+	public var location(default, null): Vec3;
 
 	public var look(default, null): Vec3;
 	public var right(default, null): Vec3;
@@ -33,5 +33,22 @@ class Listener {
 
 		this.look = look;
 		this.right = right;
+	}
+
+	/**
+		Set the listener's location (and its velocity based on that).
+	**/
+	public inline function setLocation(location: Vec3) {
+		this.velocity = this.location.sub(this.lastLocation);
+		this.lastLocation.setFrom(this.location);
+		this.location = location;
+	}
+
+	/**
+		Wrapper around `setViewDirection()` and `setLocation()`.
+	**/
+	public inline function update(location: Vec3, look: Vec3, right: Vec3) {
+		inline setViewDirection(look, right);
+		inline setLocation(location);
 	}
 }

@@ -70,7 +70,7 @@ project.addLibrary('aura');
 
   // Plays the sound `mySound` without repeat on the predefined fx channel
   Aura.play(mySound, false, Aura.mixChannels["fx"]);
-  
+
   // You can also stream sounds directly from disk. Whether a sound can be
   // streamed highly depends on the target and whether the sound is compressed
   // or not. Please consult the Kha sources if in doubt.
@@ -122,17 +122,20 @@ project.addLibrary('aura');
 - 3D sound:
 
   ```haxe
+  import kha.math.FastVector3;
+
   var mySoundHandle = Aura.play(mySound);
+
+  // Set the 3D location and view direction of the listener
+  var cam = getCurrentCamera(); // <-- dummy function
+  Aura.listener.update(cam.worldPosition, cam.look, cam.right);
 
   // Set the 3D location of the sound
   mySoundHandle.location.x = -1.0;
   mySoundHandle.location.y = 1.0;
   mySoundHandle.location.z = 0.2;
 
-  // Set the 3D location of the listener
-  Aura.listener.location.x = 2.0;
-
-  // Apply the changes to make them audible
+  // Apply the changes to the sound to make them audible
   mySoundHandle.update3D();
   ```
 

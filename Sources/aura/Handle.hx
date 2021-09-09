@@ -8,7 +8,7 @@ import aura.math.Vec3;
 import aura.utils.MathUtils;
 
 /**
-	Main-thread handle to an audio channel which works in the audio thread.
+	Main-thread handle to an audio channel in the audio thread.
 **/
 @:access(aura.channels.BaseChannel)
 @:access(aura.dsp.DSP)
@@ -149,9 +149,6 @@ class Handle {
 			dopplerRatio = (soundSpeed + vr) / (soundSpeed + vs);
 			dopplerRatio = Math.pow(dopplerRatio, dopplerFactor);
 		}
-
-		listener.velocity = listener.location.sub(listener.lastLocation);
-		listener.lastLocation.setFrom(listener.location);
 
 		this.velocity = this.location.sub(this.lastLocation);
 		this.lastLocation.setFrom(this.location);
