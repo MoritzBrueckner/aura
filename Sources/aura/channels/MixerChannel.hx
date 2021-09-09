@@ -119,7 +119,7 @@ class MixerChannel extends BaseChannel {
 			return;
 		}
 
-		final sampleCacheIndividual = Aura.getSampleCache(treeLevel, requestedLength);
+		final sampleCacheIndividual = Aura.getSampleCache(treeLevel + 1, requestedLength);
 		if (sampleCacheIndividual == null) {
 			clearBuffer(requestedSamples, requestedLength);
 			return;
