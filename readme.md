@@ -153,7 +153,7 @@ project.addDefine("AURA_WITH_IRON");
 
 Thanks to Haxe and Kha, Aura runs almost everywhere!
 
-The following targets were tested:
+The following targets were tested so far:
 
 | Target | Tested environments | Supported | Notes |
 | --- | --- | :---: | --- |
