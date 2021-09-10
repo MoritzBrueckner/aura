@@ -48,7 +48,7 @@ project.addDefine("AURA_WITH_IRON");
 
   ...
 
-  var sounds: AuraLoadConfig = {
+  var loadConfig: AuraLoadConfig = {
       uncompressed: [  // <-- List of sounds to uncompress
           "MySoundFile",
       ],
@@ -57,9 +57,7 @@ project.addDefine("AURA_WITH_IRON");
       ]
   };
 
-  Aura.loadSounds(sounds, () -> {
-      // All the code inside {} is executed after the sounds were loaded and uncompressed
-
+  Aura.loadSounds(loadConfig, () -> {
       // You can access the loaded sounds with `Aura.getSound()`
       var mySound: kha.Sound = Aura.getSound("MySoundFile");
   });
