@@ -82,6 +82,8 @@ project.addDefine("AURA_WITH_IRON");
   // or not. Please consult the Kha sources if in doubt.
   Aura.stream(mySound, false, Aura.mixChannels["music"]);
   ```
+  
+  `Aura.play()` and `Aura.stream()` both return a [`Handle`](https://github.com/MoritzBrueckner/aura/blob/master/Sources/aura/Handle.hx) object with which you can control the playback and relevant parameters.
 
 - Create a `MixerChannel` to control a group of sounds:
 
