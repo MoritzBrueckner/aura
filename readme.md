@@ -57,6 +57,8 @@ project.addDefine("AURA_WITH_IRON");
       ]
   };
 
+  Aura.init(); // <-- Don't forget this!
+
   Aura.loadSounds(loadConfig, () -> {
       // You can access the loaded sounds with `Aura.getSound()`
       var mySound: kha.Sound = Aura.getSound("MySoundFile");
