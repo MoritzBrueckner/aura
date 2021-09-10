@@ -79,7 +79,7 @@ class Handle {
 	}
 
 	public inline function addInsert(insert: DSP): DSP {
-		assert(Error, !insert.inUse, "DSP objects can only belong to one unique channel");
+		assert(Critical, !insert.inUse, "DSP objects can only belong to one unique channel");
 		insert.inUse = true;
 		channel.inserts.push(insert);
 		return insert;
