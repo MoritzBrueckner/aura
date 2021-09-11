@@ -97,7 +97,7 @@ project.addDefine("AURA_WITH_IRON");
   Aura.masterChannel.addInputChannel(voiceChannel);
   ```
 
-- Add a lowpass filter to the master channel:
+- Add a lowpass filter to a channel:
 
   ```haxe
   import aura.dsp.Filter;
