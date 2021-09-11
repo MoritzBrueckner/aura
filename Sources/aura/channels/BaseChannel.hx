@@ -11,6 +11,7 @@ import aura.utils.Interpolator.LinearInterpolator;
 	Base class of all audio channels in the audio thread.
 **/
 @:allow(aura.Aura)
+@:access(aura.dsp.DSP)
 abstract class BaseChannel {
 	final messages: Fifo<Message> = new Fifo();
 
@@ -41,6 +42,20 @@ abstract class BaseChannel {
 	inline function processInserts(buffer: Float32Array, bufferLength: Int) {
 		for (insert in inserts) {
 			insert.process(buffer, bufferLength);
+		}
+	}
+
+	public inline function addInsert(insert: DSP): DSP {
+		assert(Critical, !insert.inUse, "DSP objects can only belong to one unique channel");
+		insert.inUse = true;
+		inserts.push(insert);
+		return insert;
+	}
+
+	public inline function removeInsert(insert: DSP) {
+		var found = inserts.remove(insert);
+		if (found) {
+			insert.inUse = false;
 		}
 	}
 

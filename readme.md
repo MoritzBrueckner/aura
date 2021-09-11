@@ -97,19 +97,20 @@ project.addDefine("AURA_WITH_IRON");
   Aura.masterChannel.addInputChannel(voiceChannel);
   ```
 
-- Add a lowpass filter to a channel:
+- Add a lowpass filter to the master channel:
 
   ```haxe
   import aura.dsp.Filter;
 
   ...
 
-  var mySoundHandle = Aura.play(mySound);
+  Aura.play(mySound);
 
   var lowPass = new Filter(LowPass);
   lowPass.setCutoffFreq(1000); // Frequency in Hertz
 
-  mySoundHandle.addInsert(lowPass);
+  // Aura.masterChannel is short for Aura.mixChannels["master"]
+  Aura.masterChannel.addInsert(lowPass);
 
   ```
 

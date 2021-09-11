@@ -79,17 +79,11 @@ class Handle {
 	}
 
 	public inline function addInsert(insert: DSP): DSP {
-		assert(Critical, !insert.inUse, "DSP objects can only belong to one unique channel");
-		insert.inUse = true;
-		channel.inserts.push(insert);
-		return insert;
+		return channel.addInsert(insert);
 	}
 
 	public inline function removeInsert(insert: DSP) {
-		var found = channel.inserts.remove(insert);
-		if (found) {
-			insert.inUse = false;
-		}
+		channel.removeInsert(insert);
 	}
 
 	/**
