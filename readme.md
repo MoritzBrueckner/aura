@@ -104,12 +104,13 @@ project.addDefine("AURA_WITH_IRON");
 
   ...
 
-  Aura.play(mySound);
+  var mySoundHandle = Aura.play(mySound);
 
   var lowPass = new Filter(LowPass);
   lowPass.setCutoffFreq(1000); // Frequency in Hertz
 
-  Aura.masterChannel.addInsert(lowPass);
+  mySoundHandle.addInsert(lowPass);
+
   ```
 
 - 2D sound:
