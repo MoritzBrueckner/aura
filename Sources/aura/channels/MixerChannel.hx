@@ -133,6 +133,7 @@ class MixerChannel extends BaseChannel {
 			return;
 		}
 
+		var first = true;
 		for (channel in inputChannelsCopy) {
 			if (channel == null || !channel.isPlayable()) {
 				continue;
@@ -140,8 +141,20 @@ class MixerChannel extends BaseChannel {
 
 			channel.nextSamples(sampleCacheIndividual, requestedLength, sampleRate);
 
-			for (i in 0...requestedLength) {
-				requestedSamples[i] += sampleCacheIndividual[i];
+			if (first) {
+				// To prevent feedback loops, the input sample cache has to be
+				// cleared before all inputs are added to it. To not waste
+				// calculations, we do not use clearBuffer() here but instead
+				// just override the previous sample cache.
+				for (i in 0...requestedLength) {
+					requestedSamples[i] = sampleCacheIndividual[i];
+				}
+				first = false;
+			}
+			else {
+				for (i in 0...requestedLength) {
+					requestedSamples[i] += sampleCacheIndividual[i];
+				}
 			}
 		}
 		// for (channel in internalStreamChannels) {
