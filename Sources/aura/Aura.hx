@@ -220,7 +220,7 @@ class Aura {
 			sampleCaches[treeLevel] = cache = new Float32Array(length * 2);
 			lastAllocationTimer = 0;
 		}
-		else {
+		else if (treeLevel == 0) {
 			if (lastAllocationTimer > 100) {
 				kha.audio2.Audio.disableGcInteractions = true;
 			}
