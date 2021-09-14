@@ -214,10 +214,12 @@ class Aura {
 				return null;
 			}
 
-			// Overallocate cache by factor 2 to avoid too many allocations,
-			// eventually the cache will be big enough for the required amount
-			// of samples.
-			sampleCaches[treeLevel] = cache = new Float32Array(length * 2);
+			// If the cache exists but is too small, overallocate by factor 2 to
+			// avoid too many allocations, eventually the cache will be big
+			// enough for the required amount of samples. If the cache does not
+			// exist yet, do not overallocate to prevent too high memory usage
+			// (the requested length should not change much).
+			sampleCaches[treeLevel] = cache = new Float32Array(cache == null ? length : length * 2);
 			lastAllocationTimer = 0;
 		}
 		else if (treeLevel == 0) {
