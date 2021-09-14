@@ -23,7 +23,7 @@ abstract class BaseChannel {
 	final pDopplerRatio = new LinearInterpolator(1.0);
 	final pDstAttenuation = new LinearInterpolator(1.0);
 
-	var treeLevel: Int = 0;
+	var treeLevel(default, null): Int = 0;
 
 	var paused: Bool = false;
 	var finished: Bool = false;
@@ -37,6 +37,10 @@ abstract class BaseChannel {
 
 	function isPlayable(): Bool {
 		return !paused && !finished;
+	}
+
+	function setTreeLevel(level: Int) {
+		this.treeLevel = level;
 	}
 
 	inline function processInserts(buffer: Float32Array, bufferLength: Int) {

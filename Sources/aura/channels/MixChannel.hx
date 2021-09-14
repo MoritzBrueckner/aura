@@ -53,7 +53,7 @@ class MixChannel extends BaseChannel {
 			if (inputChannels[i] == null) { // || inputChannels[i].finished) {
 				inputChannels[i] = channel;
 				numUsedInputs++;
-				channel.treeLevel = this.treeLevel + 1;
+				channel.setTreeLevel(this.treeLevel + 1);
 
 				foundChannel = true;
 				break;
@@ -105,6 +105,15 @@ class MixChannel extends BaseChannel {
 
 	override function isPlayable(): Bool {
 		return super.isPlayable() && numUsedInputs != 0;
+	}
+
+	override function setTreeLevel(level: Int) {
+		this.treeLevel = level;
+		for (inputChannel in inputChannels) {
+			if (inputChannel != null) {
+				inputChannel.setTreeLevel(level + 1);
+			}
+		}
 	}
 
 	function synchronize() {
