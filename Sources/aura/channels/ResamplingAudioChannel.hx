@@ -16,12 +16,9 @@ class ResamplingAudioChannel extends AudioChannel {
 
 	final pPitch = new LinearInterpolator(1.0);
 
-	var mixerChannel: MixerChannel;
-
-	public function new(looping: Bool, sampleRate: Hertz, mixerChannel: MixerChannel) {
+	public function new(looping: Bool, sampleRate: Hertz) {
 		super(looping);
 		this.sampleRate = sampleRate;
-		this.mixerChannel = mixerChannel;
 	};
 
 	override function nextSamples(requestedSamples: Float32Array, requestedLength: Int, sampleRate: Hertz): Void {

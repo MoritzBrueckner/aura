@@ -16,23 +16,25 @@ import kha.SystemImpl;
 import kha.arrays.Float32Array;
 import kha.audio2.Audio1;
 
+import aura.MixChannelHandle;
 import aura.channels.Html5StreamChannel;
-import aura.channels.MixerChannel;
+import aura.channels.MixChannel;
 import aura.channels.ResamplingAudioChannel;
 import aura.channels.StreamChannel;
 import aura.utils.Assert;
 import aura.utils.BufferUtils.clearBuffer;
 import aura.utils.MathUtils;
 
+@:access(aura.MixChannelHandle)
 class Aura {
 	public static var sampleRate(default, null): Int;
 
 	public static var listener: Listener;
 
-	public static var mixChannels: Map<String, MixerChannel>;
-	public static var masterChannel: MixerChannel;
+	public static final mixChannels = new Map<String, MixChannelHandle>();
+	public static var masterChannel(default, null): MixChannelHandle;
 
-	public static var sampleCaches: Vector<kha.arrays.Float32Array>;
+	static var sampleCaches: Vector<kha.arrays.Float32Array>;
 
 	/**
 		Number of audioCallback() invocations since the last allocation. This is
@@ -46,22 +48,14 @@ class Aura {
 		sampleRate = kha.audio2.Audio.samplesPerSecond;
 		assert(Critical, sampleRate != 0, "sampleRate must not be 0!");
 
-		@:privateAccess MixerChannel.channelSize = channelSize;
+		@:privateAccess MixChannel.channelSize = channelSize;
 
 		listener = new Listener();
 
-		masterChannel = new MixerChannel();
-		final musicChannel = new MixerChannel();
-		final fxChannel = new MixerChannel();
-
-		mixChannels = [
-			"master" => masterChannel,
-			"music" => musicChannel,
-			"fx" => fxChannel,
-		];
-
-		masterChannel.addInputChannel(musicChannel);
-		masterChannel.addInputChannel(fxChannel);
+		// Create a few preconfigured mix channels
+		masterChannel = createMixChannel("master");
+		masterChannel.addInputChannel(createMixChannel("music"));
+		masterChannel.addInputChannel(createMixChannel("fx"));
 
 		// TODO: Make max tree height configurable
 		sampleCaches = new Vector(8);
@@ -148,29 +142,30 @@ class Aura {
 		return Assets.sounds.get(soundName);
 	}
 
-	public static function play(sound: kha.Sound, loop: Bool = false, mixerChannel: Null<MixerChannel> = null): Null<Handle> {
-		if (mixerChannel == null) {
-			mixerChannel = masterChannel;
+	public static function play(sound: kha.Sound, loop: Bool = false, mixChannelHandle: Null<MixChannelHandle> = null): Null<Handle> {
+		if (mixChannelHandle == null) {
+			mixChannelHandle = masterChannel;
 		}
 
 		assert(Critical, sound.uncompressedData != null);
 
 		// TODO: Like Kha, only use resampling channel if pitch is used or if samplerate of sound and system differs
-		final channel = new ResamplingAudioChannel(loop, sound.sampleRate, mixerChannel);
+		final channel = new ResamplingAudioChannel(loop, sound.sampleRate);
 		@:privateAccess channel.data = sound.uncompressedData;
 
-		final foundChannel = mixerChannel.addInputChannel(channel);
+		final handle = new Handle(channel);
+		final foundChannel = mixChannelHandle.addInputChannel(handle);
 
-		return foundChannel ? new Handle(channel) : null;
+		return foundChannel ? handle : null;
 	}
 
-	public static function stream(sound: kha.Sound, loop: Bool = false, mixerChannel: Null<MixerChannel> = null): Null<Handle> {
+	public static function stream(sound: kha.Sound, loop: Bool = false, mixChannelHandle: Null<MixChannelHandle> = null): Null<Handle> {
 		#if kha_krom // Krom only uses uncompressedData -> no streaming
-		return play(sound, loop, mixerChannel);
+		return play(sound, loop, mixChannelHandle);
 		#else
 
-		if (mixerChannel == null) {
-			mixerChannel = masterChannel;
+		if (mixChannelHandle == null) {
+			mixChannelHandle = masterChannel;
 		}
 
 		assert(Critical, sound.compressedData != null);
@@ -187,10 +182,25 @@ class Aura {
 		final auraChannel = new StreamChannel(cast khaChannel);
 		#end
 
-		final foundChannel = mixerChannel.addInputChannel(auraChannel);
+		final handle = new Handle(auraChannel);
+		final foundChannel = mixChannelHandle.addInputChannel(handle);
 
-		return foundChannel ? new Handle(auraChannel) : null;
+		return foundChannel ? handle : null;
 		#end
+	}
+
+	/**
+		Create a `MixChannel` to control a group of other channels together.
+		@param name Optional name. If not empty, the name can be used later to
+			retrieve the channel handle via `Aura.mixChannels[name]`.
+	**/
+	public static inline function createMixChannel(name: String = ""): MixChannelHandle {
+		final handle = new MixChannelHandle(new MixChannel());
+		if (name != "") {
+			assert(Error, !mixChannels.exists(name), 'MixChannel with name $name already exists!');
+			mixChannels[name] = handle;
+		}
+		return handle;
 	}
 
 	public static function getSampleCache(treeLevel: Int, length: Int): Null<Float32Array> {
@@ -261,7 +271,7 @@ class Aura {
 
 		// Copy reference to masterChannel for some more thread safety.
 		// TODO: Investigate if other solutions are required here
-		var master = masterChannel;
+		var master: MixChannel = masterChannel.getMixChannel();
 		master.synchronize();
 
 		clearBuffer(sampleCache, samples);

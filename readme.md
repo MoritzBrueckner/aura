@@ -12,7 +12,7 @@
 # Features
 
 - Multiple attenuation models for 3D sound
-- Mix busses for modifying groups of sounds together
+- Mix channels for modifying groups of sounds together
 - Doppler effect
 - Built-in [DSP](https://en.wikipedia.org/wiki/Digital_signal_processing) filters:
   - High-/band-/lowpass filter
@@ -82,19 +82,20 @@ project.addDefine("AURA_WITH_IRON");
   // or not. Please consult the Kha sources if in doubt.
   Aura.stream(mySound, false, Aura.mixChannels["music"]);
   ```
-  
+
   `Aura.play()` and `Aura.stream()` both return a [`Handle`](https://github.com/MoritzBrueckner/aura/blob/master/Sources/aura/Handle.hx) object with which you can control the playback and relevant parameters.
 
-- Create a `MixerChannel` to control a group of sounds:
+- Create a `MixChannel` to control a group of sounds:
 
   ```haxe
-  import aura.channels.MixerChannel;
+  // Create a channel for all voices for example.
+  // The channel can also be accessed with `Aura.mixChannels["voice"]`
+  var voiceChannel = Aura.createMixChannel("voice");
 
-  ...
-
-  var voiceChannel = MixerChannel();
   // Mix the output of `voiceChannel` into the master channel
   Aura.masterChannel.addInputChannel(voiceChannel);
+
+  Aura.play(mySound, false, voiceChannel);
   ```
 
 - Add a lowpass filter to the master channel:

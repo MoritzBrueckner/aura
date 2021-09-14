@@ -14,13 +14,13 @@ import aura.threading.Message;
 /**
 	A channel that mixes together the output of multiple input channels.
 **/
-class MixerChannel extends BaseChannel {
+class MixChannel extends BaseChannel {
 	#if cpp
 	static var mutex: Mutex = new Mutex();
 	#end
 
 	/**
-		The amount of inputs a MixerChannel can hold. Set this value via
+		The amount of inputs a MixChannel can hold. Set this value via
 		`Aura.init(channelSize)`.
 	**/
 	static var channelSize: Int;
@@ -33,7 +33,7 @@ class MixerChannel extends BaseChannel {
 	**/
 	var inputChannelsCopy: Vector<BaseChannel>;
 
-	public function new(channel: ResamplingAudioChannel = null) {
+	public function new() {
 		inputChannels = new Vector<BaseChannel>(channelSize);
 	}
 
@@ -49,7 +49,7 @@ class MixerChannel extends BaseChannel {
 		mutex.acquire();
 		#end
 
-		for (i in 0...MixerChannel.channelSize) {
+		for (i in 0...MixChannel.channelSize) {
 			if (inputChannels[i] == null) { // || inputChannels[i].finished) {
 				inputChannels[i] = channel;
 				numUsedInputs++;
@@ -74,7 +74,7 @@ class MixerChannel extends BaseChannel {
 		mutex.acquire();
 		#end
 
-		for (i in 0...MixerChannel.channelSize) {
+		for (i in 0...MixChannel.channelSize) {
 			if (inputChannels[i] == channel) {
 				inputChannels[i] = null;
 				numUsedInputs--;
@@ -92,7 +92,7 @@ class MixerChannel extends BaseChannel {
 	/**
 		Copy the references to the inputs channels for thread safety. This
 		function does not acquire any additional mutexes.
-		@see `MixerChannel.inputChannelsCopy`
+		@see `MixChannel.inputChannelsCopy`
 	**/
 	inline function updateChannelsCopy() {
 		inputChannelsCopy = inputChannels.copy();
