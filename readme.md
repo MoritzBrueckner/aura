@@ -164,7 +164,7 @@ The following targets were tested so far:
 | --- | --- | :---: | --- |
 | [Armorcore](https://github.com/armory3d/armorcore) (Krom) | Windows | ✔ | |
 | HTML5 | | ✔ | - No dedicated audio thread for non-streaming playback<br>- If `kha.SystemImpl.mobileAudioPlaying` is true, streamed playback is not included in the Aura mix pipeline (no DSP etc.) |
-| Hashlink/C | Windows | ✔ | The sample rate of uncompressed sounds must be manually set if the asset quality in the Khafile is set to 1.0 (Kha issue) |
+| Hashlink/C | Windows | ✔ | The sample rate of uncompressed sounds must be manually set if the asset quality in the Khafile is set to 1.0 (Hopefully fixed soon, see https://github.com/Kode/Kha/pull/1362) |
 | hxcpp | Windows | ✔ | |
 
 # License
