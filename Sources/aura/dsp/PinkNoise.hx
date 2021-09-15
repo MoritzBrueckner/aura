@@ -3,20 +3,21 @@ package aura.dsp;
 import kha.arrays.Float32Array;
 
 /**
- * 	Signal with a frequency spectrum such that the power spectral density (energy or power per Hz) is inversely proportional to the frequency of the signal.
-	Each octave (halving/doubling in frequency) carries an equal amount of noise power.
- */
+	Signal with a frequency spectrum such that the power spectral density
+	(energy or power per Hz) is inversely proportional to the frequency of the
+	signal. Each octave (halving/doubling in frequency) carries an equal amount
+	of noise power.
+**/
 class PinkNoise implements DSP {
 
-    var inUse = false;
+	var inUse = false;
 
-    public inline function new() {
-    }
+	public inline function new() {}
 
-    public function process(buffer: Float32Array, bufferLength: Int) {
-        var b0, b1, b2, b3, b4, b5, b6;
+	public function process(buffer: Float32Array, bufferLength: Int) {
+		var b0, b1, b2, b3, b4, b5, b6;
 		b0 = b1 = b2 = b3 = b4 = b5 = b6 = 0.0;
-		for( i in 0...bufferLength ) {
+		for (i in 0...bufferLength) {
 			var white = Math.random() * 2 - 1;
 			b0 = 0.99886 * b0 + white * 0.0555179;
 			b1 = 0.99332 * b1 + white * 0.0750759;
@@ -28,6 +29,5 @@ class PinkNoise implements DSP {
 			buffer[i] *= 0.11;
 			b6 = white * 0.115926;
 		}
-    }
-
+	}
 }
