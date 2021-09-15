@@ -1,5 +1,6 @@
 package aura.dsp;
 
+import aura.utils.BufferUtils.createEmptyVecF;
 import haxe.ds.Vector;
 
 import kha.arrays.Float32Array;
@@ -30,18 +31,10 @@ class Filter implements DSP {
 		this.filterMode = filterMode;
 
 		this.buf = new Vector(2); // Two channels
-		this.cutoff = new Vector(2);
+		buf[0] = createEmptyVecF(2);  // Two buffers per channel
+		buf[1] = createEmptyVecF(2);
 
-		inline setupChannel(0);
-		inline setupChannel(1);
-	}
-
-	inline function setupChannel(i: Int) {
-		buf[i] = new Vector(2);  // Two buffers per channel
-		buf[i][0] = 0.0;
-		buf[i][1] = 0.0;
-
-		cutoff[i] = 1.0;
+		this.cutoff = createEmptyVecF(2);
 	}
 
 	public function process(buffer: Float32Array, bufferLength: Int) {
