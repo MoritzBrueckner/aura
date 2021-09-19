@@ -14,6 +14,7 @@
 - Multiple attenuation models for 3D sound
 - Mix channels for modifying groups of sounds together
 - Doppler effect
+- Noise generator channels
 - Built-in [DSP](https://en.wikipedia.org/wiki/Digital_signal_processing) filters:
   - High-/band-/lowpass filter
   - Haas effect
