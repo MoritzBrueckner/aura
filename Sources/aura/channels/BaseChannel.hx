@@ -28,7 +28,6 @@ abstract class BaseChannel {
 	var paused: Bool = false;
 	var finished: Bool = false;
 
-	abstract function synchronize(): Void;
 	abstract function nextSamples(requestedSamples: Float32Array, requestedLength: Int, sampleRate: Hertz): Void;
 
 	public abstract function play(): Void;
@@ -60,6 +59,13 @@ abstract class BaseChannel {
 		var found = inserts.remove(insert);
 		if (found) {
 			insert.inUse = false;
+		}
+	}
+
+	function synchronize() {
+		var message: Null<Message>;
+		while ((message = messages.tryPop()) != null) {
+			parseMessage(message);
 		}
 	}
 

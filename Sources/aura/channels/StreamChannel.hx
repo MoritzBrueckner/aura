@@ -34,13 +34,6 @@ class StreamChannel extends BaseChannel {
 		khaChannel.nextSamples(requestedSamples, requestedLength, sampleRate);
 	}
 
-	function synchronize() {
-		var message: Null<Message>;
-		while ((message = messages.tryPop()) != null) {
-			parseMessage(message);
-		}
-	}
-
 	override function parseMessage(message: Message) {
 		switch (message.id) {
 			// Because we're using a Kha implementation here, we cannot use the

@@ -116,7 +116,7 @@ class MixChannel extends BaseChannel {
 		}
 	}
 
-	function synchronize() {
+	override function synchronize() {
 		for (inputChannel in inputChannels) {
 			if (inputChannel != null) {
 				inputChannel.synchronize();
