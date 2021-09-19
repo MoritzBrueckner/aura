@@ -199,6 +199,9 @@ class Aura {
 		if (name != "") {
 			assert(Error, !mixChannels.exists(name), 'MixChannel with name $name already exists!');
 			mixChannels[name] = handle;
+			#if AURA_DEBUG
+			handle.name = name;
+			#end
 		}
 		return handle;
 	}

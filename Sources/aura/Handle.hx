@@ -199,4 +199,10 @@ class Handle {
 	public inline function setLocation(location: Vec3) {
 		this.location = location;
 	}
+
+	#if AURA_DEBUG
+	public function getDebugAttrs(): Map<String, String> {
+		return ["In use" => Std.string(@:privateAccess channel.isPlayable())];
+	}
+	#end
 }
