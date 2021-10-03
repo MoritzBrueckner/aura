@@ -1,5 +1,5 @@
 // =============================================================================
-// audioCallback() and getSampleCache() are roughly based on
+// audioCallback() is roughly based on
 // https://github.com/Kode/Kha/blob/master/Sources/kha/audio2/Audio1.hx
 //
 // References:
@@ -21,6 +21,7 @@ import aura.channels.Html5StreamChannel;
 import aura.channels.MixChannel;
 import aura.channels.ResamplingAudioChannel;
 import aura.channels.StreamChannel;
+import aura.threading.BufferCache;
 import aura.utils.Assert;
 import aura.utils.BufferUtils.clearBuffer;
 import aura.utils.MathUtils;
@@ -33,16 +34,6 @@ class Aura {
 
 	public static final mixChannels = new Map<String, MixChannelHandle>();
 	public static var masterChannel(default, null): MixChannelHandle;
-
-	static var sampleCaches: Vector<kha.arrays.Float32Array>;
-
-	/**
-		Number of audioCallback() invocations since the last allocation. This is
-		used to automatically switch off interactions with the garbage collector
-		in the audio thread if there are no allocations for some time (for extra
-		performance).
-	**/
-	static var lastAllocationTimer: Int = 0;
 
 	public static function init(channelSize: Int = 16) {
 		sampleRate = kha.audio2.Audio.samplesPerSecond;
@@ -57,8 +48,7 @@ class Aura {
 		masterChannel.addInputChannel(createMixChannel("music"));
 		masterChannel.addInputChannel(createMixChannel("fx"));
 
-		// TODO: Make max tree height configurable
-		sampleCaches = new Vector(8);
+		BufferCache.init();
 
 		kha.audio2.Audio.audioCallback = audioCallback;
 	}
@@ -206,47 +196,6 @@ class Aura {
 		return handle;
 	}
 
-	public static function getSampleCache(treeLevel: Int, length: Int): Null<Float32Array> {
-		var cache = sampleCaches[treeLevel];
-
-		if (cache == null || cache.length < length) {
-			if (kha.audio2.Audio.disableGcInteractions) {
-				// This code is executed in the case that there are suddenly
-				// more samples requested while the GC interactions are turned
-				// off (because the number of samples was sufficient for a
-				// longer time). We can't just turn on GC interactions, it will
-				// not take effect before the next audio callback invocation, so
-				// we skip this "frame" instead (see [1] for reference).
-
-				trace("Unexpected allocation request in audio thread.");
-				final haveMsg = (cache == null) ? 'no cache' : '${cache.length}';
-				trace('  treeLevel: $treeLevel, wanted length: $length (have: $haveMsg)');
-
-				lastAllocationTimer = 0;
-				kha.audio2.Audio.disableGcInteractions = false;
-				return null;
-			}
-
-			// If the cache exists but is too small, overallocate by factor 2 to
-			// avoid too many allocations, eventually the cache will be big
-			// enough for the required amount of samples. If the cache does not
-			// exist yet, do not overallocate to prevent too high memory usage
-			// (the requested length should not change much).
-			sampleCaches[treeLevel] = cache = new Float32Array(cache == null ? length : length * 2);
-			lastAllocationTimer = 0;
-		}
-		else if (treeLevel == 0) {
-			if (lastAllocationTimer > 100) {
-				kha.audio2.Audio.disableGcInteractions = true;
-			}
-			else {
-				lastAllocationTimer += 1;
-			}
-		}
-
-		return cache;
-	}
-
 	/**
 		Mixes all sub channels and sounds in this channel together.
 
@@ -259,7 +208,7 @@ class Aura {
 		Time.update();
 
 		final samples = samplesBox.value;
-		final sampleCache = getSampleCache(0, samples);
+		final sampleCache = BufferCache.getTreeBuffer(0, samples);
 
 		if (sampleCache == null) {
 			for (i in 0...samples) {

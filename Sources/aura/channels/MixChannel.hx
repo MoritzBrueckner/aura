@@ -9,6 +9,7 @@ import sys.thread.Mutex;
 import kha.arrays.Float32Array;
 
 import aura.utils.BufferUtils.clearBuffer;
+import aura.threading.BufferCache;
 import aura.threading.Message;
 
 /**
@@ -136,8 +137,8 @@ class MixChannel extends BaseChannel {
 			return;
 		}
 
-		final sampleCacheIndividual = Aura.getSampleCache(treeLevel + 1, requestedLength);
-		if (sampleCacheIndividual == null) {
+		final inputBuffer = BufferCache.getTreeBuffer(treeLevel + 1, requestedLength);
+		if (inputBuffer == null) {
 			clearBuffer(requestedSamples, requestedLength);
 			return;
 		}
@@ -148,30 +149,30 @@ class MixChannel extends BaseChannel {
 				continue;
 			}
 
-			channel.nextSamples(sampleCacheIndividual, requestedLength, sampleRate);
+			channel.nextSamples(inputBuffer, requestedLength, sampleRate);
 
 			if (first) {
-				// To prevent feedback loops, the input sample cache has to be
-				// cleared before all inputs are added to it. To not waste
-				// calculations, we do not use clearBuffer() here but instead
-				// just override the previous sample cache.
+				// To prevent feedback loops, the input buffer has to be cleared
+				// before all inputs are added to it. To not waste calculations,
+				// we do not use clearBuffer() here but instead just override
+				// the previous sample cache.
 				for (i in 0...requestedLength) {
-					requestedSamples[i] = sampleCacheIndividual[i];
+					requestedSamples[i] = inputBuffer[i];
 				}
 				first = false;
 			}
 			else {
 				for (i in 0...requestedLength) {
-					requestedSamples[i] += sampleCacheIndividual[i];
+					requestedSamples[i] += inputBuffer[i];
 				}
 			}
 		}
 		// for (channel in internalStreamChannels) {
 		// 	if (channel == null || !channel.isPlayable())
 		// 		continue;
-		// 	channel.nextSamples(sampleCacheIndividual, samples, buffer.samplesPerSecond);
+		// 	channel.nextSamples(inputBuffer, samples, buffer.samplesPerSecond);
 		// 	for (i in 0...samples) {
-		// 		sampleCacheAccumulated[i] += sampleCacheIndividual[i] * channel.volume;
+		// 		sampleCacheAccumulated[i] += inputBuffer[i] * channel.volume;
 		// 	}
 		// }
 
