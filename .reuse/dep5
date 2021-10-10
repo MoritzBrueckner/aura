@@ -7,7 +7,11 @@ Files: Sources/*
 Copyright: 2021 Moritz Brückner & Aura Contributors
 License: Zlib
 
-Files: readme.md .gitattributes .gitignore .pre-commit-config.yaml
+Files: Libraries/hxdsp/*
+Copyright: Gabriel Baiocchi de Sant'Anna (GitHub @baioc)
+License: Unlicense
+
+Files: readme.md khafile.js .gitattributes .gitmodules .gitignore .pre-commit-config.yaml
 Copyright: 2021 Moritz Brückner & Aura Contributors
 License: CC0-1.0
 
