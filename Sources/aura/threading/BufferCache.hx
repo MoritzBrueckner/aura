@@ -121,7 +121,9 @@ enum abstract BufferType(Int) {
 	/** Represents `kha.arrays.Float32Array`. **/
 	var TFloat32Array;
 	/** Represents `Array<Float>`. **/
-	var TArray_Float;
+	var TArrayFloat;
+	/** Represents `Array<dsp.Complex>`. **/
+	var TArrayComplex;
 
 	public static function createAllConfigs(): Map<BufferType, BufferConfig> {
 		final out = new Map<BufferType, BufferConfig>();
@@ -133,7 +135,7 @@ enum abstract BufferType(Int) {
 				return cast (buffer: Float32Array).length;
 			}
 		);
-		out[TArray_Float] = new BufferConfig(
+		out[TArrayFloat] = new BufferConfig(
 			(length: Int) -> {
 				final v = new Array<Float>();
 				v.resize(length);
@@ -141,6 +143,16 @@ enum abstract BufferType(Int) {
 			},
 			(buffer: Any) -> {
 				return cast (buffer: Array<Float>).length;
+			}
+		);
+		out[TArrayComplex] = new BufferConfig(
+			(length: Int) -> {
+				final v = new Array<dsp.Complex>();
+				v.resize(length);
+				return v;
+			},
+			(buffer: Any) -> {
+				return cast (buffer: Array<dsp.Complex>).length;
 			}
 		);
 		return out;
