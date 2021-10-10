@@ -30,11 +30,15 @@ class BufferCache {
 	**/
 	static var treeBuffers: Vector<Pointer<Float32Array>>;
 
+	static var bufferConfigs: Map<BufferType, BufferConfig>;
+
 	public static inline function init() {
 		treeBuffers = new Vector(MAX_TREE_HEIGHT);
 		for (i in 0...treeBuffers.length) {
 			treeBuffers[i] = new Pointer<Float32Array>();
 		}
+
+		bufferConfigs = BufferType.createAllConfigs();
 	}
 
 	public static inline function updateTimer() {
@@ -46,7 +50,7 @@ class BufferCache {
 
 	public static function getTreeBuffer(treeLevel: Int, length: Int): Null<Float32Array> {
 		var p_buffer = treeBuffers[treeLevel];
-		getBuffer(p_buffer, length);
+		getBuffer(TFloat32Array, p_buffer, length);
 
 		var buffer = p_buffer.get();
 		if (buffer == null) {
@@ -59,9 +63,13 @@ class BufferCache {
 		return buffer;
 	}
 
-	public static function getBuffer(p_buffer: Pointer<Float32Array>, length: Int) {
+	@:generic
+	public static function getBuffer<T>(bufferType: BufferType, p_buffer: PointerType<T>, length: Int) {
+		final bufferCfg = bufferConfigs.get(bufferType);
+
 		var buffer = p_buffer.get();
-		if (buffer != null && buffer.length >= length) {
+
+		if (buffer != null && bufferCfg.getLength(buffer) >= length) {
 			// Buffer is already big enough
 			return;
 		}
@@ -75,7 +83,7 @@ class BufferCache {
 			// we skip this "frame" instead (see [1] for reference).
 
 			trace("Unexpected allocation request in audio thread.");
-			final haveMsg = (buffer == null) ? 'no buffer' : '${buffer.length}';
+			final haveMsg = (buffer == null) ? 'no buffer' : '${bufferCfg.getLength(buffer)}';
 			trace('  wanted length: $length (have: $haveMsg)');
 
 			lastAllocationTimer = 0;
@@ -89,8 +97,52 @@ class BufferCache {
 		// enough for the required amount of samples. If the buffer does not
 		// exist yet, do not overallocate to prevent too high memory usage
 		// (the requested length should not change much).
-		buffer = new Float32Array(buffer == null ? length : length * 2);
+		buffer = cast bufferCfg.construct(buffer == null ? length : length * 2);
 		p_buffer.set(buffer);
 		lastAllocationTimer = 0;
+	}
+}
+
+class BufferConfig {
+	public var construct: Int->Any;
+	public var getLength: Any->Int;
+
+	public function new(construct: Int->Any, getLength: Any->Int) {
+		this.construct = construct;
+		this.getLength = getLength;
+	}
+}
+
+/**
+	Type-unsafe workaround for covariance and unification issues when working
+	with the generic `BufferCache.getBuffer()`.
+**/
+enum abstract BufferType(Int) {
+	/** Represents `kha.arrays.Float32Array`. **/
+	var TFloat32Array;
+	/** Represents `Array<Float>`. **/
+	var TArray_Float;
+
+	public static function createAllConfigs(): Map<BufferType, BufferConfig> {
+		final out = new Map<BufferType, BufferConfig>();
+		out[TFloat32Array] = new BufferConfig(
+			(length: Int) -> {
+				return new Float32Array(length);
+			},
+			(buffer: Any) -> {
+				return cast (buffer: Float32Array).length;
+			}
+		);
+		out[TArray_Float] = new BufferConfig(
+			(length: Int) -> {
+				final v = new Array<Float>();
+				v.resize(length);
+				return v;
+			},
+			(buffer: Any) -> {
+				return cast (buffer: Array<Float>).length;
+			}
+		);
+		return out;
 	}
 }

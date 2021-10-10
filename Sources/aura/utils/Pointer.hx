@@ -16,3 +16,15 @@ class Pointer<T> {
 		return this.value;
 	}
 }
+
+/**
+	Workaround for covariance issues when using generics. Use `PointerType<T>`
+	instead of `Pointer<T>` when using generic pointers as function parameters.
+**/
+@:generic
+typedef PointerType<T> = {
+	public var value:Null<T>;
+
+	public function set(value: Null<T>): Void;
+	public function get(): Null<T>;
+}
