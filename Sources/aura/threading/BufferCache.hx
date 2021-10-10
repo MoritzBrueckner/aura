@@ -50,28 +50,25 @@ class BufferCache {
 
 	public static function getTreeBuffer(treeLevel: Int, length: Int): Null<Float32Array> {
 		var p_buffer = treeBuffers[treeLevel];
-		getBuffer(TFloat32Array, p_buffer, length);
 
-		var buffer = p_buffer.get();
-		if (buffer == null) {
+		if (!getBuffer(TFloat32Array, p_buffer, length)) {
 			// Unexpected allocation message is already printed
 			trace('  treeLevel: $treeLevel');
 			return null;
 		}
 
-		p_buffer.set(buffer);
-		return buffer;
+		return p_buffer.get();
 	}
 
 	@:generic
-	public static function getBuffer<T>(bufferType: BufferType, p_buffer: PointerType<T>, length: Int) {
+	public static function getBuffer<T>(bufferType: BufferType, p_buffer: PointerType<T>, length: Int): Bool {
 		final bufferCfg = bufferConfigs.get(bufferType);
 
 		var buffer = p_buffer.get();
 
 		if (buffer != null && bufferCfg.getLength(buffer) >= length) {
 			// Buffer is already big enough
-			return;
+			return true;
 		}
 
 		if (kha.audio2.Audio.disableGcInteractions) {
@@ -88,8 +85,7 @@ class BufferCache {
 
 			lastAllocationTimer = 0;
 			kha.audio2.Audio.disableGcInteractions = false;
-			p_buffer.set(null);
-			return;
+			return false;
 		}
 
 		// If the buffer exists but is too small, overallocate by factor 2
@@ -100,6 +96,7 @@ class BufferCache {
 		buffer = cast bufferCfg.construct(buffer == null ? length : length * 2);
 		p_buffer.set(buffer);
 		lastAllocationTimer = 0;
+		return true;
 	}
 }
 
