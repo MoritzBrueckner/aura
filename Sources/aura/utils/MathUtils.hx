@@ -48,3 +48,7 @@ import aura.math.Vec3;
 @:pure inline function projectPointOntoPlane(point: Vec3, planeNormal: Vec3): Vec3 {
 	return point.sub(planeNormal.mult(planeNormal.dot(point)));
 }
+
+@:pure inline function isPowerOf2(val: Int): Bool {
+	return (val & (val - 1)) == 0;
+}
