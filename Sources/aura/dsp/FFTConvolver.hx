@@ -114,7 +114,7 @@ class FFTConvolver implements DSP {
 
 		for (c in 0...NUM_CHANNELS) {
 			for (s in 0...numSegments) {
-				final segmentOffset = s * segmentSize;
+				final segmentOffset = NUM_CHANNELS * s * segmentSize;
 				for (i in 0...segmentSize) {
 					// Deinterleave and copy to input buffer
 					final real = buffer[segmentOffset + i * NUM_CHANNELS + c];
