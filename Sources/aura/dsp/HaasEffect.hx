@@ -15,15 +15,13 @@ import aura.utils.FrequencyUtils;
 	left channel and moves the sound to the right. If `delay` is `0`, this
 	effect does nothing.
 **/
-class HaasEffect implements DSP {
-	var inUse = false;
-
+class HaasEffect extends DSP {
 	var delayChannelIdx: Int;
 
 	var diffSamples: Int;
 	var delayBuff: CircularBuffer<Float>;
 
-	public inline function new(delay: Millisecond) {
+	public function new(delay: Millisecond) {
 		this.diffSamples = 0;
 		this.setDelay(delay);
 	}

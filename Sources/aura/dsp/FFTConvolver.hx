@@ -16,12 +16,11 @@ import aura.utils.Pointer;
 	Calculates the 1D linear convolution of the input with another buffer called
 	`impulse`.
 **/
-class FFTConvolver implements DSP {
+class FFTConvolver extends DSP {
 	public static inline var NUM_CHANNELS = 2;
 	public static inline var FFT_SIZE = 4096;
 	public static inline var CHUNK_SIZE = Std.int(FFT_SIZE / 2);
 
-	var inUse = false;
 	var impulse: Float32Array;
 
 	var p_fftTimeBuf: Pointer<Array<Complex>>;

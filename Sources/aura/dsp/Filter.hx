@@ -14,20 +14,18 @@ using aura.utils.StepIterator;
 	A simple IIR (infinite impulse response) lowpass/bandpass/highpass filter
 	with a slope of 12 dB/octave.
 **/
-class Filter implements DSP {
+class Filter extends DSP {
 	/**
 		Whether the filter should be a low-/band- or highpass filter.
 	**/
 	public var filterMode: FilterMode;
-
-	var inUse = false;
 
 	final buf: Vector<Vector<Float>>;
 	var stepSize: Int = 1;
 	var off: Bool = false;
 	var cutoff: Vector<Float>;
 
-	public inline function new(filterMode: FilterMode) {
+	public function new(filterMode: FilterMode) {
 		this.filterMode = filterMode;
 
 		this.buf = new Vector(2); // Two channels
