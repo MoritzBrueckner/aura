@@ -124,7 +124,7 @@ class MixChannel extends BaseChannel {
 			}
 		}
 
-		var message: Null<Message>;
+		var message: Null<ChannelMessage>;
 		while ((message = messages.tryPop()) != null) {
 			parseMessage(message);
 		}

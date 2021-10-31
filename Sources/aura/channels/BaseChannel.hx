@@ -13,7 +13,7 @@ import aura.utils.Interpolator.LinearInterpolator;
 @:allow(aura.Aura)
 @:access(aura.dsp.DSP)
 abstract class BaseChannel {
-	final messages: Fifo<Message> = new Fifo();
+	final messages: Fifo<ChannelMessage> = new Fifo();
 
 	final inserts: Array<DSP> = [];
 
@@ -63,13 +63,13 @@ abstract class BaseChannel {
 	}
 
 	function synchronize() {
-		var message: Null<Message>;
+		var message: Null<ChannelMessage>;
 		while ((message = messages.tryPop()) != null) {
 			parseMessage(message);
 		}
 	}
 
-	function parseMessage(message: Message) {
+	function parseMessage(message: ChannelMessage) {
 		switch (message.id) {
 			case Play: play();
 			case Pause: pause();
@@ -84,12 +84,8 @@ abstract class BaseChannel {
 		}
 	}
 
-	inline function sendMessage(message: Message) {
+	inline function sendMessage(message: ChannelMessage) {
 		messages.push(message);
-	}
-
-	inline function tryPopMessage(): Null<Message> {
-		return messages.tryPop();
 	}
 }
 

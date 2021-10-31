@@ -139,7 +139,7 @@ class ResamplingAudioChannel extends AudioChannel {
 		floatPosition = playbackPosition;
 	}
 
-	override function parseMessage(message: Message) {
+	override function parseMessage(message: ChannelMessage) {
 		switch (message.id) {
 			case PPitch: pPitch.targetValue = cast message.data;
 

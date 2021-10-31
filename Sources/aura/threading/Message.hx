@@ -1,12 +1,12 @@
 package aura.threading;
 
 @:structInit
-class Message {
-	public final id: MessageID;
+class ChannelMessage {
+	public final id: ChannelMessageID;
 	public final data: Any;
 }
 
-enum abstract MessageID(Int) {
+enum abstract ChannelMessageID(Int) {
 	final Play;
 	final Pause;
 	final Stop;
@@ -17,4 +17,17 @@ enum abstract MessageID(Int) {
 	final PPitch;
 	final PDopplerRatio;
 	final PDstAttenuation;
+}
+
+@:structInit
+class DSPMessage {
+	public final id: DSPMessageID;
+	public final data: Any;
+}
+
+enum abstract DSPMessageID(Int) {
+	final BypassEnable;
+	final BypassDisable;
+
+	final SwapBufferReady;
 }

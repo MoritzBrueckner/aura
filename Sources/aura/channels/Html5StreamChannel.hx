@@ -31,7 +31,7 @@ class Html5StreamChannel extends BaseChannel {
 		// khaChannel.nextSamples(requestedSamples, requestedLength, sampleRate);
 	}
 
-	override function parseMessage(message: Message) {
+	override function parseMessage(message: ChannelMessage) {
 		switch (message.id) {
 			// Because we're using a Kha implementation here, we cannot use the
 			// LinearInterpolator parameters
