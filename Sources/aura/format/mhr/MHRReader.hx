@@ -112,9 +112,27 @@ class MHRReader {
 }
 
 class Field {
+	/**
+		Distance to the listener, in millimeters (in the range 50mm-2500mm).
+	**/
 	public var distance: Int;
+
+	/**
+		Total HRIR count (for all elevations combined).
+	**/
 	public var hrirCount: Int;
+
+	/**
+		Number of elevations in this field. Elevations start at -90 degrees
+		(bottom) and go up to 90 degrees.
+	**/
 	public var evCount: Int;
+
+	/**
+		Number of azimuths (and HRIRs) per elevation. Azimuths construct a full
+		circle (360 degrees), starting at the front of the listener and going
+		clockwise.
+	**/
 	public var azCount: Vector<Int>;
 	public var hrirs: Vector<HRIR>;
 
