@@ -1,9 +1,11 @@
 package aura;
 
 import kha.FastFloat;
+import kha.math.FastVector3;
 
 import aura.channels.BaseChannel;
 import aura.dsp.DSP;
+import aura.dsp.FFTConvolver;
 import aura.math.Vec3;
 import aura.utils.MathUtils;
 
@@ -57,8 +59,14 @@ class Handle {
 	var _balance: Balance = Balance.CENTER;
 	var _pitch: Float = 1.0;
 
+	var hrtfConvolver: Null<FFTConvolver>;
+
 	public inline function new(channel: BaseChannel) {
 		this.channel = channel;
+		if (Aura.options.panningMode == Hrtf) {
+			hrtfConvolver = new FFTConvolver();
+			channel.addInsert(hrtfConvolver);
+		}
 	}
 
 	/**
@@ -87,42 +95,95 @@ class Handle {
 	}
 
 	/**
-		Call this to update the channel's panning based on the location of this
-		channel and the location and rotation of the current listener.
+		Call this to update the channel's audible 3D parameters.
 	**/
 	public function update3D() {
 		final listener = Aura.listener;
 		final dirToChannel = location.sub(listener.location);
 
 		if (dirToChannel.length == 0) {
-			setBalance(Balance.CENTER);
+			switch (Aura.options.panningMode) {
+				case Balance: setBalance(Balance.CENTER);
+				case Hrtf: // TODO: bypass HRTF, else disable bypass
+			}
 			channel.sendMessage({ id: PDstAttenuation, data: 1.0 });
 			return;
 		}
 
-		// Project the channel position (relative to the listener) to the plane
-		// described by the listener's look and right vectors
-		final up = listener.right.cross(listener.look).normalized();
-		final projectedChannelPos = projectPointOntoPlane(dirToChannel, up).normalized();
+		final look = listener.look;
+		final up = listener.right.cross(look).normalized();
 
-		// Angle cosine
-		var angle = getAngle(listener.look, projectedChannelPos);
+		switch (Aura.options.panningMode) {
+			case Balance:
+				// Project the channel position (relative to the listener) to the plane
+				// described by the listener's look and right vectors
+				final projectedChannelPos = projectPointOntoPlane(dirToChannel, up).normalized();
 
-		// The calculated angle cosine looks like this on the unit circle:
-		//   /  1  \
-		//  0   x   0   , where x is the listener and top is on the front
-		//   \ -1  /
+				// Angle cosine
+				var angle = getAngle(listener.look, projectedChannelPos);
 
-		// Make the center 0.5, use absolute angle to prevent phase flipping.
-		// We loose front/back information here, but that's ok
-		angle = Math.abs(angle * 0.5);
+				// The calculated angle cosine looks like this on the unit circle:
+				//   /  1  \
+				//  0   x   0   , where x is the listener and top is on the front
+				//   \ -1  /
 
-		// The angle cosine doesn't contain side information, so if the sound is
-		// to the right of the listener, we must invert the angle
-		if (getAngle(listener.right, projectedChannelPos) > 0) {
-			angle = 1 - angle;
+				// Make the center 0.5, use absolute angle to prevent phase flipping.
+				// We loose front/back information here, but that's ok
+				angle = Math.abs(angle * 0.5);
+
+				// The angle cosine doesn't contain side information, so if the sound is
+				// to the right of the listener, we must invert the angle
+				if (getAngle(listener.right, projectedChannelPos) > 0) {
+					angle = 1 - angle;
+				}
+				setBalance(angle);
+
+			case Hrtf:
+				final hrtf = @:privateAccess Aura.hrtfs[Aura.currentHRTF];
+
+				// TODO Use fixed distance for now...
+				final field = hrtf.fields[0];
+
+				final elevationCos = up.dot(dirToChannel.normalized());
+				// 90: top, -90: bottom
+				final elevation = 90 - (Math.acos(elevationCos) * (180 / Math.PI));
+				final elevationStep = 180 / field.evCount;
+				final elevationIndex = getNearestIndexF(elevation, elevationStep);
+
+				var angle = getFullAngleDegrees(look, dirToChannel);
+				angle = angle != 0 ? 360 - angle : 0; // Make clockwise
+
+				final azimuthStep = 360 / field.azCount[elevationIndex];
+				final azimuthIndex = getNearestIndexF(angle, azimuthStep);
+
+				// Different elevations may have different amounts of azimuths/HRIRs
+				var elevationHRIROffset = 0;
+				for (j in 0...elevationIndex) {
+					elevationHRIROffset += field.azCount[j];
+				}
+
+				// TODO: Interpolation
+
+				final hrir = field.hrirs[elevationHRIROffset + azimuthIndex];
+				if (Aura.options.panningMode == Hrtf) {
+					final numChannels = hrir.delays.length;
+					// TODO, use channel 0 for now
+					final delaySamples = Math.round(hrir.delays[0]);
+					final coeffsLength = Std.int(hrir.coeffs.length / numChannels);
+					final impulseLength = coeffsLength + delaySamples;
+					hrtfConvolver.impulseSwapBuffer.writeZero(0, delaySamples);
+					hrtfConvolver.impulseSwapBuffer.writeVecF(hrir.coeffs, 0, delaySamples, coeffsLength);
+					hrtfConvolver.impulseSwapBuffer.writeZero(impulseLength, FFTConvolver.CHUNK_SIZE);
+					hrtfConvolver.impulseSwapBuffer.swap();
+					hrtfConvolver.sendMessage({id: SwapBufferReady, data: impulseLength});
+				}
 		}
 
+		calculateAttenuation(dirToChannel);
+		calculateDoppler();
+	}
+
+	function calculateAttenuation(dirToChannel: FastVector3) {
 		final dst = maxF(REFERENCE_DST, dirToChannel.length);
 		final dstAttenuation = switch (attenuationMode) {
 			case Linear:
@@ -132,7 +193,11 @@ class Handle {
 			case Exponential:
 				Math.pow(dst / REFERENCE_DST, -attenuationFactor);
 		}
+		channel.sendMessage({ id: PDstAttenuation, data: dstAttenuation });
+	}
 
+	function calculateDoppler() {
+		final listener = Aura.listener;
 		var dopplerRatio: FastFloat = 1.0;
 		if (dopplerFactor != 0.0 && (listener.velocity.length != 0 || this.velocity.length != 0)) {
 			final dist = this.location.sub(listener.location);
@@ -147,10 +212,7 @@ class Handle {
 		this.velocity = this.location.sub(this.lastLocation);
 		this.lastLocation.setFrom(this.location);
 
-		setBalance(angle);
-
 		channel.sendMessage({ id: PDopplerRatio, data: dopplerRatio });
-		channel.sendMessage({ id: PDstAttenuation, data: dstAttenuation });
 	}
 
 	/**

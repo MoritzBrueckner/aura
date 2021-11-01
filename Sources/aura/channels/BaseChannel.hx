@@ -67,6 +67,10 @@ abstract class BaseChannel {
 		while ((message = messages.tryPop()) != null) {
 			parseMessage(message);
 		}
+
+		for (insert in inserts) {
+			insert.synchronize();
+		}
 	}
 
 	function parseMessage(message: ChannelMessage) {

@@ -15,6 +15,7 @@ import aura.threading.Message;
 /**
 	A channel that mixes together the output of multiple input channels.
 **/
+@:access(aura.dsp.DSP)
 class MixChannel extends BaseChannel {
 	#if cpp
 	static var mutex: Mutex = new Mutex();
@@ -123,11 +124,7 @@ class MixChannel extends BaseChannel {
 				inputChannel.synchronize();
 			}
 		}
-
-		var message: Null<ChannelMessage>;
-		while ((message = messages.tryPop()) != null) {
-			parseMessage(message);
-		}
+		super.synchronize();
 	}
 
 	function nextSamples(requestedSamples: Float32Array, requestedLength: Int, sampleRate: Hertz): Void {

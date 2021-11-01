@@ -28,6 +28,8 @@ import aura.utils.MathUtils;
 
 @:access(aura.MixChannelHandle)
 class Aura {
+	public static var options(default, null): Null<AuraOptions> = null;
+
 	public static var sampleRate(default, null): Int;
 
 	public static var listener: Listener;
@@ -35,20 +37,24 @@ class Aura {
 	public static final mixChannels = new Map<String, MixChannelHandle>();
 	public static var masterChannel(default, null): MixChannelHandle;
 
-	public static function init(channelSize: Int = 16) {
+	static final hrtfs = new Map<String, HRTF>();
+	static var currentHRTF: String;
+
+	public static function init(?options: AuraOptions) {
 		sampleRate = kha.audio2.Audio.samplesPerSecond;
 		assert(Critical, sampleRate != 0, "sampleRate must not be 0!");
 
-		@:privateAccess MixChannel.channelSize = channelSize;
+		Aura.options = AuraOptions.addDefaults(options);
+		@:privateAccess MixChannel.channelSize = Aura.options.channelSize;
 
 		listener = new Listener();
+
+		BufferCache.init();
 
 		// Create a few preconfigured mix channels
 		masterChannel = createMixChannel("master");
 		masterChannel.addInputChannel(createMixChannel("music"));
 		masterChannel.addInputChannel(createMixChannel("fx"));
-
-		BufferCache.init();
 
 		kha.audio2.Audio.audioCallback = audioCallback;
 	}
@@ -98,6 +104,14 @@ class Aura {
 				}
 			}, (error: kha.AssetError) -> { onLoadingError(error, failed, soundName); });
 		}
+	}
+
+	public static function loadHRTF(filename: String) {
+		kha.Assets.loadBlob(filename, (b: kha.Blob) -> {
+			var reader = new MHRReader(b.bytes);
+			hrtfs[filename] = reader.read();
+			currentHRTF = filename;
+		});
 	}
 
 	static function onLoadingError(error: Null<kha.AssetError>, failed: Null<Void->Void>, soundName: String) {
@@ -247,4 +261,25 @@ class Aura {
 class AuraLoadConfig {
 	public final compressed: Array<String> = [];
 	public final uncompressed: Array<String> = [];
+}
+
+
+@:structInit
+class AuraOptions  {
+	@:optional public var channelSize: Int;
+	@:optional public var panningMode: PanningMode;
+
+	public static function addDefaults(options: Null<AuraOptions>) {
+		if (options == null) { options = {}; }
+
+		if (options.channelSize == null) { options.channelSize = 16; }
+		if (options.panningMode == null) { options.panningMode = Balance; }
+
+		return options;
+	}
+}
+
+enum abstract PanningMode(Int) {
+	var Balance;
+	var Hrtf;
 }

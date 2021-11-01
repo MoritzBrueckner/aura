@@ -8,6 +8,8 @@ import dsp.Complex;
 
 import aura.math.FFT;
 import aura.threading.BufferCache;
+import aura.threading.Message.DSPMessage;
+import aura.types.SwapBuffer;
 import aura.utils.BufferUtils;
 import aura.utils.MathUtils;
 import aura.utils.Pointer;
@@ -18,26 +20,39 @@ import aura.utils.Pointer;
 **/
 class FFTConvolver extends DSP {
 	public static inline var NUM_CHANNELS = 2;
-	public static inline var FFT_SIZE = 4096;
-	public static inline var CHUNK_SIZE = Std.int(FFT_SIZE / 2);
+	public static inline var FFT_SIZE = 1024;
+	static inline var CHUNK_SIZE = Std.int(FFT_SIZE / 2);
 
-	var impulse: Float32Array;
+	final impulseSwapBuffer: SwapBuffer;
+	final impulseTimes: Array<Complex>; // TODO: only one FFT input buffer is required, merge with p_fftTimeBuf
+	final impulseFreqs: Array<Complex>;
 
-	var p_fftTimeBuf: Pointer<Array<Complex>>;
-	var p_fftFreqBuf: Pointer<Array<Complex>>;
+	final p_fftTimeBuf: Pointer<Array<Complex>>;
+	final p_fftFreqBuf: Pointer<Array<Complex>>;
 
 	/**
 		The part of the last output signal that was longer than the last frame
-		buffer and thus overlaps to the next frame.
+		buffer and thus overlaps to the next frame. To prevent allocations
+		during runtime and to ensure that overlapLast is not longer than one
+		FFT segment, the overlap vectors are preallocated to `CHUNK_SIZE - 1`.
+		Use `overlapLength` to get the true length.
 	**/
-	var overlapLast: Vector<Array<Float>>;
+	final overlapLast: Vector<Vector<Float>>;
+	final overlapLength: Vector<Int>;
 
-	var impulseFreqs: Array<Complex>;
-
-	public function new(impulse: Float32Array) {
+	public function new() {
 		assert(Error, isPowerOf2(FFT_SIZE), 'FFT_SIZE must be a power of 2, but it is $FFT_SIZE');
 
-		this.overlapLast = new Vector(NUM_CHANNELS);
+		impulseSwapBuffer = new SwapBuffer(CHUNK_SIZE);
+
+		impulseTimes = new Array<Complex>();
+		impulseTimes.resize(FFT_SIZE);
+		for (i in 0...impulseTimes.length) {
+			impulseTimes[i] = Complex.zero;
+		}
+
+		impulseFreqs = new Array<Complex>();
+		impulseFreqs.resize(FFT_SIZE);
 
 		p_fftTimeBuf = new Pointer(null);
 		p_fftFreqBuf = new Pointer(null);
@@ -48,47 +63,51 @@ class FFTConvolver extends DSP {
 			throw "Could not allocate frequency-domain buffer";
 		}
 
-		impulseFreqs = new Array<Complex>();
-		impulseFreqs.resize(FFT_SIZE);
-
-		setImpulse(impulse);
+		overlapLast = new Vector(NUM_CHANNELS);
+		for (i in 0...NUM_CHANNELS) {
+			// Max. impulse size is CHUNK_SIZE
+			overlapLast[i] = new Vector<Float>(CHUNK_SIZE - 1);
+		}
+		overlapLength = createEmptyVecI(NUM_CHANNELS);
 	}
 
 	public function setImpulse(impulse: Float32Array) {
-		// This also ensures that overlapLast is not longer than one FFT segment
 		assert(Debug, impulse.length <= CHUNK_SIZE, 'Impulse must not be longer than $CHUNK_SIZE');
 
 		// TODO: Resample impulse if necessary
 
 		// TODO: Support stereo impulse buffers
 
-		this.impulse = impulse;
-
 		// Pad impulse response to FFT size
-		final impulseArray = new Array<Complex>();
-		impulseArray.resize(FFT_SIZE);
 		for (i in 0...impulse.length) {
-			impulseArray[i] = impulse[i];
+			impulseTimes[i] = impulse[i];
 		}
 		for (i in impulse.length...FFT_SIZE) {
-			impulseArray[i] = Complex.zero;
+			impulseTimes[i] = Complex.zero;
 		}
 
-		// Calculate impulse FFT
-		// TODO: Mutex?
+		calculateImpulseFFT(impulseTimes, impulse.length);
+	}
+
+	public function updateImpulseFromSwapBuffer(impulseLength: Int) {
+		impulseSwapBuffer.read(impulseTimes, 0, 0, CHUNK_SIZE);
+		calculateImpulseFFT(impulseTimes, impulseLength);
+	}
+
+	function calculateImpulseFFT(impulseArray: Array<Complex>, impulseLength: Int) {
 		fft(impulseArray, impulseFreqs, FFT_SIZE);
 		for (i in Std.int(impulseFreqs.length / 2)...impulseFreqs.length) {
 			impulseFreqs[i] = 0;
 		}
-
-		// Update overlap buffers
-		for (i in 0...NUM_CHANNELS) {
-			// TODO: Copy last overlap
-			overlapLast[i] = createEmptyVecF(impulse.length - 1).toArray();
+		for (i in 0...NUM_CHANNELS) { // TODO different length per channel
+			overlapLength[i] = impulseLength - 1;
 		}
 	}
 
 	public function process(buffer: Float32Array, bufferLength: Int) {
+		for (c in 0...NUM_CHANNELS) {
+			if (overlapLength[c] == 0) return;
+		}
 		final deinterleavedLength = Std.int(bufferLength / NUM_CHANNELS);
 
 		// Ensure correct boundaries
@@ -139,13 +158,23 @@ class FFTConvolver extends DSP {
 				}
 
 				// Handle overlapping
-				for (i in 0...overlapLast[c].length) {
+				// TODO: Correctly handle cases when the impulse changes length
+				for (i in 0...overlapLength[c]) {
 					buffer[segmentOffset + i * NUM_CHANNELS + c] += overlapLast[c][i];
 				}
-				for (i in 0...overlapLast[c].length) {
+				for (i in 0...overlapLength[c]) {
 					overlapLast[c][i] = fftTimeBuf[CHUNK_SIZE + i].real;
 				}
 			}
+		}
+	}
+
+	override function parseMessage(message: DSPMessage) {
+		switch (message.id) {
+			case SwapBufferReady: updateImpulseFromSwapBuffer(message.data);
+
+			default:
+				super.parseMessage(message);
 		}
 	}
 }
