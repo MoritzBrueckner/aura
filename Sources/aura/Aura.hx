@@ -21,6 +21,7 @@ import aura.channels.Html5StreamChannel;
 import aura.channels.MixChannel;
 import aura.channels.ResamplingAudioChannel;
 import aura.channels.StreamChannel;
+import aura.format.mhr.MHRReader;
 import aura.threading.BufferCache;
 import aura.utils.Assert;
 import aura.utils.BufferUtils.clearBuffer;
