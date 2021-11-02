@@ -19,6 +19,7 @@
   - High-/band-/lowpass filter
   - Haas effect
 - Extendable DSP system – easily write your own filters
+- *[Experimental]* Support for [HRTFs (head-related transfer functions)](https://en.wikipedia.org/wiki/Head-related_transfer_function) is currently in work at the [hrtf](https://github.com/MoritzBrueckner/aura/tree/hrtf) branch
 
 # Installation
 
