@@ -23,6 +23,7 @@ import aura.channels.ResamplingAudioChannel;
 import aura.channels.StreamChannel;
 import aura.format.mhr.MHRReader;
 import aura.threading.BufferCache;
+import aura.types.HRTF;
 import aura.utils.Assert;
 import aura.utils.BufferUtils.clearBuffer;
 import aura.utils.MathUtils;

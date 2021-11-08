@@ -9,6 +9,8 @@ import haxe.ds.Vector;
 import haxe.io.Bytes;
 import haxe.io.BytesInput;
 
+import aura.types.HRTF;
+
 using aura.format.InputExtension;
 
 /**
@@ -109,53 +111,4 @@ class MHRReader {
 	inline function isBitSet(byte: Int, position: Int): Int {
 		return (byte & (1 << position) == 0) ? 0 : 1;
 	}
-}
-
-class Field {
-	/**
-		Distance to the listener, in millimeters (in the range 50mm-2500mm).
-	**/
-	public var distance: Int;
-
-	/**
-		Total HRIR count (for all elevations combined).
-	**/
-	public var hrirCount: Int;
-
-	/**
-		Number of elevations in this field. Elevations start at -90 degrees
-		(bottom) and go up to 90 degrees.
-	**/
-	public var evCount: Int;
-
-	/**
-		Number of azimuths (and HRIRs) per elevation. Azimuths construct a full
-		circle (360 degrees), starting at the front of the listener and going
-		clockwise.
-	**/
-	public var azCount: Vector<Int>;
-	public var hrirs: Vector<HRIR>;
-
-	public function new() {}
-}
-
-/**
-	A single HRIR (head related impulse response)
-**/
-class HRIR {
-	public var coeffs: Vector<Float>;
-	public var delays: Vector<Float>; // Delay per channel
-
-	public function new() {}
-}
-
-/**
-	The entirety of all fields with their respective HRIRs.
-**/
-@:structInit class HRTF {
-	public final sampleRate: Int;
-	public final numChannels: Int;
-	public final hrirSize: Int;
-	public final hrirCount: Int;
-	public final fields: Vector<Field>;
 }
