@@ -18,7 +18,7 @@ import haxe.ds.Vector;
 	public final numChannels: Int;
 
 	/**
-		The total amount of samples of each HRIR (for all channels together).
+		The amount of samples of each HRIR (per channel).
 	**/
 	public final hrirSize: Int;
 
@@ -82,8 +82,9 @@ class HRIR {
 	public var coeffs: Vector<Float>;
 
 	/**
-		Delay of the impulse response per channel.
+		Delay of the impulse response per channel in samples.
 	**/
+	// TODO: Don't forget to also change this when resampling!
 	public var delays: Vector<Float>;
 
 	public function new() {}

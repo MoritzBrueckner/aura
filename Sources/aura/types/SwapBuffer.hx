@@ -13,6 +13,8 @@ class SwapBuffer {
 	var writeData: Array<Complex>;
 	var readData: Array<Complex>;
 
+	var isReading = false;
+
 	public function new(length: Int) {
 		this.length = length;
 		this.data1 = new Array<Complex>();
@@ -43,17 +45,14 @@ class SwapBuffer {
 	}
 
 	public inline function read(dst: Array<Complex>, srcStart: Int, dstStart: Int, length: Int) {
-		// Copy reference to lessen possible read/write conflicts
-		// TODO: there is still a possible conflict when the buffer is swapped
-		// during read, then the _readData will stay constant but it points
-		// now to the write buffer...
-		final _readData = readData;
 		for (i in srcStart...srcStart + length) {
-			dst[dstStart + i] = _readData[i].copy();
+			dst[dstStart + i - srcStart] = readData[i].copy();
 		}
 	}
 
 	public inline function swap() {
+		while (isReading) {}
+
 		// #if cpp
 		// 	untyped __cpp__("std::swap({0}, {1})", writeData, readData);
 		// #else
@@ -61,5 +60,13 @@ class SwapBuffer {
 			writeData = readData;
 			readData = tmp;
 		// #end
+	}
+
+	public inline function setReadLock() {
+		isReading = true;
+	}
+
+	public inline function removeReadLock() {
+		isReading = false;
 	}
 }

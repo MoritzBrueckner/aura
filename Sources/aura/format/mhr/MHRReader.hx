@@ -35,7 +35,7 @@ class MHRReader {
 		final channelType = inp.readByte();
 		final channels = channelType + 1;
 
-		// Samples per HRIR (head related impulse response)
+		// Samples per HRIR (head related impulse response) per channel
 		final hrirSize = inp.readByte();
 
 		// Number of fields used by the data set. Each field represents a
@@ -72,7 +72,7 @@ class MHRReader {
 				// Create individual HRIR
 				final hrir = hrirs[j] = new HRIR();
 
-				hrir.coeffs = new Vector<Float>(hrirSize);
+				hrir.coeffs = new Vector<Float>(hrirSize * channels);
 				for (s in 0...hrirSize) {
 					final coeff = inp.readInt24();
 					// 8388608 = 2^23
@@ -98,6 +98,10 @@ class MHRReader {
 				}
 			}
 		}
+
+		// This should error if uncommented, check if we have reached the end of
+		// the file.
+		// inp.readByte();
 
 		return {
 			sampleRate: sampleRate,

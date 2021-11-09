@@ -63,6 +63,7 @@ class Handle {
 
 	public inline function new(channel: BaseChannel) {
 		this.channel = channel;
+
 		if (Aura.options.panningMode == Hrtf) {
 			hrtfConvolver = new FFTConvolver();
 			channel.addInsert(hrtfConvolver);
@@ -145,37 +146,63 @@ class Handle {
 				final field = hrtf.fields[0];
 
 				final elevationCos = up.dot(dirToChannel.normalized());
-				// 90: top, -90: bottom
-				final elevation = 90 - (Math.acos(elevationCos) * (180 / Math.PI));
+				// 180: top, 0: bottom
+				final elevation = 180 - (Math.acos(elevationCos) * (180 / Math.PI));
 				final elevationStep = 180 / field.evCount;
 				final elevationIndex = getNearestIndexF(elevation, elevationStep);
 
-				var angle = getFullAngleDegrees(look, dirToChannel);
-				angle = angle != 0 ? 360 - angle : 0; // Make clockwise
-
-				final azimuthStep = 360 / field.azCount[elevationIndex];
-				final azimuthIndex = getNearestIndexF(angle, azimuthStep);
-
-				// Different elevations may have different amounts of azimuths/HRIRs
+				// Calculate the offset into the HRIR array, different
+				// elevations may have different amounts of azimuths/HRIRs
+				// TODO: store offset per elevation for faster access?
 				var elevationHRIROffset = 0;
 				for (j in 0...elevationIndex) {
 					elevationHRIROffset += field.azCount[j];
 				}
 
+				var angle = getFullAngleDegrees(look, dirToChannel);
+				angle = angle != 0 ? 360 - angle : 0; // Make clockwise
+
+				// TODO: azCount can be 0, leading to NaN errors...
+				final azimuthStep = 360 / field.azCount[elevationIndex];
+				final azimuthIndex = getNearestIndexF(angle, azimuthStep);
+
+
 				// TODO: Interpolation
 
 				final hrir = field.hrirs[elevationHRIROffset + azimuthIndex];
-				if (Aura.options.panningMode == Hrtf) {
-					final numChannels = hrir.delays.length;
-					// TODO, use channel 0 for now
+
+				if (hrtf.numChannels == 1) {
+					final opposizeAzimuthIndex = field.azCount[elevationIndex] - azimuthIndex;
+					final hrirOpposite = field.hrirs[elevationHRIROffset + opposizeAzimuthIndex];
+
 					final delaySamples = Math.round(hrir.delays[0]);
-					final coeffsLength = Std.int(hrir.coeffs.length / numChannels);
+					final delaySamplesOpp = Math.round(hrirOpposite.delays[0]);
+
+					final coeffsLength = hrtf.hrirSize;
 					final impulseLength = coeffsLength + delaySamples;
-					hrtfConvolver.impulseSwapBuffer.writeZero(0, delaySamples);
-					hrtfConvolver.impulseSwapBuffer.writeVecF(hrir.coeffs, 0, delaySamples, coeffsLength);
-					hrtfConvolver.impulseSwapBuffer.writeZero(impulseLength, FFTConvolver.CHUNK_SIZE);
-					hrtfConvolver.impulseSwapBuffer.swap();
-					hrtfConvolver.sendMessage({id: SwapBufferReady, data: impulseLength});
+
+					final swapBuf = hrtfConvolver.impulseSwapBuffer;
+
+					// Left channel
+					swapBuf.writeZero(0, delaySamples);
+					swapBuf.writeVecF(hrir.coeffs, 0, delaySamples, coeffsLength);
+					swapBuf.writeZero(impulseLength, FFTConvolver.CHUNK_SIZE);
+
+					// Right channel
+					swapBuf.writeZero(FFTConvolver.CHUNK_SIZE, FFTConvolver.CHUNK_SIZE + delaySamples);
+					swapBuf.writeVecF(hrirOpposite.coeffs, 0, FFTConvolver.CHUNK_SIZE + delaySamples, coeffsLength);
+					swapBuf.writeZero(FFTConvolver.CHUNK_SIZE + impulseLength, swapBuf.length);
+
+					swapBuf.swap();
+					hrtfConvolver.sendMessage({id: SwapBufferReady, data: [impulseLength, 2]});
+				}
+				else {
+					for (c in 0...hrtf.numChannels) {
+						final delaySamples = Math.round(hrir.delays[0]);
+
+						// TODO: handle interleaved coeffs of stereo HRTFs
+						// Deinterleave when reading the file?
+					}
 				}
 		}
 

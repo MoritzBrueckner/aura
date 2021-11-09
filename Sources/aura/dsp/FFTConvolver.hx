@@ -25,7 +25,7 @@ class FFTConvolver extends DSP {
 
 	final impulseSwapBuffer: SwapBuffer;
 	final impulseTimes: Array<Complex>; // TODO: only one FFT input buffer is required, merge with p_fftTimeBuf
-	final impulseFreqs: Array<Complex>;
+	final impulseFreqs: Vector<Array<Complex>>; // One array per channel
 
 	final p_fftTimeBuf: Pointer<Array<Complex>>;
 	final p_fftFreqBuf: Pointer<Array<Complex>>;
@@ -43,16 +43,21 @@ class FFTConvolver extends DSP {
 	public function new() {
 		assert(Error, isPowerOf2(FFT_SIZE), 'FFT_SIZE must be a power of 2, but it is $FFT_SIZE');
 
-		impulseSwapBuffer = new SwapBuffer(CHUNK_SIZE);
+		impulseSwapBuffer = new SwapBuffer(CHUNK_SIZE * 2);
 
 		impulseTimes = new Array<Complex>();
 		impulseTimes.resize(FFT_SIZE);
+
+		// TODO: is it needed to set this to zero here?
 		for (i in 0...impulseTimes.length) {
 			impulseTimes[i] = Complex.zero;
 		}
 
-		impulseFreqs = new Array<Complex>();
-		impulseFreqs.resize(FFT_SIZE);
+		impulseFreqs = new Vector(NUM_CHANNELS);
+		for (i in 0...NUM_CHANNELS) {
+			impulseFreqs[i] = new Array<Complex>();
+			impulseFreqs[i].resize(FFT_SIZE);
+		}
 
 		p_fftTimeBuf = new Pointer(null);
 		p_fftFreqBuf = new Pointer(null);
@@ -86,22 +91,25 @@ class FFTConvolver extends DSP {
 			impulseTimes[i] = Complex.zero;
 		}
 
-		calculateImpulseFFT(impulseTimes, impulse.length);
+		calculateImpulseFFT(impulseTimes, impulse.length, 0);
+		// TODO: stereo
 	}
 
-	public function updateImpulseFromSwapBuffer(impulseLength: Int) {
-		impulseSwapBuffer.read(impulseTimes, 0, 0, CHUNK_SIZE);
-		calculateImpulseFFT(impulseTimes, impulseLength);
+	// TODO: move this into main thread and use swapbuffer for impulseFreqs instead?
+	public function updateImpulseFromSwapBuffer(impulseLength: Int, numChannels: Int) {
+		impulseSwapBuffer.setReadLock();
+		for (i in 0...numChannels) {
+			impulseSwapBuffer.read(impulseTimes, CHUNK_SIZE * i, 0, CHUNK_SIZE);
+			// Moving thes function into the main thread will also remove the fft
+			// calculation while the lock is active, reducing the lock time
+			calculateImpulseFFT(impulseTimes, impulseLength, i);
+		}
+		impulseSwapBuffer.removeReadLock();
 	}
 
-	function calculateImpulseFFT(impulseArray: Array<Complex>, impulseLength: Int) {
-		fft(impulseArray, impulseFreqs, FFT_SIZE);
-		for (i in Std.int(impulseFreqs.length / 2)...impulseFreqs.length) {
-			impulseFreqs[i] = 0;
-		}
-		for (i in 0...NUM_CHANNELS) { // TODO different length per channel
-			overlapLength[i] = impulseLength - 1;
-		}
+	function calculateImpulseFFT(impulseArray: Array<Complex>, impulseLength: Int, channel: Int) {
+		fft(impulseArray, impulseFreqs[channel], FFT_SIZE);
+		overlapLength[channel] = impulseLength - 1;
 	}
 
 	public function process(buffer: Float32Array, bufferLength: Int) {
@@ -146,7 +154,7 @@ class FFTConvolver extends DSP {
 
 				// The actual convolution takes place here
 				for (i in 0...CHUNK_SIZE) {
-					fftFreqBuf[i] = fftFreqBuf[i] * impulseFreqs[i];
+					fftFreqBuf[i] *= impulseFreqs[c][i];
 				}
 
 				// Transform back into time domain
@@ -171,7 +179,9 @@ class FFTConvolver extends DSP {
 
 	override function parseMessage(message: DSPMessage) {
 		switch (message.id) {
-			case SwapBufferReady: updateImpulseFromSwapBuffer(message.data);
+			case SwapBufferReady:
+				final data: Array<Int> = cast message.data;
+				updateImpulseFromSwapBuffer(data[0], data[1]);
 
 			default:
 				super.parseMessage(message);
