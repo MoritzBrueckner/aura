@@ -96,13 +96,13 @@ class FFTConvolver extends DSP {
 	}
 
 	// TODO: move this into main thread and use swapbuffer for impulseFreqs instead?
-	public function updateImpulseFromSwapBuffer(impulseLength: Int, numChannels: Int) {
+	public function updateImpulseFromSwapBuffer(impulseLengths: Array<Int>) {
 		impulseSwapBuffer.setReadLock();
-		for (i in 0...numChannels) {
+		for (i in 0...impulseLengths.length) {
 			impulseSwapBuffer.read(impulseTimes, CHUNK_SIZE * i, 0, CHUNK_SIZE);
 			// Moving thes function into the main thread will also remove the fft
 			// calculation while the lock is active, reducing the lock time
-			calculateImpulseFFT(impulseTimes, impulseLength, i);
+			calculateImpulseFFT(impulseTimes, impulseLengths[i], i);
 		}
 		impulseSwapBuffer.removeReadLock();
 	}
@@ -180,8 +180,7 @@ class FFTConvolver extends DSP {
 	override function parseMessage(message: DSPMessage) {
 		switch (message.id) {
 			case SwapBufferReady:
-				final data: Array<Int> = cast message.data;
-				updateImpulseFromSwapBuffer(data[0], data[1]);
+				updateImpulseFromSwapBuffer(message.data);
 
 			default:
 				super.parseMessage(message);

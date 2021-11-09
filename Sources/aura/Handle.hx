@@ -180,6 +180,7 @@ class Handle {
 
 					final coeffsLength = hrtf.hrirSize;
 					final impulseLength = coeffsLength + delaySamples;
+					final impulseLengthOpp = coeffsLength + delaySamplesOpp;
 
 					final swapBuf = hrtfConvolver.impulseSwapBuffer;
 
@@ -189,12 +190,12 @@ class Handle {
 					swapBuf.writeZero(impulseLength, FFTConvolver.CHUNK_SIZE);
 
 					// Right channel
-					swapBuf.writeZero(FFTConvolver.CHUNK_SIZE, FFTConvolver.CHUNK_SIZE + delaySamples);
-					swapBuf.writeVecF(hrirOpposite.coeffs, 0, FFTConvolver.CHUNK_SIZE + delaySamples, coeffsLength);
-					swapBuf.writeZero(FFTConvolver.CHUNK_SIZE + impulseLength, swapBuf.length);
+					swapBuf.writeZero(FFTConvolver.CHUNK_SIZE, FFTConvolver.CHUNK_SIZE + delaySamplesOpp);
+					swapBuf.writeVecF(hrirOpposite.coeffs, 0, FFTConvolver.CHUNK_SIZE + delaySamplesOpp, coeffsLength);
+					swapBuf.writeZero(FFTConvolver.CHUNK_SIZE + impulseLengthOpp, swapBuf.length);
 
 					swapBuf.swap();
-					hrtfConvolver.sendMessage({id: SwapBufferReady, data: [impulseLength, 2]});
+					hrtfConvolver.sendMessage({id: SwapBufferReady, data: [impulseLength, impulseLengthOpp]});
 				}
 				else {
 					for (c in 0...hrtf.numChannels) {
