@@ -268,8 +268,8 @@ class AuraLoadConfig {
 
 @:structInit
 class AuraOptions  {
-	@:optional public var channelSize: Int;
-	@:optional public var panningMode: PanningMode;
+	@:optional public var channelSize: Null<Int>;
+	@:optional public var panningMode: Null<PanningMode>;
 
 	public static function addDefaults(options: Null<AuraOptions>) {
 		if (options == null) { options = {}; }
