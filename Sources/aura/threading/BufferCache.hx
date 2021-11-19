@@ -5,6 +5,7 @@
 
 package aura.threading;
 
+import aura.types.Complex.ComplexArray;
 import haxe.ds.Vector;
 
 import kha.arrays.Float32Array;
@@ -144,12 +145,10 @@ enum abstract BufferType(Int) {
 		);
 		out[TArrayComplex] = new BufferConfig(
 			(length: Int) -> {
-				final v = new Array<dsp.Complex>();
-				v.resize(length);
-				return v;
+				return new ComplexArray(length);
 			},
 			(buffer: Any) -> {
-				return cast (buffer: Array<dsp.Complex>).length;
+				return cast (buffer: ComplexArray).length;
 			}
 		);
 		return out;

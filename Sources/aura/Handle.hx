@@ -184,17 +184,17 @@ class Handle {
 
 					final swapBuf = hrtfConvolver.impulseSwapBuffer;
 
-					// Left channel
-					swapBuf.writeZero(0, delaySamples);
-					swapBuf.writeVecF(hrir.coeffs, 0, delaySamples, coeffsLength);
-					swapBuf.writeZero(impulseLength, FFTConvolver.CHUNK_SIZE);
+					swapBuf.beginWrite();
+						// Left channel
+						swapBuf.writeZero(0, delaySamples);
+						swapBuf.writeVecF(hrir.coeffs, 0, delaySamples, coeffsLength);
+						swapBuf.writeZero(impulseLength, FFTConvolver.CHUNK_SIZE);
 
-					// Right channel
-					swapBuf.writeZero(FFTConvolver.CHUNK_SIZE, FFTConvolver.CHUNK_SIZE + delaySamplesOpp);
-					swapBuf.writeVecF(hrirOpposite.coeffs, 0, FFTConvolver.CHUNK_SIZE + delaySamplesOpp, coeffsLength);
-					swapBuf.writeZero(FFTConvolver.CHUNK_SIZE + impulseLengthOpp, swapBuf.length);
-
-					swapBuf.swap();
+						// Right channel
+						swapBuf.writeZero(FFTConvolver.CHUNK_SIZE, FFTConvolver.CHUNK_SIZE + delaySamplesOpp);
+						swapBuf.writeVecF(hrirOpposite.coeffs, 0, FFTConvolver.CHUNK_SIZE + delaySamplesOpp, coeffsLength);
+						swapBuf.writeZero(FFTConvolver.CHUNK_SIZE + impulseLengthOpp, swapBuf.length);
+					swapBuf.endWrite();
 					hrtfConvolver.sendMessage({id: SwapBufferReady, data: [impulseLength, impulseLengthOpp]});
 				}
 				else {

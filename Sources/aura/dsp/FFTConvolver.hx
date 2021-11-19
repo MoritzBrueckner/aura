@@ -4,11 +4,10 @@ import haxe.ds.Vector;
 
 import kha.arrays.Float32Array;
 
-import dsp.Complex;
-
 import aura.math.FFT;
 import aura.threading.BufferCache;
 import aura.threading.Message.DSPMessage;
+import aura.types.Complex;
 import aura.types.SwapBuffer;
 import aura.utils.BufferUtils;
 import aura.utils.MathUtils;
@@ -24,11 +23,11 @@ class FFTConvolver extends DSP {
 	static inline var CHUNK_SIZE = Std.int(FFT_SIZE / 2);
 
 	final impulseSwapBuffer: SwapBuffer;
-	final impulseTimes: Array<Complex>; // TODO: only one FFT input buffer is required, merge with p_fftTimeBuf
-	final impulseFreqs: Vector<Array<Complex>>; // One array per channel
+	final impulseTimes: ComplexArray; // TODO: only one FFT input buffer is required, merge with p_fftTimeBuf
+	final impulseFreqs: Vector<ComplexArray>; // One array per channel
 
-	final p_fftTimeBuf: Pointer<Array<Complex>>;
-	final p_fftFreqBuf: Pointer<Array<Complex>>;
+	final fftTimeBuf: ComplexArray;
+	final fftFreqBuf: ComplexArray;
 
 	/**
 		The part of the last output signal that was longer than the last frame
@@ -45,28 +44,15 @@ class FFTConvolver extends DSP {
 
 		impulseSwapBuffer = new SwapBuffer(CHUNK_SIZE * 2);
 
-		impulseTimes = new Array<Complex>();
-		impulseTimes.resize(FFT_SIZE);
-
-		// TODO: is it needed to set this to zero here?
-		for (i in 0...impulseTimes.length) {
-			impulseTimes[i] = Complex.zero;
-		}
+		impulseTimes = new ComplexArray(FFT_SIZE);
 
 		impulseFreqs = new Vector(NUM_CHANNELS);
 		for (i in 0...NUM_CHANNELS) {
-			impulseFreqs[i] = new Array<Complex>();
-			impulseFreqs[i].resize(FFT_SIZE);
+			impulseFreqs[i] = new ComplexArray(FFT_SIZE);
 		}
 
-		p_fftTimeBuf = new Pointer(null);
-		p_fftFreqBuf = new Pointer(null);
-		if (!BufferCache.getBuffer(TArrayComplex, p_fftTimeBuf, FFT_SIZE)) {
-			throw "Could not allocate time-domain buffer";
-		}
-		if (!BufferCache.getBuffer(TArrayComplex, p_fftFreqBuf, FFT_SIZE)) {
-			throw "Could not allocate frequency-domain buffer";
-		}
+		fftTimeBuf = new ComplexArray(FFT_SIZE);
+		fftFreqBuf = new ComplexArray(FFT_SIZE);
 
 		overlapLast = new Vector(NUM_CHANNELS);
 		for (i in 0...NUM_CHANNELS) {
@@ -88,7 +74,7 @@ class FFTConvolver extends DSP {
 			impulseTimes[i] = impulse[i];
 		}
 		for (i in impulse.length...FFT_SIZE) {
-			impulseTimes[i] = Complex.zero;
+			impulseTimes[i].setZero();
 		}
 
 		calculateImpulseFFT(impulseTimes, impulse.length, 0);
@@ -97,17 +83,17 @@ class FFTConvolver extends DSP {
 
 	// TODO: move this into main thread and use swapbuffer for impulseFreqs instead?
 	public function updateImpulseFromSwapBuffer(impulseLengths: Array<Int>) {
-		impulseSwapBuffer.setReadLock();
+		impulseSwapBuffer.beginRead();
 		for (i in 0...impulseLengths.length) {
 			impulseSwapBuffer.read(impulseTimes, CHUNK_SIZE * i, 0, CHUNK_SIZE);
 			// Moving thes function into the main thread will also remove the fft
 			// calculation while the lock is active, reducing the lock time
 			calculateImpulseFFT(impulseTimes, impulseLengths[i], i);
 		}
-		impulseSwapBuffer.removeReadLock();
+		impulseSwapBuffer.endRead();
 	}
 
-	function calculateImpulseFFT(impulseArray: Array<Complex>, impulseLength: Int, channel: Int) {
+	function calculateImpulseFFT(impulseArray: ComplexArray, impulseLength: Int, channel: Int) {
 		fft(impulseArray, impulseFreqs[channel], FFT_SIZE);
 		overlapLength[channel] = impulseLength - 1;
 	}
@@ -121,9 +107,6 @@ class FFTConvolver extends DSP {
 		// Ensure correct boundaries
 		final isMultiple = (deinterleavedLength % CHUNK_SIZE) == 0 || (CHUNK_SIZE % deinterleavedLength) == 0;
 		assert(Debug, isMultiple, "deinterleavedLength must be a multiple of CHUNK_SIZE or vice versa");
-
-		final fftTimeBuf = p_fftTimeBuf.get();
-		final fftFreqBuf = p_fftFreqBuf.get();
 
 		var numSegments: Int; // Segments per deinterleaved frame
 		var segmentSize: Int;
@@ -147,7 +130,7 @@ class FFTConvolver extends DSP {
 					fftTimeBuf[i] = Complex.fromReal(real);
 				}
 				for (i in segmentSize...FFT_SIZE) {
-					fftTimeBuf[i] = Complex.zero;
+					fftTimeBuf[i].setZero();
 				}
 
 				fft(fftTimeBuf, fftFreqBuf, FFT_SIZE);

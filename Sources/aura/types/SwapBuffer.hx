@@ -4,69 +4,109 @@ import haxe.ds.Vector;
 
 import dsp.Complex;
 
+import aura.types.Complex;
+import aura.Types.AtomicInt;
+
 // TODO: Make generic in some way
 class SwapBuffer {
+	static final ROW_COUNT = 2;
+
 	public final length: Int;
-	public final data1: Array<Complex>;
-	public final data2: Array<Complex>;
 
-	var writeData: Array<Complex>;
-	var readData: Array<Complex>;
+	// https://www.usenix.org/legacy/publications/library/proceedings/usenix02/full_papers/huang/huang_html/node8.html
+	public final data: Vector<Vector<ComplexArray>>;
+	final readerCount: Vector<AtomicInt>;
+	final newerBuf: Vector<AtomicInt>;
+	var latestWriteRow: AtomicInt;
 
-	var isReading = false;
+	var curWriteBufIdx: AtomicInt = 0;
+	var curWriteRowIdx: AtomicInt = 0;
+	var curReadRowIdx: AtomicInt = 0;
 
 	public function new(length: Int) {
 		this.length = length;
-		this.data1 = new Array<Complex>();
-		data1.resize(length);
-		this.data2 = new Array<Complex>();
-		data2.resize(length);
 
-		writeData = data1;
-		readData = data2;
-	}
+		this.data = new Vector(ROW_COUNT);
+		for (i in 0...ROW_COUNT) {
+			data[i] = new Vector(ROW_COUNT);
+			for (j in 0...ROW_COUNT) {
+				data[i][j] = new ComplexArray(length);
+			}
+		}
 
-	public inline function write(src: Array<Complex>, srcStart: Int, dstStart: Int, length: Int) {
-		for (i in srcStart...srcStart + length) {
-			writeData[dstStart + i] = src[i].copy(); // TODO: Investigate possible memory leaks through allocation
+		this.readerCount = new Vector(ROW_COUNT);
+		for (i in 0...ROW_COUNT) {
+			readerCount[i] = 0;
+		}
+
+		this.newerBuf = new Vector(ROW_COUNT);
+		for (i in 0...ROW_COUNT) {
+			newerBuf[i] = 0;
 		}
 	}
 
-	public inline function writeVecF(src: Vector<Float>, srcStart: Int, dstStart: Int, length: Int) {
+	public inline function beginRead() {
+		curReadRowIdx = latestWriteRow;
+		#if cpp
+			readerCount[curReadRowIdx] = AtomicInt.atomicInc(cpp.Pointer.addressOf(readerCount[curReadRowIdx]));
+		#else
+			readerCount[curReadRowIdx]++;
+		#end
+	}
+
+	public inline function endRead() {
+		#if cpp
+			readerCount[curReadRowIdx] = AtomicInt.atomicDec(cpp.Pointer.addressOf(readerCount[curReadRowIdx]));
+		#else
+			readerCount[curReadRowIdx]--;
+		#end
+	}
+
+	public inline function read(dst: ComplexArray, dstStart: Int, srcStart: Int, length: Int) {
+		final bufIdx = newerBuf[curReadRowIdx];
 		for (i in srcStart...srcStart + length) {
-			writeData[dstStart + i] = Complex.fromReal(src[i]);
+			dst[dstStart - srcStart + i] = data[curReadRowIdx][bufIdx][i];
+		}
+	}
+
+	public inline function beginWrite() {
+		for (i in 0...ROW_COUNT) {
+			if (readerCount[i] == 0) {
+				curWriteRowIdx = i;
+				break;
+			}
+		}
+
+		// Select the least current row buffer
+		curWriteBufIdx = 1 - newerBuf[curWriteRowIdx];
+	}
+
+	public inline function endWrite() {
+		newerBuf[curWriteRowIdx] = curWriteBufIdx;
+		latestWriteRow = curWriteRowIdx;
+	}
+
+	public inline function write(src: ComplexArray, srcStart: Int, dstStart: Int, length: Int = -1) {
+		if (length == -1) {
+			length = src.length - srcStart;
+		}
+		for (i in srcStart...srcStart + length) {
+			data[curWriteRowIdx][curWriteBufIdx][dstStart + i] = src[i]; // TODO: Investigate possible memory leaks through allocating
+		}
+	}
+
+	public inline function writeVecF(src: Vector<Float>, srcStart: Int, dstStart: Int, length: Int = -1) {
+		if (length == -1) {
+			length = src.length - srcStart;
+		}
+		for (i in srcStart...srcStart + length) {
+			data[curWriteRowIdx][curWriteBufIdx][dstStart + i] = Complex.fromReal(src[i]);
 		}
 	}
 
 	public inline function writeZero(dstStart: Int, dstEnd: Int) {
 		for (i in dstStart...dstEnd) {
-			writeData[i] = Complex.zero;
+			data[curWriteRowIdx][curWriteBufIdx][i].setZero();
 		}
-	}
-
-	public inline function read(dst: Array<Complex>, srcStart: Int, dstStart: Int, length: Int) {
-		for (i in srcStart...srcStart + length) {
-			dst[dstStart + i - srcStart] = readData[i].copy();
-		}
-	}
-
-	public inline function swap() {
-		while (isReading) {}
-
-		// #if cpp
-		// 	untyped __cpp__("std::swap({0}, {1})", writeData, readData);
-		// #else
-			final tmp = writeData;
-			writeData = readData;
-			readData = tmp;
-		// #end
-	}
-
-	public inline function setReadLock() {
-		isReading = true;
-	}
-
-	public inline function removeReadLock() {
-		isReading = false;
 	}
 }
