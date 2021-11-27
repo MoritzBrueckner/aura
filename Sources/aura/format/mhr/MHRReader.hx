@@ -1,5 +1,6 @@
 /**
-	Specification: https://github.com/kcat/openal-soft/blob/master/docs/hrtf.txt
+	Specification:
+	https://github.com/kcat/openal-soft/blob/3ef4bffaf959d06527a247faa19cc869781745e4/docs/hrtf.txt
 **/
 
 package aura.format.mhr;
