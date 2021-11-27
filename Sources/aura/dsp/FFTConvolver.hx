@@ -85,7 +85,7 @@ class FFTConvolver extends DSP {
 	public function updateImpulseFromSwapBuffer(impulseLengths: Array<Int>) {
 		impulseSwapBuffer.beginRead();
 		for (i in 0...impulseLengths.length) {
-			impulseSwapBuffer.read(impulseTimes, CHUNK_SIZE * i, 0, CHUNK_SIZE);
+			impulseSwapBuffer.read(impulseTimes, 0, CHUNK_SIZE * i, CHUNK_SIZE);
 			// Moving thes function into the main thread will also remove the fft
 			// calculation while the lock is active, reducing the lock time
 			calculateImpulseFFT(impulseTimes, impulseLengths[i], i);
