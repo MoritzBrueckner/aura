@@ -37,7 +37,18 @@ class FFTConvolver extends DSP {
 		Use `overlapLength` to get the true length.
 	**/
 	final overlapLast: Vector<Vector<Float>>;
+
+	/**
+		The (per-channel) overlap length of the convolution result for the
+		current impulse response.
+	**/
 	final overlapLength: Vector<Int>;
+
+	/**
+		The (per-channel) overlap length of the convolution result for the
+		impulse response from the previous processing block.
+	**/
+	final lastOverlapLength: Vector<Int>;
 
 	public function new() {
 		assert(Error, isPowerOf2(FFT_SIZE), 'FFT_SIZE must be a power of 2, but it is $FFT_SIZE');
@@ -60,6 +71,7 @@ class FFTConvolver extends DSP {
 			overlapLast[i] = new Vector<Float>(CHUNK_SIZE - 1);
 		}
 		overlapLength = createEmptyVecI(NUM_CHANNELS);
+		lastOverlapLength = createEmptyVecI(NUM_CHANNELS);
 	}
 
 	public function setImpulse(impulse: Float32Array) {
@@ -149,13 +161,13 @@ class FFTConvolver extends DSP {
 				}
 
 				// Handle overlapping
-				// TODO: Correctly handle cases when the impulse changes length
-				for (i in 0...overlapLength[c]) {
+				for (i in 0...lastOverlapLength[c]) {
 					buffer[segmentOffset + i * NUM_CHANNELS + c] += overlapLast[c][i];
 				}
 				for (i in 0...overlapLength[c]) {
 					overlapLast[c][i] = fftTimeBuf[CHUNK_SIZE + i].real;
 				}
+				lastOverlapLength[c] = overlapLength[c];
 			}
 		}
 	}
