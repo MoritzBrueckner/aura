@@ -57,5 +57,7 @@ class PinkNoise extends BaseGenerator {
 			b6[c] = white * 0.115926;
 			c = 1 - c;
 		}
+
+		processInserts(requestedSamples, requestedLength);
 	}
 }
