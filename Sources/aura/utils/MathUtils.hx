@@ -42,14 +42,17 @@ import aura.math.Vec3;
 }
 
 /**
-	Calculate the counterclockwise angle of `vecOther` relative to `vecBase`.
+	Calculate the counterclockwise angle of the rotation of `vecOther` relative
+	to `vecBase` around the rotation axis of `vecNormal`. All input vectors
+	*must* be normalized!
 **/
-@:pure inline function getFullAngleDegrees(vecBase: Vec3, vecOther: Vec3): Float {
-	final dX = vecOther.x - vecBase.x;
-	final dY = vecOther.y - vecBase.y;
-	var radians = (dX == 0 || dY == 0) ? 0.0 : Math.atan2(dY, dX);
+@:pure inline function getFullAngleDegrees(vecBase: Vec3, vecOther: Vec3, vecNormal: Vec3): Float {
+	final dot = vecBase.dot(vecOther);
+	final det = determinant3x3(vecBase, vecOther, vecNormal);
+	var radians = Math.atan2(det, dot);
+
+	// Move [-PI, 0) to [PI, 2 * PI]
 	if (radians < 0) {
-		// Move [-PI, 0) to [PI, 2 * PI]
 		radians += 2 * Math.PI;
 	}
 	return radians * 180 / Math.PI;

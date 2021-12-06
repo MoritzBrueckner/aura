@@ -2,7 +2,7 @@ package aura.types;
 
 import haxe.ds.Vector;
 
-import dsp.Complex;
+import kha.arrays.Float32Array;
 
 import aura.types.Complex;
 import aura.Types.AtomicInt;
@@ -64,8 +64,8 @@ class SwapBuffer {
 
 	public inline function read(dst: ComplexArray, dstStart: Int, srcStart: Int, length: Int) {
 		final bufIdx = newerBuf[curReadRowIdx];
-		for (i in srcStart...srcStart + length) {
-			dst[dstStart - srcStart + i] = data[curReadRowIdx][bufIdx][i];
+		for (i in 0...length) {
+			dst[dstStart + i] = data[curReadRowIdx][bufIdx][srcStart + i];
 		}
 	}
 
@@ -96,6 +96,15 @@ class SwapBuffer {
 	}
 
 	public inline function writeVecF(src: Vector<Float>, srcStart: Int, dstStart: Int, length: Int = -1) {
+		if (length == -1) {
+			length = src.length - srcStart;
+		}
+		for (i in srcStart...srcStart + length) {
+			data[curWriteRowIdx][curWriteBufIdx][dstStart + i] = Complex.fromReal(src[i]);
+		}
+	}
+
+	public inline function writeF32Array(src: Float32Array, srcStart: Int, dstStart: Int, length: Int = -1) {
 		if (length == -1) {
 			length = src.length - srcStart;
 		}

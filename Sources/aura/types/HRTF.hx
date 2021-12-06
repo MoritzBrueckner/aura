@@ -2,6 +2,14 @@ package aura.types;
 
 import haxe.ds.Vector;
 
+import kha.arrays.Float32Array;
+
+import aura.math.Vec3;
+import aura.utils.BufferUtils;
+import aura.utils.MathUtils;
+
+// using aura.utils.ReverseIterator;
+
 /**
 	The entirety of all fields with their respective HRIRs (head related impulse
 	responses).
@@ -31,6 +39,95 @@ import haxe.ds.Vector;
 		The fields of this HRTF.
 	**/
 	public final fields: Vector<Field>;
+
+	/**
+		Return an bilinearly interpolated HRIR for the given direction (distance
+		is fixed for now).
+
+		@param elevation Elevation (polar) angle from 0 (bottom) to 180 (top).
+		@param azimuth Azimuthal angle from 0 (front) to 360, clockwise.
+	**/
+	public function getInterpolatedHRIR(elevation: Float, azimuth: Float, outputBuf: Float32Array): Int {
+		/**
+			Used terms in this function:
+
+			low/high: the elevations of the closest HRIR below and above the
+				given elevation
+
+			left/right: the azimuths of the closest HRIR left and right to the
+				given azimuth (the azimuth angle is clockwise, so the directions
+				left/right are meant from the perspective from the origin)
+		**/
+		clearBuffer(outputBuf);
+
+		// TODO Use fixed distance for now...
+		final field = this.fields[this.fields.length - 1];
+
+		final elevationStep = 180 / field.evCount;
+		final elevationIndexLow = Std.int(elevation / elevationStep);
+		final elevationIndexHigh = elevationIndexLow + 1;
+		var elevationWeight = (elevation % elevationStep) / elevationStep;
+
+		// Calculate the offset into the HRIR arrays. Diffferent elevations may
+		// have different amounts of azimuths/HRIRs
+		// TODO: store offset per elevation for faster access?
+		var elevationHRIROffsetLow = 0;
+		for (j in 0...elevationIndexLow) {
+			elevationHRIROffsetLow += field.azCount[j];
+		}
+		final elevationHRIROffsetHigh = elevationHRIROffsetLow + field.azCount[elevationIndexHigh - 1];
+
+		// var delay = 0.0;
+		var hrirLength = 0;
+		for (ev in 0...2) {
+			final elevationIndex = ev == 0 ? elevationIndexLow : elevationIndexHigh;
+			final elevationHRIROffset = ev == 0 ? elevationHRIROffsetLow : elevationHRIROffsetHigh;
+
+			// TODO: azCount can be 0, leading to NaN errors...
+			final azimuthStep = 360 / field.azCount[elevationIndex];
+			final azimuthIndexLeft = Std.int(azimuth / azimuthStep);
+			var azimuthIndexRight = azimuthIndexLeft + 1;
+			if (azimuthIndexRight == field.azCount[elevationIndex]) {
+				azimuthIndexRight = 0;
+			}
+			final azimuthWeight = (azimuth % azimuthStep) / azimuthStep;
+
+			// trace(azimuthStep, azimuthIndexLeft, azimuthIndexRight, azimuthWeight);
+
+			final hrirLeft = field.hrirs[elevationHRIROffset + azimuthIndexLeft];
+			final hrirRight = field.hrirs[elevationHRIROffset + azimuthIndexRight];
+
+			final evWeight = ev == 0 ? 1 - elevationWeight : elevationWeight;
+
+			// Interpolate delay
+			// delay += lerp(hrirLeft.delays[0], hrirRight.delays[0], azimuthWeight) * evWeight;
+
+			// Interpolate coefficients
+			final invWeight = 1 - azimuthWeight;
+			for (i in 0...outputBuf.length) {
+				final leftCoeff = i < hrirLeft.coeffs.length ? hrirLeft.coeffs[i] * invWeight : 0.0;
+				final rightCoeff = i < hrirRight.coeffs.length ? hrirRight.coeffs[i] * azimuthWeight : 0.0;
+				outputBuf[i] += (leftCoeff + rightCoeff) * evWeight;
+			}
+
+			var maxLength = maxI(hrirLeft.coeffs.length, hrirRight.coeffs.length);
+			if (maxLength > hrirLength) {
+				hrirLength = maxLength;
+			}
+		}
+
+		// Apply delay
+		final delaySamples = 0;
+		// final delaySamples = Math.round(delay);
+		// for (i in (delaySamples...outputBuf.length).reversed()) {
+		// 	outputBuf[i] = outputBuf[i - delaySamples];
+		// }
+		// for (i in 0...delaySamples) {
+		// 	outputBuf[i] = 0.0;
+		// }
+
+		return delaySamples + hrirLength;
+	}
 }
 
 /**
