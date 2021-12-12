@@ -12,11 +12,6 @@ import aura.types.Complex;
 **/
 inline function fft(inTimes: ComplexArray, outFreqs: ComplexArray, size: Int) {
 	ditfft2(inTimes, 0, outFreqs, 0, size, 1, false);
-	// We're only interested in the positive frequencies, see
-	// implementation of hxdsp's rfft() for reference
-	for (i in Std.int(size / 2)...size) {
-		outFreqs[i].setZero();
-	}
 }
 
 /**

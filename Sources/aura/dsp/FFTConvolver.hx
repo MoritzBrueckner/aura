@@ -148,7 +148,7 @@ class FFTConvolver extends DSP {
 				fft(fftTimeBuf, fftFreqBuf, FFT_SIZE);
 
 				// The actual convolution takes place here
-				for (i in 0...CHUNK_SIZE) {
+				for (i in 0...FFT_SIZE) {
 					fftFreqBuf[i] *= impulseFreqs[c][i];
 				}
 
