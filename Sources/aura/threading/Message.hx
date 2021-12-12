@@ -30,4 +30,6 @@ enum abstract DSPMessageID(Int) {
 	final BypassDisable;
 
 	final SwapBufferReady;
+
+	final SetDelays;
 }

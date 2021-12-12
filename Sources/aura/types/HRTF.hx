@@ -7,8 +7,9 @@ import kha.arrays.Float32Array;
 import aura.math.Vec3;
 import aura.utils.BufferUtils;
 import aura.utils.MathUtils;
+import aura.utils.Pointer;
 
-// using aura.utils.ReverseIterator;
+using aura.utils.ReverseIterator;
 
 /**
 	The entirety of all fields with their respective HRIRs (head related impulse
@@ -41,13 +42,25 @@ import aura.utils.MathUtils;
 	public final fields: Vector<Field>;
 
 	/**
-		Return an bilinearly interpolated HRIR for the given direction (distance
-		is fixed for now).
+		The longest delay of any HRIR contained in this HRTF in samples. Useful
+		to preallocate enough memory for delay lines (use
+		`Math.ceil(maxDelayLength)`).
+	**/
+	public final maxDelayLength: Float;
+
+	/**
+		Create a bilinearly interpolated HRIR for the given direction (distance
+		is fixed for now) and store it in `outputBuf`. The length of the HRIR's
+		impulse response as well as the interpolated delay (in samples) is
+		stored in `outImpulseLength` and `outDelay`.
 
 		@param elevation Elevation (polar) angle from 0 (bottom) to 180 (top).
 		@param azimuth Azimuthal angle from 0 (front) to 360, clockwise.
 	**/
-	public function getInterpolatedHRIR(elevation: Float, azimuth: Float, outputBuf: Float32Array): Int {
+	public function getInterpolatedHRIR(
+		elevation: Float, azimuth: Float,
+		outputBuf: Float32Array, outImpulseLength: Pointer<Int>, outDelay: Pointer<Int>
+	) {
 		/**
 			Used terms in this function:
 
@@ -77,7 +90,7 @@ import aura.utils.MathUtils;
 		}
 		final elevationHRIROffsetHigh = elevationHRIROffsetLow + field.azCount[elevationIndexHigh - 1];
 
-		// var delay = 0.0;
+		var delay = 0.0;
 		var hrirLength = 0;
 		for (ev in 0...2) {
 			final elevationIndex = ev == 0 ? elevationIndexLow : elevationIndexHigh;
@@ -100,7 +113,7 @@ import aura.utils.MathUtils;
 			final evWeight = ev == 0 ? 1 - elevationWeight : elevationWeight;
 
 			// Interpolate delay
-			// delay += lerp(hrirLeft.delays[0], hrirRight.delays[0], azimuthWeight) * evWeight;
+			delay += lerp(hrirLeft.delays[0], hrirRight.delays[0], azimuthWeight) * evWeight;
 
 			// Interpolate coefficients
 			final invWeight = 1 - azimuthWeight;
@@ -116,17 +129,8 @@ import aura.utils.MathUtils;
 			}
 		}
 
-		// Apply delay
-		final delaySamples = 0;
-		// final delaySamples = Math.round(delay);
-		// for (i in (delaySamples...outputBuf.length).reversed()) {
-		// 	outputBuf[i] = outputBuf[i - delaySamples];
-		// }
-		// for (i in 0...delaySamples) {
-		// 	outputBuf[i] = 0.0;
-		// }
-
-		return delaySamples + hrirLength;
+		outDelay.set(Math.round(delay));
+		outImpulseLength.set(hrirLength);
 	}
 }
 

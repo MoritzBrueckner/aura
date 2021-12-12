@@ -5,10 +5,12 @@ import kha.arrays.Float32Array;
 import kha.math.FastVector3;
 
 import aura.channels.BaseChannel;
+import aura.dsp.DelayLine;
 import aura.dsp.DSP;
 import aura.dsp.FFTConvolver;
 import aura.math.Vec3;
 import aura.utils.MathUtils;
+import aura.utils.Pointer;
 
 /**
 	Main-thread handle to an audio channel in the audio thread.
@@ -61,17 +63,26 @@ class Handle {
 	var _pitch: Float = 1.0;
 
 	var hrtfConvolver: Null<FFTConvolver>;
-	var hrir: Float32Array;
-	var hrirOpp: Float32Array;
+	var hrtfDelayLine: Null<DelayLine>;
+	var hrirPtrDelay: Null<Pointer<Int>>;
+	var hrirPtrImpulseLength: Null<Pointer<Int>>;
+	var hrir: Null<Float32Array>;
+	var hrirOpp: Null<Float32Array>;
 
 	public inline function new(channel: BaseChannel) {
 		this.channel = channel;
 
 		if (Aura.options.panningMode == Hrtf) {
 			hrtfConvolver = new FFTConvolver();
+			hrtfDelayLine = new DelayLine(128); // TODO: move to a place when HRTFs are loaded
+			channel.addInsert(hrtfConvolver);
+			channel.addInsert(hrtfDelayLine);
+
+			hrirPtrDelay = new Pointer<Int>();
+			hrirPtrImpulseLength = new Pointer<Int>();
+
 			hrir = new Float32Array(FFTConvolver.CHUNK_SIZE);
 			hrirOpp = new Float32Array(FFTConvolver.CHUNK_SIZE);
-			channel.addInsert(hrtfConvolver);
 		}
 	}
 
@@ -155,12 +166,16 @@ class Handle {
 				var angle = getFullAngleDegrees(look, projectedChannelPos, up);
 				angle = angle != 0 ? 360 - angle : 0; // Make clockwise
 
-				final hrirLength = hrtf.getInterpolatedHRIR(elevation, angle, hrir);
+				hrtf.getInterpolatedHRIR(elevation, angle, hrir, hrirPtrImpulseLength, hrirPtrDelay);
+				final hrirLength = hrirPtrImpulseLength.get();
+				final hrirDelay = hrirPtrDelay.get();
 
 				if (hrtf.numChannels == 1) {
-					final hrirOppLength = hrtf.getInterpolatedHRIR(elevation, 360 - angle, hrirOpp);
-					final swapBuf = hrtfConvolver.impulseSwapBuffer;
+					hrtf.getInterpolatedHRIR(elevation, 360 - angle, hrirOpp, hrirPtrImpulseLength, hrirPtrDelay);
+					final hrirOppLength = hrirPtrImpulseLength.get();
+					final hrirOppDelay = hrirPtrDelay.get();
 
+					final swapBuf = hrtfConvolver.impulseSwapBuffer;
 					swapBuf.beginWrite();
 						// Left channel
 						swapBuf.writeF32Array(hrir, 0, 0, hrirLength);
@@ -171,6 +186,8 @@ class Handle {
 						swapBuf.writeZero(FFTConvolver.CHUNK_SIZE + hrirOppLength, swapBuf.length);
 					swapBuf.endWrite();
 					hrtfConvolver.sendMessage({id: SwapBufferReady, data: [hrirLength, hrirOppLength]});
+
+					hrtfDelayLine.sendMessage({id: SetDelays, data: [hrirDelay, hrirOppDelay]});
 				}
 				else {
 					for (c in 0...hrtf.numChannels) {

@@ -19,6 +19,13 @@ class CircularBuffer<T> {
 		this.readHead = 1;
 	}
 
+	public inline function setDelay(delaySamples: Int) {
+		readHead = writeHead - delaySamples;
+		if (readHead < 0) {
+			readHead += length;
+		}
+	}
+
 	public inline function get_length(): Int {
 		return data.length;
 	}

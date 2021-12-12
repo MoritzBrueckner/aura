@@ -83,6 +83,7 @@ class MHRReader {
 		}
 
 		// Read per-HRIR delay
+		var maxDelayLength = 0.0;
 		for (i in 0...fieldCount) {
 			final field = fields[i];
 
@@ -95,7 +96,11 @@ class MHRReader {
 					final delayRaw = inp.readByte();
 					final delayIntPart = delayRaw >> 2;
 					final delayFloatPart = isBitSet(delayRaw, 1) * 0.5 + isBitSet(delayRaw, 0) * 0.25;
-					hrir.delays[ch] = delayIntPart + delayFloatPart;
+					final delay = delayIntPart + delayFloatPart;
+					hrir.delays[ch] = delay;
+					if (delay > maxDelayLength) {
+						maxDelayLength = delay;
+					}
 				}
 			}
 		}
@@ -110,6 +115,7 @@ class MHRReader {
 			hrirSize: hrirSize,
 			hrirCount: hrirCount,
 			fields: fields,
+			maxDelayLength: maxDelayLength
 		};
 	}
 
