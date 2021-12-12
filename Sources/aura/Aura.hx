@@ -40,7 +40,7 @@ class Aura {
 	public static var masterChannel(default, null): MixChannelHandle;
 
 	static final hrtfs = new Map<String, HRTF>();
-	static var currentHRTF: String;
+	static var currentHRTF: HRTF;
 
 	public static function init(?options: AuraOptions) {
 		sampleRate = kha.audio2.Audio.samplesPerSecond;
@@ -110,9 +110,10 @@ class Aura {
 
 	public static function loadHRTF(filename: String) {
 		kha.Assets.loadBlob(filename, (b: kha.Blob) -> {
-			var reader = new MHRReader(b.bytes);
-			hrtfs[filename] = reader.read();
-			currentHRTF = filename;
+			final reader = new MHRReader(b.bytes);
+			final hrtf = reader.read();
+			hrtfs[filename] = hrtf;
+			currentHRTF = hrtf;
 		});
 	}
 

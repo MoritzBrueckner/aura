@@ -157,7 +157,7 @@ class Handle {
 				setBalance(angle);
 
 			case Hrtf:
-				final hrtf = @:privateAccess Aura.hrtfs[Aura.currentHRTF];
+				final hrtf = @:privateAccess Aura.currentHRTF;
 
 				final elevationCos = up.dot(dirToChannel.normalized());
 				// 180: top, 0: bottom
