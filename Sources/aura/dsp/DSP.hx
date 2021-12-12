@@ -6,6 +6,8 @@ import aura.threading.Fifo;
 import aura.threading.Message;
 
 abstract class DSP {
+	public var bypass: Bool;
+
 	var inUse: Bool;
 	final messages: Fifo<DSPMessage> = new Fifo();
 

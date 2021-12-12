@@ -75,6 +75,8 @@ class Handle {
 		if (Aura.options.panningMode == Hrtf) {
 			hrtfConvolver = new FFTConvolver();
 			hrtfDelayLine = new DelayLine(128); // TODO: move to a place when HRTFs are loaded
+			hrtfConvolver.bypass = true;
+			hrtfDelayLine.bypass = true;
 			channel.addInsert(hrtfConvolver);
 			channel.addInsert(hrtfDelayLine);
 
@@ -120,8 +122,11 @@ class Handle {
 
 		if (dirToChannel.length == 0) {
 			switch (Aura.options.panningMode) {
-				case Balance: setBalance(Balance.CENTER);
-				case Hrtf: // TODO: bypass HRTF, else disable bypass
+				case Balance:
+					setBalance(Balance.CENTER);
+				case Hrtf:
+					hrtfConvolver.bypass = true;
+					hrtfDelayLine.bypass = true;
 			}
 			channel.sendMessage({ id: PDstAttenuation, data: 1.0 });
 			return;
@@ -185,8 +190,10 @@ class Handle {
 						swapBuf.writeF32Array(hrirOpp, 0, FFTConvolver.CHUNK_SIZE, hrirOppLength);
 						swapBuf.writeZero(FFTConvolver.CHUNK_SIZE + hrirOppLength, swapBuf.length);
 					swapBuf.endWrite();
-					hrtfConvolver.sendMessage({id: SwapBufferReady, data: [hrirLength, hrirOppLength]});
 
+					hrtfConvolver.bypass = false;
+					hrtfDelayLine.bypass = false;
+					hrtfConvolver.sendMessage({id: SwapBufferReady, data: [hrirLength, hrirOppLength]});
 					hrtfDelayLine.sendMessage({id: SetDelays, data: [hrirDelay, hrirOppDelay]});
 				}
 				else {
@@ -242,7 +249,13 @@ class Handle {
 		hear the sound at the same position as before you called `reset3D()`.
 	**/
 	public inline function reset3D() {
-		setBalance(Balance.CENTER);
+		switch (Aura.options.panningMode) {
+			case Balance:
+				setBalance(Balance.CENTER);
+			case Hrtf:
+				hrtfConvolver.bypass = true;
+				hrtfDelayLine.bypass = true;
+		}
 
 		channel.sendMessage({ id: PDopplerRatio, data: 1.0 });
 		channel.sendMessage({ id: PDstAttenuation, data: 1.0 });

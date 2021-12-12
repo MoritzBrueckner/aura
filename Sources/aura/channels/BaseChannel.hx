@@ -44,6 +44,7 @@ abstract class BaseChannel {
 
 	inline function processInserts(buffer: Float32Array, bufferLength: Int) {
 		for (insert in inserts) {
+			if (insert.bypass) { continue; }
 			insert.process(buffer, bufferLength);
 		}
 	}
