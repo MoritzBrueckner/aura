@@ -1,7 +1,6 @@
 package aura.dsp.panner;
 
 import kha.FastFloat;
-import kha.arrays.Float32Array;
 import kha.math.FastVector3;
 
 import aura.math.Vec3;
@@ -39,7 +38,11 @@ abstract class Panner {
 		Update the channel's audible 3D parameters after changing the channel's
 		or the listener's position or rotation.
 	**/
-	public abstract function update3D(): Void;
+	public function update3D() {
+		final dirToChannel = this.location.sub(Aura.listener.location);
+		calculateAttenuation(dirToChannel);
+		calculateDoppler();
+	};
 
 	/**
 		Reset all the audible 3D sound parameters (balance, doppler effect etc.)
@@ -52,7 +55,6 @@ abstract class Panner {
 		handle.channel.sendMessage({ id: PDstAttenuation, data: 1.0 });
 	};
 
-	abstract function process(buffer: Float32Array, bufferLength: Int): Void;
 	/**
 		Set the location of this panner in world space.
 	**/

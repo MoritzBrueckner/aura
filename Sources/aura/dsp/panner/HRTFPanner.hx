@@ -30,7 +30,7 @@ class HRTFPanner extends Panner {
 		hrirOpp = new Float32Array(FFTConvolver.CHUNK_SIZE);
 	}
 
-	public function update3D() {
+	override public function update3D() {
 		final listener = Aura.listener;
 		final dirToChannel = this.location.sub(listener.location);
 
@@ -91,8 +91,7 @@ class HRTFPanner extends Panner {
 			}
 		}
 
-		calculateAttenuation(dirToChannel);
-		calculateDoppler();
+		super.update3D();
 	}
 
 	override public function reset3D() {
@@ -101,6 +100,4 @@ class HRTFPanner extends Panner {
 
 		super.reset3D();
 	}
-
-	function process(buffer:Float32Array, bufferLength:Int) {}
 }
