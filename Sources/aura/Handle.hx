@@ -33,17 +33,6 @@ class Handle {
 	public var finished(get, never): Bool;
 	inline function get_finished(): Bool { return channel.finished; }
 
-	/**
-		The location of this audio source in world space.
-	**/
-	var location: Vec3 = new Vec3(0, 0, 0);
-	var lastLocation: Vec3 = new Vec3(0, 0, 0);
-
-	/**
-		The velocity of this audio source in world space.
-	**/
-	var velocity: Vec3 = new Vec3(0, 0, 0);
-
 	// Parameter cache for getter functions
 	var _volume: Float = 1.0;
 	var _balance: Balance = Balance.CENTER;
@@ -110,13 +99,6 @@ class Handle {
 
 	public inline function getPitch(): Float {
 		return this._pitch;
-	}
-
-	/**
-		Set the location of this audio source in world space.
-	**/
-	public inline function setLocation(location: Vec3) {
-		this.location = location;
 	}
 
 	#if AURA_DEBUG

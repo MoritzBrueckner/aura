@@ -4,6 +4,7 @@ import kha.FastFloat;
 import kha.arrays.Float32Array;
 import kha.math.FastVector3;
 
+import aura.math.Vec3;
 import aura.utils.MathUtils;
 
 abstract class Panner {
@@ -18,6 +19,17 @@ abstract class Panner {
 	// public var minDistance = 1;
 
 	final handle: Handle;
+
+	/**
+		The location of this audio source in world space.
+	**/
+	var location: Vec3 = new Vec3(0, 0, 0);
+	var lastLocation: Vec3 = new Vec3(0, 0, 0);
+
+	/**
+		The velocity of this audio source in world space.
+	**/
+	var velocity: Vec3 = new Vec3(0, 0, 0);
 
 	public function new(handle: Handle) {
 		this.handle = handle;
@@ -41,6 +53,12 @@ abstract class Panner {
 	};
 
 	abstract function process(buffer: Float32Array, bufferLength: Int): Void;
+	/**
+		Set the location of this panner in world space.
+	**/
+	public inline function setLocation(location: Vec3) {
+		this.location = location;
+	}
 
 	function calculateAttenuation(dirToChannel: FastVector3) {
 		final dst = maxF(REFERENCE_DST, dirToChannel.length);
@@ -58,18 +76,18 @@ abstract class Panner {
 	function calculateDoppler() {
 		final listener = Aura.listener;
 		var dopplerRatio: FastFloat = 1.0;
-		if (dopplerFactor != 0.0 && (listener.velocity.length != 0 || handle.velocity.length != 0)) {
-			final dist = handle.location.sub(listener.location);
+		if (dopplerFactor != 0.0 && (listener.velocity.length != 0 || this.velocity.length != 0)) {
+			final dist = this.location.sub(listener.location);
 			final vr = listener.velocity.dot(dist) / dist.length;
-			final vs = handle.velocity.dot(dist) / dist.length;
+			final vs = this.velocity.dot(dist) / dist.length;
 
 			final soundSpeed = SPEED_OF_SOUND * Time.delta;
 			dopplerRatio = (soundSpeed + vr) / (soundSpeed + vs);
 			dopplerRatio = Math.pow(dopplerRatio, dopplerFactor);
 		}
 
-		handle.velocity = handle.location.sub(handle.lastLocation);
-		handle.lastLocation.setFrom(handle.location);
+		this.velocity = this.location.sub(this.lastLocation);
+		this.lastLocation.setFrom(this.location);
 
 		handle.channel.sendMessage({ id: PDopplerRatio, data: dopplerRatio });
 	}

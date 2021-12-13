@@ -32,7 +32,7 @@ class HRTFPanner extends Panner {
 
 	public function update3D() {
 		final listener = Aura.listener;
-		final dirToChannel = handle.location.sub(listener.location);
+		final dirToChannel = this.location.sub(listener.location);
 
 		if (dirToChannel.length == 0) {
 			hrtfConvolver.bypass = true;
