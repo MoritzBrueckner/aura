@@ -20,7 +20,7 @@ import aura.utils.Pointer;
 class FFTConvolver extends DSP {
 	public static inline var NUM_CHANNELS = 2;
 	public static inline var FFT_SIZE = 1024;
-	static inline var CHUNK_SIZE = Std.int(FFT_SIZE / 2);
+	public static inline var CHUNK_SIZE = Std.int(FFT_SIZE / 2);
 
 	final impulseSwapBuffer: SwapBuffer;
 	final impulseTimes: ComplexArray; // TODO: only one FFT input buffer is required, merge with p_fftTimeBuf

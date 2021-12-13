@@ -5,6 +5,7 @@ import kha.arrays.Float32Array;
 import aura.threading.Fifo;
 import aura.threading.Message;
 
+@:allow(aura.dsp.panner.Panner)
 abstract class DSP {
 	public var bypass: Bool;
 

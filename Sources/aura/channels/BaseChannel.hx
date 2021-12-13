@@ -12,6 +12,7 @@ import aura.utils.Interpolator.LinearInterpolator;
 **/
 @:allow(aura.Aura)
 @:access(aura.dsp.DSP)
+@:allow(aura.dsp.panner.Panner)
 abstract class BaseChannel {
 	final messages: Fifo<ChannelMessage> = new Fifo();
 
