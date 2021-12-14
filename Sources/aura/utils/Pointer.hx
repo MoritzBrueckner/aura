@@ -16,8 +16,11 @@ class Pointer<T> {
 		return this.value;
 	}
 
+	/**
+		Return the pointer's value typed as not-nullable. Use at your own risk.
+	**/
 	public inline function getSure(): T {
-		return this.value;
+		return cast this.value;
 	}
 }
 

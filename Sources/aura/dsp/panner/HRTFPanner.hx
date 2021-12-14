@@ -6,12 +6,12 @@ import aura.utils.Pointer;
 import aura.utils.MathUtils;
 
 class HRTFPanner extends Panner {
-	var hrtfConvolver: Null<FFTConvolver>;
-	var hrtfDelayLine: Null<DelayLine>;
-	var hrirPtrDelay: Null<Pointer<Int>>;
-	var hrirPtrImpulseLength: Null<Pointer<Int>>;
-	var hrir: Null<Float32Array>;
-	var hrirOpp: Null<Float32Array>;
+	final hrtfConvolver: FFTConvolver;
+	final hrtfDelayLine: DelayLine;
+	final hrirPtrDelay: Pointer<Int>;
+	final hrirPtrImpulseLength: Pointer<Int>;
+	final hrir: Float32Array;
+	final hrirOpp: Float32Array;
 
 	public function new(handle: Handle) {
 		super(handle);
