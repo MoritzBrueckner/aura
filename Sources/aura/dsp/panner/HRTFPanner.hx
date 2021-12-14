@@ -58,13 +58,13 @@ class HRTFPanner extends Panner {
 		angle = angle != 0 ? 360 - angle : 0; // Make clockwise
 
 		hrtf.getInterpolatedHRIR(elevation, angle, hrir, hrirPtrImpulseLength, hrirPtrDelay);
-		final hrirLength = hrirPtrImpulseLength.get();
-		final hrirDelay = hrirPtrDelay.get();
+		final hrirLength = hrirPtrImpulseLength.getSure();
+		final hrirDelay = hrirPtrDelay.getSure();
 
 		if (hrtf.numChannels == 1) {
 			hrtf.getInterpolatedHRIR(elevation, 360 - angle, hrirOpp, hrirPtrImpulseLength, hrirPtrDelay);
-			final hrirOppLength = hrirPtrImpulseLength.get();
-			final hrirOppDelay = hrirPtrDelay.get();
+			final hrirOppLength = hrirPtrImpulseLength.getSure();
+			final hrirOppDelay = hrirPtrDelay.getSure();
 
 			final swapBuf = @:privateAccess hrtfConvolver.impulseSwapBuffer;
 			swapBuf.beginWrite();

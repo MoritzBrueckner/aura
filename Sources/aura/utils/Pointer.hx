@@ -15,6 +15,10 @@ class Pointer<T> {
 	public inline function get(): Null<T> {
 		return this.value;
 	}
+
+	public inline function getSure(): T {
+		return this.value;
+	}
 }
 
 /**
