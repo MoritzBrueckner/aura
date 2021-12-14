@@ -9,6 +9,7 @@
 
 package aura;
 
+import haxe.Exception;
 import haxe.ds.Vector;
 
 import kha.Assets;
@@ -61,11 +62,11 @@ class Aura {
 		kha.audio2.Audio.audioCallback = audioCallback;
 	}
 
-	public static function loadSounds(sounds: AuraLoadConfig, done: Void->Void, ?failed: Void->Void) {
-		final length = sounds.compressed.length + sounds.uncompressed.length;
+	public static function loadAssets(loadConfig: AuraLoadConfig, done: Void->Void, ?failed: Void->Void) {
+		final length = loadConfig.getEntryCount();
 		var count = 0;
 
-		for (soundName in sounds.compressed) {
+		for (soundName in loadConfig.compressed) {
 			if (!doesSoundExist(soundName)) {
 				onLoadingError(null, failed, soundName);
 				break;
@@ -84,7 +85,7 @@ class Aura {
 			}, (error: kha.AssetError) -> { onLoadingError(error, failed, soundName); });
 		}
 
-		for (soundName in sounds.uncompressed) {
+		for (soundName in loadConfig.uncompressed) {
 			if (!doesSoundExist(soundName)) {
 				onLoadingError(null, failed, soundName);
 				break;
@@ -106,22 +107,40 @@ class Aura {
 				}
 			}, (error: kha.AssetError) -> { onLoadingError(error, failed, soundName); });
 		}
+
+		for (hrtfName in loadConfig.hrtf) {
+			if (!doesBlobExist(hrtfName)) {
+				onLoadingError(null, failed, hrtfName);
+				break;
+			}
+			Assets.loadBlob(hrtfName, (blob: kha.Blob) -> {
+				final reader = new MHRReader(blob.bytes);
+				var hrtf: HRTF;
+				try {
+					hrtf = reader.read();
+				}
+				catch (e: Exception) {
+					trace('Could not load hrtf $hrtfName: ${e.details()}');
+					if (failed != null) {
+						failed();
+					}
+					return;
+				}
+				hrtfs[hrtfName] = hrtf;
+				currentHRTF = hrtf;
+				if (++count == length) {
+					done();
+					return;
+				}
+			}, (error: kha.AssetError) -> { onLoadingError(error, failed, hrtfName); });
+		}
 	}
 
-	public static function loadHRTF(filename: String) {
-		kha.Assets.loadBlob(filename, (b: kha.Blob) -> {
-			final reader = new MHRReader(b.bytes);
-			final hrtf = reader.read();
-			hrtfs[filename] = hrtf;
-			currentHRTF = hrtf;
-		});
-	}
-
-	static function onLoadingError(error: Null<kha.AssetError>, failed: Null<Void->Void>, soundName: String) {
+	static function onLoadingError(error: Null<kha.AssetError>, failed: Null<Void->Void>, assetName: String) {
 		final errorInfo = error == null ? "" : "\nOriginal error: " + error.url + "..." + error.error;
 
 		trace(
-			'Could not load sound "$soundName", make sure that all sounds are named\n'
+			'Could not load asset "$assetName", make sure that all assets are named\n'
 			+ "  correctly and that they are included in the khafile.js."
 			+ errorInfo
 		);
@@ -143,6 +162,13 @@ class Aura {
 		// Relying on Kha internals ("Description" as name) is bad, but there is
 		// no good alternative...
 		return Reflect.field(Assets.sounds, soundName + "Description") != null;
+	}
+
+	/**
+		Returns whether a blob exists and can be loaded.
+	**/
+	public static inline function doesBlobExist(blobName: String): Bool {
+		return Reflect.field(Assets.blobs, blobName + "Description") != null;
 	}
 
 	public static inline function getSound(soundName: String): Null<kha.Sound> {
@@ -260,15 +286,20 @@ class Aura {
 	}
 }
 
+@:allow(aura.Aura)
 @:structInit
 class AuraLoadConfig {
 	public final compressed: Array<String> = [];
 	public final uncompressed: Array<String> = [];
+	public final hrtf: Array<String> = [];
+
+	inline function getEntryCount(): Int {
+		return compressed.length + uncompressed.length + hrtf.length;
+	}
 }
 
-
 @:structInit
-class AuraOptions  {
+class AuraOptions {
 	@:optional public var channelSize: Null<Int>;
 	@:optional public var panningMode: Null<PanningMode>;
 
