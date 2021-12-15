@@ -73,22 +73,37 @@ using aura.utils.ReverseIterator;
 		**/
 		clearBuffer(outputBuf);
 
+		if (azimuth == 360) {
+			azimuth = 0;
+		}
+
 		// TODO Use fixed distance for now...
 		final field = this.fields[this.fields.length - 1];
 
-		final elevationStep = 180 / field.evCount;
+		// Elevations don't go all the way around the sphere (only bottom to
+		// top), so at the top we don't jump to the bottom but stay at the top.
+		// Also, the indices include the borders of the range, so use -1 for
+		// calculating the elevationStep.
+		final elevationStep = 180 / (field.evCount - 1);
 		final elevationIndexLow = Std.int(elevation / elevationStep);
-		final elevationIndexHigh = elevationIndexLow + 1;
+		final elevationIndexHigh = minI(elevationIndexLow + 1, field.evCount - 1);
+
 		var elevationWeight = (elevation % elevationStep) / elevationStep;
 
-		// Calculate the offset into the HRIR arrays. Diffferent elevations may
+		// Calculate the offset into the HRIR arrays. Different elevations may
 		// have different amounts of azimuths/HRIRs
 		// TODO: store offset per elevation for faster access?
 		var elevationHRIROffsetLow = 0;
 		for (j in 0...elevationIndexLow) {
 			elevationHRIROffsetLow += field.azCount[j];
 		}
-		final elevationHRIROffsetHigh = elevationHRIROffsetLow + field.azCount[elevationIndexHigh - 1];
+		var elevationHRIROffsetHigh: Int;
+		if (elevationIndexLow == elevationIndexHigh) {
+			// We're at the top of the sphere, don't go further
+			elevationHRIROffsetHigh = elevationHRIROffsetLow;
+		} else {
+			elevationHRIROffsetHigh = elevationHRIROffsetLow + field.azCount[elevationIndexHigh - 1];
+		}
 
 		var delay = 0.0;
 		var hrirLength = 0;
@@ -96,7 +111,6 @@ using aura.utils.ReverseIterator;
 			final elevationIndex = ev == 0 ? elevationIndexLow : elevationIndexHigh;
 			final elevationHRIROffset = ev == 0 ? elevationHRIROffsetLow : elevationHRIROffsetHigh;
 
-			// TODO: azCount can be 0, leading to NaN errors...
 			final azimuthStep = 360 / field.azCount[elevationIndex];
 			final azimuthIndexLeft = Std.int(azimuth / azimuthStep);
 			var azimuthIndexRight = azimuthIndexLeft + 1;
@@ -104,8 +118,6 @@ using aura.utils.ReverseIterator;
 				azimuthIndexRight = 0;
 			}
 			final azimuthWeight = (azimuth % azimuthStep) / azimuthStep;
-
-			// trace(azimuthStep, azimuthIndexLeft, azimuthIndexRight, azimuthWeight);
 
 			final hrirLeft = field.hrirs[elevationHRIROffset + azimuthIndexLeft];
 			final hrirRight = field.hrirs[elevationHRIROffset + azimuthIndexRight];
