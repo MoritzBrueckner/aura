@@ -44,21 +44,25 @@ class MHRReader {
 		final fieldCount = inp.readByte();
 
 		final fields = new Vector<Field>(fieldCount);
-		var hrirCount = 0;
+		var totalHRIRCount = 0;
 		for (i in 0...fieldCount) {
 			final field = new Field();
 			field.distance = inp.readUInt16();
 			field.evCount = inp.readByte();
 			field.azCount = new Vector<Int>(field.evCount);
-			var fieldHrirCount = 0;
+			field.evHRIROffsets = new Vector<Int>(field.evCount);
 
+			var fieldHrirCount = 0;
 			for (j in 0...field.evCount) {
+				// Calculate the offset into the HRIR arrays. Different
+				// elevations may have different amounts of azimuths/HRIRs
+				field.evHRIROffsets[j] = fieldHrirCount;
+
 				field.azCount[j] = inp.readByte();
-				hrirCount += field.azCount[j];
 				fieldHrirCount += field.azCount[j];
 			}
-
 			field.hrirCount = fieldHrirCount;
+			totalHRIRCount += fieldHrirCount;
 
 			fields[i] = field;
 		}
@@ -113,7 +117,7 @@ class MHRReader {
 			sampleRate: sampleRate,
 			numChannels: channels,
 			hrirSize: hrirSize,
-			hrirCount: hrirCount,
+			hrirCount: totalHRIRCount,
 			fields: fields,
 			maxDelayLength: maxDelayLength
 		};

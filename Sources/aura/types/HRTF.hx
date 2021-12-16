@@ -90,20 +90,8 @@ using aura.utils.ReverseIterator;
 
 		var elevationWeight = (elevation % elevationStep) / elevationStep;
 
-		// Calculate the offset into the HRIR arrays. Different elevations may
-		// have different amounts of azimuths/HRIRs
-		// TODO: store offset per elevation for faster access?
-		var elevationHRIROffsetLow = 0;
-		for (j in 0...elevationIndexLow) {
-			elevationHRIROffsetLow += field.azCount[j];
-		}
-		var elevationHRIROffsetHigh: Int;
-		if (elevationIndexLow == elevationIndexHigh) {
-			// We're at the top of the sphere, don't go further
-			elevationHRIROffsetHigh = elevationHRIROffsetLow;
-		} else {
-			elevationHRIROffsetHigh = elevationHRIROffsetLow + field.azCount[elevationIndexHigh - 1];
-		}
+		final elevationHRIROffsetLow = field.evHRIROffsets[elevationIndexLow];
+		final elevationHRIROffsetHigh = field.evHRIROffsets[elevationIndexHigh];
 
 		var delay = 0.0;
 		var hrirLength = 0;
@@ -174,6 +162,12 @@ class Field {
 		clockwise.
 	**/
 	public var azCount: Vector<Int>;
+
+	/**
+		The offset into the `hrirs` array per elevation. The stored offset index
+		starts at the HRIR with azimuth 0 (front of the listener).
+	**/
+	public var evHRIROffsets: Vector<Int>;
 
 	/**
 		All HRIRs in this field.
