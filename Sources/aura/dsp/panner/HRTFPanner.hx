@@ -2,10 +2,13 @@ package aura.dsp.panner;
 
 import kha.arrays.Float32Array;
 
-import aura.utils.Pointer;
+import aura.types.HRTF;
 import aura.utils.MathUtils;
+import aura.utils.Pointer;
 
 class HRTFPanner extends Panner {
+	public var hrtf: HRTF;
+
 	final hrtfConvolver: FFTConvolver;
 	final hrtfDelayLine: DelayLine;
 	final hrirPtrDelay: Pointer<Int>;
@@ -13,11 +16,13 @@ class HRTFPanner extends Panner {
 	final hrir: Float32Array;
 	final hrirOpp: Float32Array;
 
-	public function new(handle: Handle) {
+	public function new(handle: Handle, hrtf: HRTF) {
 		super(handle);
 
+		this.hrtf = hrtf;
+
 		hrtfConvolver = new FFTConvolver();
-		hrtfDelayLine = new DelayLine(128); // TODO: move to a place when HRTFs are loaded
+		hrtfDelayLine = new DelayLine(Math.ceil(hrtf.maxDelayLength));
 		hrtfConvolver.bypass = true;
 		hrtfDelayLine.bypass = true;
 		handle.channel.addInsert(hrtfConvolver);
@@ -47,8 +52,6 @@ class HRTFPanner extends Panner {
 		// Project the channel position (relative to the listener) to the plane
 		// described by the listener's look and right vectors
 		final projectedChannelPos = projectPointOntoPlane(dirToChannel, up).normalized();
-
-		final hrtf = @:privateAccess Aura.currentHRTF;
 
 		final elevationCos = up.dot(dirToChannel.normalized());
 		// 180: top, 0: bottom

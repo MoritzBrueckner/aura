@@ -42,7 +42,6 @@ class Aura {
 	static var blockBufPos = 0;
 
 	static final hrtfs = new Map<String, HRTF>();
-	static var currentHRTF: HRTF;
 
 	public static function init(?options: AuraOptions) {
 		sampleRate = kha.audio2.Audio.samplesPerSecond;
@@ -128,7 +127,6 @@ class Aura {
 					return;
 				}
 				hrtfs[hrtfName] = hrtf;
-				currentHRTF = hrtf;
 				if (++count == length) {
 					done();
 					return;
@@ -174,6 +172,10 @@ class Aura {
 
 	public static inline function getSound(soundName: String): Null<kha.Sound> {
 		return Assets.sounds.get(soundName);
+	}
+
+	public static inline function getHRTF(hrtfName: String): Null<HRTF> {
+		return hrtfs.get(hrtfName);
 	}
 
 	public static function play(sound: kha.Sound, loop: Bool = false, mixChannelHandle: Null<MixChannelHandle> = null): Null<Handle> {
@@ -330,19 +332,12 @@ class AuraLoadConfig {
 @:structInit
 class AuraOptions {
 	@:optional public var channelSize: Null<Int>;
-	@:optional public var panningMode: Null<PanningMode>;
 
 	public static function addDefaults(options: Null<AuraOptions>) {
 		if (options == null) { options = {}; }
 
 		if (options.channelSize == null) { options.channelSize = 16; }
-		if (options.panningMode == null) { options.panningMode = Balance; }
 
 		return options;
 	}
-}
-
-enum abstract PanningMode(Int) {
-	var Balance;
-	var Hrtf;
 }

@@ -3,23 +3,14 @@ package aura;
 import aura.channels.BaseChannel;
 import aura.dsp.DSP;
 import aura.dsp.panner.Panner;
-import aura.dsp.panner.HRTFPanner;
-import aura.dsp.panner.StereoPanner;
-import aura.math.Vec3;
 import aura.utils.MathUtils;
 
 /**
 	Main-thread handle to an audio channel in the audio thread.
 **/
 @:access(aura.channels.BaseChannel)
-@:access(aura.dsp.DSP)
 @:allow(aura.dsp.panner.Panner)
 class Handle {
-	/**
-		Link to the audio channel in the audio thread.
-	**/
-	final channel: BaseChannel;
-
 	/**
 		Whether the playback of the handle's channel is currently paused.
 	**/
@@ -33,20 +24,20 @@ class Handle {
 	public var finished(get, never): Bool;
 	inline function get_finished(): Bool { return channel.finished; }
 
+	public var panner(default, null): Null<Panner> = null;
+
+	/**
+		Link to the audio channel in the audio thread.
+	**/
+	final channel: BaseChannel;
+
 	// Parameter cache for getter functions
 	var _volume: Float = 1.0;
 	var _balance: Balance = Balance.CENTER;
 	var _pitch: Float = 1.0;
 
-	public var panner(default, null): Panner;
-
 	public inline function new(channel: BaseChannel) {
 		this.channel = channel;
-
-		this.panner = switch (Aura.options.panningMode) {
-			case Balance: new StereoPanner(this);
-			case Hrtf: new HRTFPanner(this);
-		};
 	}
 
 	/**

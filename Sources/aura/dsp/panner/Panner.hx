@@ -17,7 +17,7 @@ abstract class Panner {
 	public var maxDistance = 10.0;
 	// public var minDistance = 1;
 
-	final handle: Handle;
+	var handle: Handle;
 
 	/**
 		The location of this audio source in world space.
@@ -30,8 +30,18 @@ abstract class Panner {
 	**/
 	var velocity: Vec3 = new Vec3(0, 0, 0);
 
-	public function new(handle: Handle) {
+	public inline function new(handle: Handle) {
 		this.handle = handle;
+		this.handle.panner = this;
+	}
+
+	public inline function setHandle(handle: Handle) {
+		if (this.handle != null) {
+			this.handle.panner = null;
+		}
+		reset3D();
+		this.handle = handle;
+		this.handle.panner = this;
 	}
 
 	/**
