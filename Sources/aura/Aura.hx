@@ -32,6 +32,7 @@ class Aura {
 	public static var options(default, null): Null<AuraOptions> = null;
 
 	public static var sampleRate(default, null): Int;
+	public static var lastBufferSize(default, null): Int = 0;
 
 	public static var listener: Listener;
 
@@ -251,6 +252,7 @@ class Aura {
 		Time.update();
 
 		final samples = samplesBox.value;
+		Aura.lastBufferSize = samples;
 		final sampleCache = BufferCache.getTreeBuffer(0, samples);
 
 		if (sampleCache == null) {
