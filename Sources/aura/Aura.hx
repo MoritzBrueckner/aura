@@ -1,10 +1,6 @@
 // =============================================================================
 // audioCallback() is roughly based on
 // https://github.com/Kode/Kha/blob/master/Sources/kha/audio2/Audio1.hx
-//
-// References:
-// [1]: https://github.com/Kode/Kha/blob/3a3e9e6d51b1d6e3309a80cd795860da3ea07355/Backends/Kinc-hxcpp/main.cpp#L186-L233
-//
 // =============================================================================
 
 package aura;
@@ -31,6 +27,8 @@ import aura.utils.MathUtils;
 
 @:access(aura.MixChannelHandle)
 class Aura {
+	static inline var BLOCK_SIZE = 1024;
+
 	public static var options(default, null): Null<AuraOptions> = null;
 
 	public static var sampleRate(default, null): Int;
@@ -39,6 +37,8 @@ class Aura {
 
 	public static final mixChannels = new Map<String, MixChannelHandle>();
 	public static var masterChannel(default, null): MixChannelHandle;
+	static var blockBuffer = new Float32Array(BLOCK_SIZE);
+	static var blockBufPos = 0;
 
 	static final hrtfs = new Map<String, HRTF>();
 	static var currentHRTF: HRTF;
@@ -272,7 +272,34 @@ class Aura {
 		clearBuffer(sampleCache, samples);
 
 		if (master != null) {
-			master.nextSamples(sampleCache, samples, buffer.samplesPerSecond);
+			var samplesWritten = 0;
+
+			// The last block still has some values to read from
+			if (blockBufPos != 0) {
+				final offset = blockBufPos;
+				for (i in 0...minI(samples, BLOCK_SIZE - blockBufPos)) {
+					sampleCache[i] = blockBuffer[offset + i];
+					samplesWritten++;
+					blockBufPos++;
+				}
+				if (blockBufPos >= BLOCK_SIZE) {
+					blockBufPos = 0;
+				}
+			}
+
+			while (samplesWritten < samples) {
+				master.nextSamples(blockBuffer, BLOCK_SIZE, buffer.samplesPerSecond);
+
+				final offset = samplesWritten;
+				for (i in 0...minI(samples - samplesWritten, BLOCK_SIZE)) {
+					sampleCache[offset + i] = blockBuffer[i];
+					samplesWritten++;
+					blockBufPos++;
+				}
+				if (blockBufPos >= BLOCK_SIZE) {
+					blockBufPos = 0;
+				}
+			}
 		}
 
 		for (i in 0...samples) {
