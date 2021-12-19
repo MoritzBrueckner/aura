@@ -4,7 +4,7 @@
 
 # Table of Content
 - [Features](#features)
-- [Installation](#installation)
+- [Setup](#setup)
 - [Usage](#usage)
 - [Platform Support](#platform-support)
 - [License](#license)
@@ -20,18 +20,18 @@
   - Haas effect
 - Extendable DSP system – easily write your own filters
 
-# Installation
+# Setup
 
-In your project directory, create a folder called `Subprojects`. Then, open a command line in that folder and execute the following command (Git must be installed on your machine):
+In your project directory, create a folder called `Libraries`. Then, open a command line in that folder and execute the following command (Git must be installed on your machine):
 
 ```
-git clone --recursive https://github.com/MoritzBrueckner/aura.git
+git clone https://github.com/MoritzBrueckner/aura.git
 ```
 
 Then, add the following line to your project's `khafile.js` (if you're using [Armory](https://armory3d.org/), you can skip this step):
 
 ```js
-await project.addProject("Subprojects/aura");
+project.addLibrary("aura");
 ```
 
 If you're using Iron, but not Armory, please also add the following to your Khafile to be able to use Iron's vector classes with Aura:
@@ -177,4 +177,3 @@ This work is licensed under multiple licences, which are specified at [`.reuse/d
 - The entire source code in [`Sources/aura`](Sources/aura) is licensed under the Zlib license which is a very permissive license also used by Kha and Armory at the time of writing this. This is the important license for you if you include Aura code in your project.
 - This readme file and other configuration files are licensed under CC0-1.0.
 - All files in [`.img/`](.img) are licensed under CC-BY-4.0.
-- The [`Libraries/hxdsp`](https://github.com/baioc/hxdsp) submodule is licensed under the Unlicense.

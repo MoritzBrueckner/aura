@@ -1,3 +1,0 @@
-[submodule "Libraries/hxdsp"]
-	path = Libraries/hxdsp
-	url = git@github.com:baioc/hxdsp.git
