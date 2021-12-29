@@ -129,7 +129,11 @@ using aura.utils.ReverseIterator;
 			}
 		}
 
-		outDelay.set(Math.round(delay));
+		// Delay is stored in samples relative to the HRTF sample rate, convert
+		// to current sample rate
+		final sampleRateFactor = this.sampleRate / Aura.sampleRate;
+		outDelay.set(Math.round(delay * sampleRateFactor));
+
 		outImpulseLength.set(hrirLength);
 	}
 }
