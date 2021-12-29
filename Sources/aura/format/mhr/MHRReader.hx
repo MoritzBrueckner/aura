@@ -10,6 +10,8 @@ import haxe.ds.Vector;
 import haxe.io.Bytes;
 import haxe.io.BytesInput;
 
+import kha.arrays.Float32Array;
+
 import aura.types.HRTF;
 
 using aura.format.InputExtension;
@@ -77,7 +79,7 @@ class MHRReader {
 				// Create individual HRIR
 				final hrir = hrirs[j] = new HRIR();
 
-				hrir.coeffs = new Vector<Float>(hrirSize * channels);
+				hrir.coeffs = new Float32Array(hrirSize * channels);
 				for (s in 0...hrirSize) {
 					final coeff = inp.readInt24();
 					// 8388608 = 2^23

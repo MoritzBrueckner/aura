@@ -185,8 +185,7 @@ class HRIR {
 		The impulse response coefficients. If the HRIR is stereo, the
 		coefficients are interleaved (left/right).
 	**/
-	// TODO: Change to Float32Array
-	public var coeffs: Vector<Float>;
+	public var coeffs: Float32Array;
 
 	/**
 		Delay of the impulse response per channel in samples.
