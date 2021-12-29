@@ -19,7 +19,7 @@ import aura.utils.Assert.*;
 }
 
 @:pure inline function msToSamples(sampleRate: Hertz, milliseconds: Millisecond): Int {
-	return Std.int((milliseconds / 1000.0) * sampleRate);
+	return Math.ceil((milliseconds * 0.001) * sampleRate);
 }
 
 @:pure inline function samplesToMs(sampleRate: Hertz, samples: Int): Millisecond {
