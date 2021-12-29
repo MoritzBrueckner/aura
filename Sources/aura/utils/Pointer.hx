@@ -20,7 +20,7 @@ class Pointer<T> {
 		Return the pointer's value typed as not-nullable. Use at your own risk.
 	**/
 	public inline function getSure(): T {
-		return cast this.value;
+		return @:nullSafety(Off) (this.value: T);
 	}
 }
 
