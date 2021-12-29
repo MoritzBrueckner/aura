@@ -81,6 +81,7 @@ abstract Complex(ComplexImpl) {
 	}
 
 	@:op(A * B)
+	@:commutative
 	public inline function mult(other: Complex): Complex {
 		return new Complex(
 			this.real*other.real - this.imag*other.imag,
