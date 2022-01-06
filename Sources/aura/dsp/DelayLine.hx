@@ -37,6 +37,8 @@ class DelayLine extends DSP {
 
 	function process(buffer: Float32Array, bufferLength: Int) {
 		for (c in 0...NUM_CHANNELS) {
+			if (delayBufs[c].delay == 0) continue;
+
 			final deinterleavedLength = Std.int(bufferLength / NUM_CHANNELS);
 			for (i in 0...deinterleavedLength) {
 				delayBufs[c].set(buffer[i * NUM_CHANNELS + c]);

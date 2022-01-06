@@ -9,6 +9,7 @@ class CircularBuffer<T> {
 	var readHead: Int;
 	var writeHead: Int;
 	var length(get, null): Int;
+	public var delay = 0;
 
 	public inline function new(size: Int) {
 		assert(Warning, size != 0);
@@ -20,6 +21,7 @@ class CircularBuffer<T> {
 	}
 
 	public inline function setDelay(delaySamples: Int) {
+		delay = delaySamples;
 		readHead = writeHead - delaySamples;
 		if (readHead < 0) {
 			readHead += length;
