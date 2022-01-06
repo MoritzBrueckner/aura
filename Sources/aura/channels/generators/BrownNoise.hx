@@ -32,5 +32,7 @@ class BrownNoise extends BaseGenerator {
 			requestedSamples[i] *= 3.5;
 			c = 1 - c;
 		}
+
+		processInserts(requestedSamples, requestedLength);
 	}
 }

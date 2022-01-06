@@ -66,7 +66,10 @@ class Debug {
 		js.Browser.navigator.clipboard.writeText(text)
 			.then(
 				(_) -> { trace("Debug tree code has been copied to clipboard."); },
-				(_) -> { trace("Debug tree code could not be copied to clipboard."); }
+				(err) -> {
+					trace('Debug tree code could not be copied to clipboard, writing to console instead. Reason: $err');
+					trace(text);
+				}
 			);
 		#else
 		trace(text);

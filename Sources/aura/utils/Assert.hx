@@ -23,7 +23,7 @@ class Assert {
 		@param condition The conditional expression to test.
 		@param message Optional message to display when the assertion fails.
 	**/
-	public static macro function assert(level: ExprOf<AssertLevel>, condition: ExprOf<Bool>, message: String = ""): Expr {
+	public static macro function assert(level: ExprOf<AssertLevel>, condition: ExprOf<Bool>, ?message: ExprOf<String>): Expr {
 		final levelVal: AssertLevel = AssertLevel.fromExpr(level);
 		final assertThreshold = AssertLevel.fromString(Context.definedValue("AURA_ASSERT_LEVEL"));
 
@@ -36,7 +36,7 @@ class Assert {
 				#if AURA_ASSERT_QUIT kha.System.stop(); #end
 
 				@:pos(condition.pos)
-				@:privateAccess throwAssertionError($v{condition.toString()}, $v{message});
+				@:privateAccess aura.utils.Assert.throwAssertionError($v{condition.toString()}, ${message});
 			}
 		};
 	}
@@ -59,9 +59,9 @@ class AuraAssertionException extends PosException {
 
 	/**
 		@param exprString The string representation of the failed assert condition.
-		@param message Custom error message, use an empty string to omit this.
+		@param message Custom error message, use `null` to omit this.
 	**/
-	public function new(exprString: String, message: String, ?previous: Exception, ?pos: Null<PosInfos>) {
+	public function new(exprString: String, message: Null<String>, ?previous: Exception, ?pos: Null<PosInfos>) {
 		final optMsg = message != "" ? '\n\tMessage: $message' : "";
 
 		super('\n[Aura] Failed assertion:$optMsg\n\tExpression: ($exprString)', previous, pos);

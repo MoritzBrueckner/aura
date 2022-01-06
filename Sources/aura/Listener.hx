@@ -3,6 +3,7 @@ package aura;
 import aura.math.Vec3;
 
 @:allow(aura.Handle)
+@:allow(aura.dsp.panner.Panner)
 class Listener {
 	public var location(default, null): Vec3;
 

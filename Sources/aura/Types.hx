@@ -37,3 +37,9 @@ enum Angle {
 	Deg(deg: Int);
 	Rad(rad: Float);
 }
+
+#if cpp
+	typedef AtomicInt = cpp.AtomicInt;
+#else
+	typedef AtomicInt = Int;
+#end

@@ -1,14 +1,11 @@
 // =============================================================================
 // audioCallback() is roughly based on
 // https://github.com/Kode/Kha/blob/master/Sources/kha/audio2/Audio1.hx
-//
-// References:
-// [1]: https://github.com/Kode/Kha/blob/3a3e9e6d51b1d6e3309a80cd795860da3ea07355/Backends/Kinc-hxcpp/main.cpp#L186-L233
-//
 // =============================================================================
 
 package aura;
 
+import haxe.Exception;
 import haxe.ds.Vector;
 
 import kha.Assets;
@@ -21,43 +18,55 @@ import aura.channels.Html5StreamChannel;
 import aura.channels.MixChannel;
 import aura.channels.ResamplingAudioChannel;
 import aura.channels.StreamChannel;
+import aura.format.mhr.MHRReader;
 import aura.threading.BufferCache;
+import aura.types.HRTF;
 import aura.utils.Assert;
 import aura.utils.BufferUtils.clearBuffer;
 import aura.utils.MathUtils;
 
 @:access(aura.MixChannelHandle)
 class Aura {
+	static inline var BLOCK_SIZE = 1024;
+
+	public static var options(default, null): Null<AuraOptions> = null;
+
 	public static var sampleRate(default, null): Int;
+	public static var lastBufferSize(default, null): Int = 0;
 
 	public static var listener: Listener;
 
 	public static final mixChannels = new Map<String, MixChannelHandle>();
 	public static var masterChannel(default, null): MixChannelHandle;
+	static var blockBuffer = new Float32Array(BLOCK_SIZE);
+	static var blockBufPos = 0;
 
-	public static function init(channelSize: Int = 16) {
+	static final hrtfs = new Map<String, HRTF>();
+
+	public static function init(?options: AuraOptions) {
 		sampleRate = kha.audio2.Audio.samplesPerSecond;
 		assert(Critical, sampleRate != 0, "sampleRate must not be 0!");
 
-		@:privateAccess MixChannel.channelSize = channelSize;
+		Aura.options = AuraOptions.addDefaults(options);
+		@:privateAccess MixChannel.channelSize = Aura.options.channelSize;
 
 		listener = new Listener();
+
+		BufferCache.init();
 
 		// Create a few preconfigured mix channels
 		masterChannel = createMixChannel("master");
 		masterChannel.addInputChannel(createMixChannel("music"));
 		masterChannel.addInputChannel(createMixChannel("fx"));
 
-		BufferCache.init();
-
 		kha.audio2.Audio.audioCallback = audioCallback;
 	}
 
-	public static function loadSounds(sounds: AuraLoadConfig, done: Void->Void, ?failed: Void->Void) {
-		final length = sounds.compressed.length + sounds.uncompressed.length;
+	public static function loadAssets(loadConfig: AuraLoadConfig, done: Void->Void, ?failed: Void->Void) {
+		final length = loadConfig.getEntryCount();
 		var count = 0;
 
-		for (soundName in sounds.compressed) {
+		for (soundName in loadConfig.compressed) {
 			if (!doesSoundExist(soundName)) {
 				onLoadingError(null, failed, soundName);
 				break;
@@ -76,7 +85,7 @@ class Aura {
 			}, (error: kha.AssetError) -> { onLoadingError(error, failed, soundName); });
 		}
 
-		for (soundName in sounds.uncompressed) {
+		for (soundName in loadConfig.uncompressed) {
 			if (!doesSoundExist(soundName)) {
 				onLoadingError(null, failed, soundName);
 				break;
@@ -98,13 +107,39 @@ class Aura {
 				}
 			}, (error: kha.AssetError) -> { onLoadingError(error, failed, soundName); });
 		}
+
+		for (hrtfName in loadConfig.hrtf) {
+			if (!doesBlobExist(hrtfName)) {
+				onLoadingError(null, failed, hrtfName);
+				break;
+			}
+			Assets.loadBlob(hrtfName, (blob: kha.Blob) -> {
+				final reader = new MHRReader(blob.bytes);
+				var hrtf: HRTF;
+				try {
+					hrtf = reader.read();
+				}
+				catch (e: Exception) {
+					trace('Could not load hrtf $hrtfName: ${e.details()}');
+					if (failed != null) {
+						failed();
+					}
+					return;
+				}
+				hrtfs[hrtfName] = hrtf;
+				if (++count == length) {
+					done();
+					return;
+				}
+			}, (error: kha.AssetError) -> { onLoadingError(error, failed, hrtfName); });
+		}
 	}
 
-	static function onLoadingError(error: Null<kha.AssetError>, failed: Null<Void->Void>, soundName: String) {
+	static function onLoadingError(error: Null<kha.AssetError>, failed: Null<Void->Void>, assetName: String) {
 		final errorInfo = error == null ? "" : "\nOriginal error: " + error.url + "..." + error.error;
 
 		trace(
-			'Could not load sound "$soundName", make sure that all sounds are named\n'
+			'Could not load asset "$assetName", make sure that all assets are named\n'
 			+ "  correctly and that they are included in the khafile.js."
 			+ errorInfo
 		);
@@ -128,8 +163,19 @@ class Aura {
 		return Reflect.field(Assets.sounds, soundName + "Description") != null;
 	}
 
+	/**
+		Returns whether a blob exists and can be loaded.
+	**/
+	public static inline function doesBlobExist(blobName: String): Bool {
+		return Reflect.field(Assets.blobs, blobName + "Description") != null;
+	}
+
 	public static inline function getSound(soundName: String): Null<kha.Sound> {
 		return Assets.sounds.get(soundName);
+	}
+
+	public static inline function getHRTF(hrtfName: String): Null<HRTF> {
+		return hrtfs.get(hrtfName);
 	}
 
 	public static function play(sound: kha.Sound, loop: Bool = false, mixChannelHandle: Null<MixChannelHandle> = null): Null<Handle> {
@@ -208,6 +254,7 @@ class Aura {
 		Time.update();
 
 		final samples = samplesBox.value;
+		Aura.lastBufferSize = samples;
 		final sampleCache = BufferCache.getTreeBuffer(0, samples);
 
 		if (sampleCache == null) {
@@ -229,7 +276,34 @@ class Aura {
 		clearBuffer(sampleCache, samples);
 
 		if (master != null) {
-			master.nextSamples(sampleCache, samples, buffer.samplesPerSecond);
+			var samplesWritten = 0;
+
+			// The last block still has some values to read from
+			if (blockBufPos != 0) {
+				final offset = blockBufPos;
+				for (i in 0...minI(samples, BLOCK_SIZE - blockBufPos)) {
+					sampleCache[i] = blockBuffer[offset + i];
+					samplesWritten++;
+					blockBufPos++;
+				}
+				if (blockBufPos >= BLOCK_SIZE) {
+					blockBufPos = 0;
+				}
+			}
+
+			while (samplesWritten < samples) {
+				master.nextSamples(blockBuffer, BLOCK_SIZE, buffer.samplesPerSecond);
+
+				final offset = samplesWritten;
+				for (i in 0...minI(samples - samplesWritten, BLOCK_SIZE)) {
+					sampleCache[offset + i] = blockBuffer[i];
+					samplesWritten++;
+					blockBufPos++;
+				}
+				if (blockBufPos >= BLOCK_SIZE) {
+					blockBufPos = 0;
+				}
+			}
 		}
 
 		for (i in 0...samples) {
@@ -243,8 +317,27 @@ class Aura {
 	}
 }
 
+@:allow(aura.Aura)
 @:structInit
 class AuraLoadConfig {
 	public final compressed: Array<String> = [];
 	public final uncompressed: Array<String> = [];
+	public final hrtf: Array<String> = [];
+
+	inline function getEntryCount(): Int {
+		return compressed.length + uncompressed.length + hrtf.length;
+	}
+}
+
+@:structInit
+class AuraOptions {
+	@:optional public var channelSize: Null<Int>;
+
+	public static function addDefaults(options: Null<AuraOptions>) {
+		if (options == null) { options = {}; }
+
+		if (options.channelSize == null) { options.channelSize = 16; }
+
+		return options;
+	}
 }

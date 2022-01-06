@@ -42,9 +42,36 @@ import aura.math.Vec3;
 }
 
 /**
+	Calculate the counterclockwise angle of the rotation of `vecOther` relative
+	to `vecBase` around the rotation axis of `vecNormal`. All input vectors
+	*must* be normalized!
+**/
+@:pure inline function getFullAngleDegrees(vecBase: Vec3, vecOther: Vec3, vecNormal: Vec3): Float {
+	final dot = vecBase.dot(vecOther);
+	final det = determinant3x3(vecBase, vecOther, vecNormal);
+	var radians = Math.atan2(det, dot);
+
+	// Move [-PI, 0) to [PI, 2 * PI]
+	if (radians < 0) {
+		radians += 2 * Math.PI;
+	}
+	return radians * 180 / Math.PI;
+}
+
+/**
 	Projects the given point to a plane described by its normal vector. The
 	origin of the plane is assumed to be at (0, 0, 0).
 **/
 @:pure inline function projectPointOntoPlane(point: Vec3, planeNormal: Vec3): Vec3 {
 	return point.sub(planeNormal.mult(planeNormal.dot(point)));
+}
+
+@:pure inline function isPowerOf2(val: Int): Bool {
+	return (val & (val - 1)) == 0;
+}
+
+@:pure inline function getNearestIndexF(value: Float, stepSize: Float): Int {
+	final quotient: Int = Std.int(value / stepSize);
+	final remainder: Float = value % stepSize;
+	return (remainder > stepSize / 2) ? (quotient + 1) : (quotient);
 }

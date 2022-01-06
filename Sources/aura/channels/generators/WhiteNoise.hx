@@ -20,5 +20,7 @@ class WhiteNoise extends BaseGenerator {
 		for (i in 0...requestedLength) {
 			requestedSamples[i] = Math.random() * 2 - 1;
 		}
+
+		processInserts(requestedSamples, requestedLength);
 	}
 }
