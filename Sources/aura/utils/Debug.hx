@@ -1,5 +1,11 @@
 package aura.utils;
 
+import kha.Image;
+import kha.arrays.Float32Array;
+import kha.graphics2.Graphics;
+
+import aura.utils.MathUtils;
+
 using StringTools;
 
 class Debug {
@@ -74,6 +80,44 @@ class Debug {
 		#else
 		trace(text);
 		#end
+	}
+
+	public static function drawWaveform(buffer: Float32Array, g: Graphics, x: Float, y: Float, w: Float, h: Float) {
+		g.begin(false);
+
+		g.opacity = 1.0;
+		g.color = kha.Color.fromFloats(0.176, 0.203, 0.223);
+		g.fillRect(x, y, w, h);
+
+		final borderSize = 2;
+		g.color = kha.Color.fromFloats(0.099, 0.099, 0.099);
+		g.drawRect(x + borderSize * 0.5, y + borderSize * 0.5, w - borderSize, h - borderSize, borderSize);
+
+		g.color = kha.Color.fromFloats(0.898, 0.411, 0.164);
+
+		final deinterleavedLength = Std.int(buffer.length / 2);
+		final numLines = buffer.length - 1;
+		final stepSize = w / numLines;
+		final innerHeight = h - 2 * borderSize;
+		for (c in 0...2) {
+			if ( c == 1 ) g.color = kha.Color.fromFloats(0.023, 0.443, 0.796);
+			for (i in 0...deinterleavedLength - 1) {
+				final idx = i + c * deinterleavedLength;
+				final y1 = y + borderSize + (1 - clampF(buffer[idx] * 0.5 + 0.5, 0, 1)) * innerHeight;
+				final y2 = y + borderSize + (1 - clampF(buffer[idx + 1] * 0.5 + 0.5, 0, 1)) * innerHeight;
+				g.drawLine(x + idx * stepSize, y1, x + (idx + 1) * stepSize, y2);
+			}
+		}
+
+		g.color = kha.Color.fromFloats(0.023, 0.443, 0.796);
+		g.opacity = 0.5;
+		g.drawLine(x + w / 2, y, x + w / 2, y + h, 2);
+
+		g.end();
+	}
+
+	public static function createRenderTarget(w: Int, h: Int): Image {
+		return Image.createRenderTarget(Std.int(w), Std.int(h), null, NoDepthAndStencil, 1, 0);
 	}
 	#end
 }
