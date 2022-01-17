@@ -47,12 +47,13 @@ private function ditfft2(time: ComplexArray, t: Int, freq: ComplexArray, f: Int,
 		ditfft2(time, t,        freq, f,           halfLen, step * 2, inverse);
 		ditfft2(time, t + step, freq, f + halfLen, halfLen, step * 2, inverse);
 
+		final tExp = ((inverse ? 1 : -1) * 2 * Math.PI) / n;
 		for (k in 0...halfLen) {
-			final twiddle = Complex.exp((inverse ? 1 : -1) * 2 * Math.PI * k / n);
 			final even = freq[f + k].copy();
 			final odd  = freq[f + k + halfLen].copy();
-			freq[f + k]           = even + twiddle * odd;
-			freq[f + k + halfLen] = even - twiddle * odd;
+			final twiddle = Complex.exp(tExp * k) * odd;
+			freq[f + k]           = even + twiddle;
+			freq[f + k + halfLen] = even - twiddle;
 		}
 	}
 }
