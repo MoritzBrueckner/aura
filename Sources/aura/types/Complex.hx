@@ -89,6 +89,13 @@ abstract Complex(ComplexImpl) {
 		);
 	}
 
+	/**
+		Optimized version of `new Complex(0.0, 1.0) * this`.
+	**/
+	public inline function multWithI(): Complex {
+		return new Complex(-this.imag, this.real);
+	}
+
 	@:op(~A)
 	public inline function conj(): Complex {
 		return new Complex(this.real, -this.imag);
