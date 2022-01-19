@@ -134,7 +134,7 @@ enum abstract BufferType(Int) {
 				return new Float32Array(length);
 			},
 			(buffer: Any) -> {
-				return cast (buffer: Float32Array).length;
+				return (cast buffer: Float32Array).length;
 			}
 		);
 		out[TArrayFloat] = new BufferConfig(
@@ -144,7 +144,7 @@ enum abstract BufferType(Int) {
 				return v;
 			},
 			(buffer: Any) -> {
-				return cast (buffer: Array<Float>).length;
+				return (cast buffer: Array<Float>).length;
 			}
 		);
 		out[TArrayComplex] = new BufferConfig(
@@ -152,7 +152,7 @@ enum abstract BufferType(Int) {
 				return new ComplexArray(length);
 			},
 			(buffer: Any) -> {
-				return cast (buffer: ComplexArray).length;
+				return (cast buffer: ComplexArray).length;
 			}
 		);
 		return out;
