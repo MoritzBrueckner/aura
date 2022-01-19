@@ -23,11 +23,13 @@ class FFTConvolver extends DSP {
 	public static inline var CHUNK_SIZE = Std.int(FFT_SIZE / 2);
 
 	final impulseSwapBuffer: SwapBuffer;
-	final impulseTimes: ComplexArray; // TODO: only one FFT input buffer is required, merge with p_fftTimeBuf
+	final impulseTimes: Float32Array; // TODO: only one FFT input buffer is required, merge with p_fftTimeBuf
 	final impulseFreqs: Vector<ComplexArray>; // One array per channel
 
-	final fftTimeBuf: ComplexArray;
+	final fftTimeBuf: Float32Array;
 	final fftFreqBuf: ComplexArray;
+	final fftHalfTemp1: ComplexArray;
+	final fftHalfTemp2: ComplexArray;
 
 	/**
 		The part of the last output signal that was longer than the last frame
@@ -55,15 +57,17 @@ class FFTConvolver extends DSP {
 
 		impulseSwapBuffer = new SwapBuffer(CHUNK_SIZE * 2);
 
-		impulseTimes = new ComplexArray(FFT_SIZE);
+		impulseTimes = new Float32Array(FFT_SIZE);
 
 		impulseFreqs = new Vector(NUM_CHANNELS);
 		for (i in 0...NUM_CHANNELS) {
 			impulseFreqs[i] = new ComplexArray(FFT_SIZE);
 		}
 
-		fftTimeBuf = new ComplexArray(FFT_SIZE);
+		fftTimeBuf = new Float32Array(FFT_SIZE);
 		fftFreqBuf = new ComplexArray(FFT_SIZE);
+		fftHalfTemp1 = new ComplexArray(Std.int(FFT_SIZE / 2));
+		fftHalfTemp2 = new ComplexArray(Std.int(FFT_SIZE / 2));
 
 		overlapLast = new Vector(NUM_CHANNELS);
 		for (i in 0...NUM_CHANNELS) {
@@ -86,7 +90,7 @@ class FFTConvolver extends DSP {
 			impulseTimes[i] = impulse[i];
 		}
 		for (i in impulse.length...FFT_SIZE) {
-			impulseTimes[i].setZero();
+			impulseTimes[i] = 0.0;
 		}
 
 		calculateImpulseFFT(impulseTimes, impulse.length, 0);
@@ -94,7 +98,7 @@ class FFTConvolver extends DSP {
 	}
 
 	// TODO: move this into main thread and use swapbuffer for impulseFreqs instead?
-	public function updateImpulseFromSwapBuffer(impulseLengths: Array<Int>) {
+	function updateImpulseFromSwapBuffer(impulseLengths: Array<Int>) {
 		impulseSwapBuffer.beginRead();
 		for (i in 0...impulseLengths.length) {
 			impulseSwapBuffer.read(impulseTimes, 0, CHUNK_SIZE * i, CHUNK_SIZE);
@@ -105,8 +109,8 @@ class FFTConvolver extends DSP {
 		impulseSwapBuffer.endRead();
 	}
 
-	function calculateImpulseFFT(impulseArray: ComplexArray, impulseLength: Int, channel: Int) {
-		fft(impulseArray, impulseFreqs[channel], FFT_SIZE);
+	function calculateImpulseFFT(impulseArray: Float32Array, impulseLength: Int, channel: Int) {
+		realfft(impulseArray, impulseFreqs[channel], fftHalfTemp1, fftHalfTemp2, FFT_SIZE);
 		overlapLength[channel] = impulseLength - 1;
 	}
 
@@ -136,16 +140,16 @@ class FFTConvolver extends DSP {
 		for (c in 0...NUM_CHANNELS) {
 			for (s in 0...numSegments) {
 				final segmentOffset = NUM_CHANNELS * s * segmentSize;
+
 				for (i in 0...segmentSize) {
-					// Deinterleave and copy to input buffer
-					final real = buffer[segmentOffset + i * NUM_CHANNELS + c];
-					fftTimeBuf[i] = Complex.fromReal(real);
+					// Deinterleave and copy to FFT input buffer
+					fftTimeBuf[i] = buffer[segmentOffset + i * NUM_CHANNELS + c];
 				}
 				for (i in segmentSize...FFT_SIZE) {
-					fftTimeBuf[i].setZero();
+					fftTimeBuf[i] = 0;
 				}
 
-				fft(fftTimeBuf, fftFreqBuf, FFT_SIZE);
+				realfft(fftTimeBuf, fftFreqBuf, fftHalfTemp1, fftHalfTemp2, FFT_SIZE);
 
 				// The actual convolution takes place here
 				for (i in 0...FFT_SIZE) {
@@ -153,11 +157,11 @@ class FFTConvolver extends DSP {
 				}
 
 				// Transform back into time domain
-				ifft(fftFreqBuf, fftTimeBuf, FFT_SIZE);
+				realifft(fftFreqBuf, fftTimeBuf, fftHalfTemp1, fftHalfTemp2, FFT_SIZE);
 
 				// Copy to output
 				for (i in 0...CHUNK_SIZE) {
-					buffer[segmentOffset + i * NUM_CHANNELS + c] = fftTimeBuf[i].real;
+					buffer[segmentOffset + i * NUM_CHANNELS + c] = fftTimeBuf[i];
 				}
 
 				// Handle overlapping
@@ -165,7 +169,7 @@ class FFTConvolver extends DSP {
 					buffer[segmentOffset + i * NUM_CHANNELS + c] += overlapLast[c][i];
 				}
 				for (i in 0...overlapLength[c]) {
-					overlapLast[c][i] = fftTimeBuf[CHUNK_SIZE + i].real;
+					overlapLast[c][i] = fftTimeBuf[CHUNK_SIZE + i];
 				}
 				lastOverlapLength[c] = overlapLength[c];
 			}

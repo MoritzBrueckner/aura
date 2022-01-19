@@ -72,11 +72,11 @@ class HRTFPanner extends Panner {
 			final swapBuf = @:privateAccess hrtfConvolver.impulseSwapBuffer;
 			swapBuf.beginWrite();
 				// Left channel
-				swapBuf.writeF32Array(hrir, 0, 0, hrirLength);
+				swapBuf.write(hrir, 0, 0, hrirLength);
 				swapBuf.writeZero(hrirLength, FFTConvolver.CHUNK_SIZE);
 
 				// Right channel
-				swapBuf.writeF32Array(hrirOpp, 0, FFTConvolver.CHUNK_SIZE, hrirOppLength);
+				swapBuf.write(hrirOpp, 0, FFTConvolver.CHUNK_SIZE, hrirOppLength);
 				swapBuf.writeZero(FFTConvolver.CHUNK_SIZE + hrirOppLength, swapBuf.length);
 			swapBuf.endWrite();
 

@@ -4,7 +4,6 @@ import haxe.ds.Vector;
 
 import kha.arrays.Float32Array;
 
-import aura.types.Complex;
 import aura.Types.AtomicInt;
 
 // TODO: Make generic in some way
@@ -14,7 +13,7 @@ class SwapBuffer {
 	public final length: Int;
 
 	// https://www.usenix.org/legacy/publications/library/proceedings/usenix02/full_papers/huang/huang_html/node8.html
-	public final data: Vector<Vector<ComplexArray>>;
+	public final data: Vector<Vector<Float32Array>>;
 	final readerCount: Vector<AtomicInt>;
 	final newerBuf: Vector<AtomicInt>;
 	var latestWriteRow: AtomicInt;
@@ -30,7 +29,7 @@ class SwapBuffer {
 		for (i in 0...ROW_COUNT) {
 			data[i] = new Vector(ROW_COUNT);
 			for (j in 0...ROW_COUNT) {
-				data[i][j] = new ComplexArray(length);
+				data[i][j] = new Float32Array(length);
 			}
 		}
 
@@ -62,7 +61,7 @@ class SwapBuffer {
 		#end
 	}
 
-	public inline function read(dst: ComplexArray, dstStart: Int, srcStart: Int, length: Int) {
+	public inline function read(dst: Float32Array, dstStart: Int, srcStart: Int, length: Int) {
 		final bufIdx = newerBuf[curReadRowIdx];
 		for (i in 0...length) {
 			dst[dstStart + i] = data[curReadRowIdx][bufIdx][srcStart + i];
@@ -86,7 +85,7 @@ class SwapBuffer {
 		latestWriteRow = curWriteRowIdx;
 	}
 
-	public inline function write(src: ComplexArray, srcStart: Int, dstStart: Int, length: Int = -1) {
+	public inline function write(src: Float32Array, srcStart: Int, dstStart: Int, length: Int = -1) {
 		if (length == -1) {
 			length = src.length - srcStart;
 		}
@@ -100,22 +99,13 @@ class SwapBuffer {
 			length = src.length - srcStart;
 		}
 		for (i in srcStart...srcStart + length) {
-			data[curWriteRowIdx][curWriteBufIdx][dstStart + i] = Complex.fromReal(src[i]);
-		}
-	}
-
-	public inline function writeF32Array(src: Float32Array, srcStart: Int, dstStart: Int, length: Int = -1) {
-		if (length == -1) {
-			length = src.length - srcStart;
-		}
-		for (i in srcStart...srcStart + length) {
-			data[curWriteRowIdx][curWriteBufIdx][dstStart + i] = Complex.fromReal(src[i]);
+			data[curWriteRowIdx][curWriteBufIdx][dstStart + i] = src[i];
 		}
 	}
 
 	public inline function writeZero(dstStart: Int, dstEnd: Int) {
 		for (i in dstStart...dstEnd) {
-			data[curWriteRowIdx][curWriteBufIdx][i].setZero();
+			data[curWriteRowIdx][curWriteBufIdx][i] = 0;
 		}
 	}
 }
