@@ -7,7 +7,7 @@ import kha.arrays.Float32Array;
 import aura.math.FFT;
 import aura.threading.BufferCache;
 import aura.threading.Message.DSPMessage;
-import aura.types.Complex;
+import aura.types.ComplexArray;
 import aura.types.SwapBuffer;
 import aura.utils.BufferUtils;
 import aura.utils.MathUtils;

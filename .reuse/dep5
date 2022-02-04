@@ -3,11 +3,11 @@ Upstream-Name: Aura
 Upstream-Contact: Moritz Brückner <gitlab@moritz-brueckner.de>
 Source: https://github.com/MoritzBrueckner/aura
 
-Files: Sources/*
+Files: Sources/* Backends/*
 Copyright: 2021 Moritz Brückner & Aura Contributors
 License: Zlib
 
-Files: readme.md khafile.js .gitattributes .gitmodules .gitignore .pre-commit-config.yaml
+Files: readme.md */readme.md khafile.js */kincfile.js .gitattributes .gitmodules .gitignore .pre-commit-config.yaml
 Copyright: 2021 Moritz Brückner & Aura Contributors
 License: CC0-1.0
 

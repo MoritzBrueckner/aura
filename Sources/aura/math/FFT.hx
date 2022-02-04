@@ -3,6 +3,7 @@ package aura.math;
 import kha.arrays.Float32Array;
 
 import aura.types.Complex;
+import aura.types.ComplexArray;
 
 /**
 	Calculate the fast fourier transformation of the signal given in `inTimes`
@@ -142,6 +143,7 @@ inline function realifft(inFreqs: ComplexArray, outTimes: Float32Array, freqCmpl
 
 	(*) https://github.com/baioc/hxdsp, released under the UNLICENSE license.
 **/
+#if AURA_BACKEND_HL @:hlNative("aura_hl", "ditfft2") #end
 private function ditfft2(time: ComplexArray, t: Int, freq: ComplexArray, f: Int, n: Int, step: Int, inverse: Bool) {
 	if (n == 1) {
 		freq[f] = time[t];

@@ -1,34 +1,6 @@
 package aura.types;
 
-import haxe.ds.Vector;
-
 import kha.FastFloat;
-
-@:forward(length)
-@:unreflective
-abstract ComplexArray(Vector<Complex>) {
-	/**
-		Create a new zero-initialized complex array.
-	**/
-	public inline function new(length: Int) {
-		this = new Vector<Complex>(length);
-		for (i in 0...length) {
-			this[i] = Complex.newZero();
-		}
-	}
-
-	@:arrayAccess
-	public inline function get(index: Int): Complex {
-		return this[index];
-	}
-
-	@:arrayAccess
-	public inline function set(index: Int, value: Complex): Complex {
-		// Copy to array to keep original value on stack
-		this[index].setFrom(value);
-		return this[index];
-	}
-}
 
 @:notNull
 @:pure
@@ -111,11 +83,11 @@ abstract Complex(ComplexImpl) {
 @:notNull
 @:unreflective
 @:struct
-class ComplexImpl {
+private final class ComplexImpl {
 	public var real: FastFloat;
 	public var imag: FastFloat;
 
-	public inline function new(real:FastFloat, imag: FastFloat) {
+	public inline function new(real: FastFloat, imag: FastFloat) {
 		this.real = real;
 		this.imag = imag;
 	}

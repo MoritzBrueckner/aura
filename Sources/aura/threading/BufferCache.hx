@@ -9,11 +9,11 @@
 
 package aura.threading;
 
-import aura.types.Complex.ComplexArray;
 import haxe.ds.Vector;
 
 import kha.arrays.Float32Array;
 
+import aura.types.ComplexArray;
 import aura.utils.Pointer;
 
 class BufferCache {
