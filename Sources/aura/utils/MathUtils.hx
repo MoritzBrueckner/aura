@@ -58,6 +58,17 @@ import aura.math.Vec3;
 	return radians * 180 / Math.PI;
 }
 
+@:pure inline function determinant3x3(col1: Vec3, col2: Vec3, col3: Vec3): Float {
+	return (
+		col1.x * col2.y * col3.z
+		+ col2.x * col3.y * col1.z
+		+ col3.x * col1.y * col2.z
+		- col1.z * col2.y * col3.x
+		- col2.z * col3.y * col1.x
+		- col3.z * col1.y * col2.x
+	);
+}
+
 /**
 	Projects the given point to a plane described by its normal vector. The
 	origin of the plane is assumed to be at (0, 0, 0).
