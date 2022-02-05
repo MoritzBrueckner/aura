@@ -1,7 +1,7 @@
 package aura.channels.generators;
 
 abstract class BaseGenerator extends BaseChannel {
-	public function play(): Void {
+	public function play(retrigger: Bool): Void {
 		paused = false;
 		finished = false;
 	}

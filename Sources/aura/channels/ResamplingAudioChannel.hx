@@ -129,6 +129,13 @@ class ResamplingAudioChannel extends AudioChannel {
 		return value % 2 == 0 ? value : value + 1;
 	}
 
+	override public function play(retrigger: Bool) {
+		super.play(retrigger);
+		if (retrigger) {
+			floatPosition = 0.0;
+		}
+	}
+
 	override public function stop() {
 		super.stop();
 		floatPosition = 0.0;

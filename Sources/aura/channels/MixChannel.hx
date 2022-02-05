@@ -188,10 +188,10 @@ class MixChannel extends BaseChannel {
 	/**
 		Calls `play()` for all input channels.
 	**/
-	public function play(): Void {
+	public function play(retrigger: Bool): Void {
 		for (inputChannel in inputChannels) {
 			if (inputChannel != null) {
-				inputChannel.play();
+				inputChannel.play(retrigger);
 			}
 		}
 	}

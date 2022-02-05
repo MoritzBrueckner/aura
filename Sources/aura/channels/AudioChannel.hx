@@ -65,10 +65,12 @@ class AudioChannel extends BaseChannel {
 		pVolume.updateLast();
 	}
 
-	public function play(): Void {
+	public function play(retrigger: Bool): Void {
 		paused = false;
 		finished = false;
-		// kha.audio1.Audio._playAgain(this);
+		if (retrigger) {
+			playbackPosition = 0;
+		}
 	}
 
 	public function pause(): Void {

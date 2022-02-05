@@ -1,5 +1,6 @@
 package aura.threading;
 
+@:struct
 @:structInit
 class ChannelMessage {
 	public final id: ChannelMessageID;
@@ -19,6 +20,7 @@ enum abstract ChannelMessageID(Int) {
 	final PDstAttenuation;
 }
 
+@:struct
 @:structInit
 class DSPMessage {
 	public final id: DSPMessageID;

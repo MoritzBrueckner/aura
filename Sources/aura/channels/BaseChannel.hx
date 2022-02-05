@@ -31,7 +31,7 @@ abstract class BaseChannel {
 
 	abstract function nextSamples(requestedSamples: Float32Array, requestedLength: Int, sampleRate: Hertz): Void;
 
-	public abstract function play(): Void;
+	public abstract function play(retrigger: Bool): Void;
 	public abstract function pause(): Void;
 	public abstract function stop(): Void;
 
@@ -77,7 +77,7 @@ abstract class BaseChannel {
 
 	function parseMessage(message: ChannelMessage) {
 		switch (message.id) {
-			case Play: play();
+			case Play: play(cast message.data);
 			case Pause: pause();
 			case Stop: stop();
 

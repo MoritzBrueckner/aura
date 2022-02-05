@@ -44,9 +44,12 @@ class Handle {
 		Starts the playback. If the sound wasn't played before or was stopped,
 		the playback starts from the beginning. If it is paused, playback starts
 		from the position where it was paused.
+
+		@param retrigger Controls the behaviour if the sound is already playing.
+			If true, restart playback from the beginning, else do nothing.
 	**/
-	public inline function play() {
-		channel.sendMessage({ id: Play, data: null });
+	public inline function play(retrigger = false) {
+		channel.sendMessage({ id: Play, data: retrigger });
 	}
 
 	public inline function pause() {

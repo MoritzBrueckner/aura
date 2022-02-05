@@ -15,8 +15,11 @@ class Html5StreamChannel extends BaseChannel {
 		this.khaChannel = khaChannel;
 	}
 
-	public function play() {
+	public function play(retrigger: Bool) {
 		khaChannel.play();
+		if (retrigger) {
+			khaChannel.position = 0;
+		}
 	}
 
 	public function pause() {
