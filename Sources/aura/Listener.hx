@@ -32,17 +32,17 @@ class Listener {
 	public inline function setViewDirection(look: Vec3, right: Vec3) {
 		assert(Debug, look.length == 1 && right.length == 1);
 
-		this.look = look;
-		this.right = right;
+		this.look.setFrom(look);
+		this.right.setFrom(right);
 	}
 
 	/**
 		Set the listener's location (and its velocity based on that).
 	**/
 	public inline function setLocation(location: Vec3) {
-		this.velocity = this.location.sub(this.lastLocation);
+		this.velocity.setFrom(this.location.sub(this.lastLocation));
 		this.lastLocation.setFrom(this.location);
-		this.location = location;
+		this.location.setFrom(location);
 	}
 
 	/**
@@ -51,5 +51,18 @@ class Listener {
 	public inline function set(location: Vec3, look: Vec3, right: Vec3) {
 		inline setViewDirection(look, right);
 		inline setLocation(location);
+	}
+
+	/**
+		Resets the location, direction and velocity of the listener to their
+		default values.
+	**/
+	public inline function reset() {
+		this.location.setFrom(new Vec3(0, 0, 0));
+		this.lastLocation.setFrom(new Vec3(0, 0, 0));
+		this.velocity.setFrom(new Vec3(0, 0, 0));
+
+		this.look.setFrom(new Vec3(0, 1, 0));
+		this.right.setFrom(new Vec3(1, 0, 0));
 	}
 }
