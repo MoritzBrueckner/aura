@@ -23,19 +23,19 @@
 
 # Setup
 
-In your project directory, create a folder called `Libraries`. Then, open a command line in that folder and execute the following command (Git must be installed on your machine):
+In your project directory, create a folder called `Subprojects`. Then, open a command line in that folder and execute the following command (Git must be installed on your machine):
 
 ```
 git clone https://github.com/MoritzBrueckner/aura.git
 ```
 
-Then, add the following line to your project's `khafile.js` (if you're using [Armory](https://armory3d.org/), you can skip this step):
+Then, add the following line to your project's `khafile.js` (if you're using [Armory 3D](https://armory3d.org/), you can skip this step):
 
 ```js
-project.addLibrary("aura");
+await project.addProject("Subprojects/aura");
 ```
 
-If you're using Iron, but not Armory, please also add the following to your Khafile to be able to use Iron's vector classes with Aura:
+If you're using [Iron](https://github.com/armory3d/iron), but not Armory 3D, please also add the following to your Khafile to be able to use Iron's vector classes with Aura:
 
 ```js
 project.addDefine("AURA_WITH_IRON");
