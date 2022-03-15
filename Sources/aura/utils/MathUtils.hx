@@ -86,3 +86,18 @@ import aura.math.Vec3;
 	final remainder: Float = value % stepSize;
 	return (remainder > stepSize / 2) ? (quotient + 1) : (quotient);
 }
+
+/**
+	Calculates the logarithm of base 2 for the given unsigned(!) integer `n`,
+	which is the position of the most significant bit set.
+**/
+@:pure inline function log2Unsigned(n: Int): Int {
+	// TODO: optimize? See https://graphics.stanford.edu/~seander/bithacks.html#IntegerLog
+	var res = 0;
+
+	while ((n >>>= 1) != 0) {
+		res++;
+	}
+
+	return res;
+}
