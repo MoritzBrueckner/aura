@@ -208,14 +208,12 @@ private function ditfft2Iterative(time: ComplexArray, freq: ComplexArray, n: Int
 	}
 }
 
-/**
-	The following bit reversal code is taken (and slightly changed) from
-	https://graphics.stanford.edu/~seander/bithacks.html#BitReverseTable.
-	The original sources are released in the public domain.
-**/
+// The following bit reversal code was taken (and slightly altered) from
+// https://graphics.stanford.edu/~seander/bithacks.html#BitReverseTable.
+// The original sources are released in the public domain.
 
 // Bit reversal LUT where each entry is one possible byte (value = address)
-private final bitReverseTable: haxe.ds.Vector<Int> = haxe.ds.Vector.fromArrayCopy([
+private final bitReverseTable: kha.arrays.Uint8Array = uint8ArrayFromIntArray([
 	0x00, 0x80, 0x40, 0xC0, 0x20, 0xA0, 0x60, 0xE0, 0x10, 0x90, 0x50, 0xD0, 0x30, 0xB0, 0x70, 0xF0,
 	0x08, 0x88, 0x48, 0xC8, 0x28, 0xA8, 0x68, 0xE8, 0x18, 0x98, 0x58, 0xD8, 0x38, 0xB8, 0x78, 0xF8,
 	0x04, 0x84, 0x44, 0xC4, 0x24, 0xA4, 0x64, 0xE4, 0x14, 0x94, 0x54, 0xD4, 0x34, 0xB4, 0x74, 0xF4,
@@ -246,4 +244,12 @@ private inline function bitReverseUint32(value: Int, log2N: Int): Int {
 		(bitReverseTable[(value >>> 16) & 0xff] << 8 ) |
 		(bitReverseTable[(value >>> 24) & 0xff]      )
 	) >>> (32 - log2N);
+}
+
+private inline function uint8ArrayFromIntArray(array: Array<Int>): kha.arrays.Uint8Array {
+	final out = new kha.arrays.Uint8Array(array.length);
+	for (i in 0...array.length) {
+		out[i] = array[i];
+	}
+	return out;
 }
