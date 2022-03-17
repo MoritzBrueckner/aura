@@ -27,7 +27,7 @@ abstract class BaseChannel {
 	var treeLevel(default, null): Int = 0;
 
 	var paused: Bool = false;
-	var finished: Bool = false;
+	var finished: Bool = true;
 
 	abstract function nextSamples(requestedSamples: Float32Array, requestedLength: Int, sampleRate: Hertz): Void;
 

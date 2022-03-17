@@ -16,8 +16,8 @@ class ResamplingAudioChannel extends AudioChannel {
 
 	final pPitch = new LinearInterpolator(1.0);
 
-	public function new(looping: Bool, sampleRate: Hertz) {
-		super(looping);
+	public function new(data: Float32Array, looping: Bool, sampleRate: Hertz) {
+		super(data, looping);
 		this.sampleRate = sampleRate;
 	};
 

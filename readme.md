@@ -82,21 +82,21 @@ project.addDefine("AURA_WITH_IRON");
 
   ```haxe
   // Plays the sound `mySound` without repeat on the master channel
-  Aura.play(mySound);
+  Aura.createHandle(Play, mySound).play();
 
   // Plays the sound `mySound` with repeat on the master channel
-  Aura.play(mySound, true);
+  Aura.createHandle(Play, mySound, true).play();
 
   // Plays the sound `mySound` without repeat on the predefined fx channel
-  Aura.play(mySound, false, Aura.mixChannels["fx"]);
+  Aura.createHandle(Play, mySound, false, Aura.mixChannels["fx"]).play();
 
   // You can also stream sounds directly from disk. Whether a sound can be
   // streamed highly depends on the target and whether the sound is compressed
   // or not. Please consult the Kha sources if in doubt.
-  Aura.stream(mySound, false, Aura.mixChannels["music"]);
+  Aura.createHandle(Stream, mySound, false, Aura.mixChannels["music"]).play();
   ```
 
-  `Aura.play()` and `Aura.stream()` both return a [`Handle`](https://github.com/MoritzBrueckner/aura/blob/master/Sources/aura/Handle.hx) object with which you can control the playback and relevant parameters.
+  `Aura.createHandle()` returns a [`Handle`](https://github.com/MoritzBrueckner/aura/blob/master/Sources/aura/Handle.hx) object with which you can control the playback and relevant parameters.
 
 - Create a `MixChannel` to control a group of sounds:
 
@@ -108,7 +108,7 @@ project.addDefine("AURA_WITH_IRON");
   // Mix the output of `voiceChannel` into the master channel
   Aura.masterChannel.addInputChannel(voiceChannel);
 
-  Aura.play(mySound, false, voiceChannel);
+  Aura.createHandle(Play, mySound, false, voiceChannel).play();
   ```
 
 - Add a lowpass filter to the master channel:
@@ -118,7 +118,7 @@ project.addDefine("AURA_WITH_IRON");
 
   ...
 
-  Aura.play(mySound);
+  Aura.createHandle(Play, mySound).play();
 
   var lowPass = new Filter(LowPass);
   lowPass.setCutoffFreq(1000); // Frequency in Hertz
@@ -131,7 +131,7 @@ project.addDefine("AURA_WITH_IRON");
 - 2D sound:
 
   ```haxe
-  var mySoundHandle = Aura.play(mySound);
+  var mySoundHandle = Aura.createHandle(Play, mySound);
 
   // Some utility constants
   mySoundHandle.setBalance(LEFT);
@@ -152,7 +152,7 @@ project.addDefine("AURA_WITH_IRON");
   ...
 
   var cam = getCurrentCamera(); // <-- dummy function
-  var mySoundHandle = Aura.play(mySound);
+  var mySoundHandle = Aura.createHandle(Play, mySound);
 
   // Create a panner for the sound handle (choose one)
   new StereoPanner(channel); // Simple left-right panner

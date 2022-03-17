@@ -178,51 +178,45 @@ class Aura {
 		return hrtfs.get(hrtfName);
 	}
 
-	public static function play(sound: kha.Sound, loop: Bool = false, mixChannelHandle: Null<MixChannelHandle> = null): Null<Handle> {
+	public static function createHandle(playMode: PlayMode, sound: kha.Sound, loop: Bool = false, mixChannelHandle: Null<MixChannelHandle> = null): Null<Handle> {
 		if (mixChannelHandle == null) {
 			mixChannelHandle = masterChannel;
 		}
 
-		assert(Critical, sound.uncompressedData != null);
-
-		// TODO: Like Kha, only use resampling channel if pitch is used or if samplerate of sound and system differs
-		final channel = new ResamplingAudioChannel(loop, sound.sampleRate);
-		@:privateAccess channel.data = sound.uncompressedData;
-
-		final handle = new Handle(channel);
-		final foundChannel = mixChannelHandle.addInputChannel(handle);
-
-		return foundChannel ? handle : null;
-	}
-
-	public static function stream(sound: kha.Sound, loop: Bool = false, mixChannelHandle: Null<MixChannelHandle> = null): Null<Handle> {
-		#if kha_krom // Krom only uses uncompressedData -> no streaming
-		return play(sound, loop, mixChannelHandle);
-		#else
-
-		if (mixChannelHandle == null) {
-			mixChannelHandle = masterChannel;
-		}
-
-		assert(Critical, sound.compressedData != null);
-
-		final khaChannel: Null<kha.audio1.AudioChannel> = kha.audio2.Audio1.stream(sound, loop);
-
-		if (khaChannel == null) {
-			return null;
-		}
-
-		#if (kha_html5 || kha_debug_html5)
-		final auraChannel = SystemImpl.mobileAudioPlaying ? new Html5StreamChannel(cast khaChannel) : new StreamChannel(cast khaChannel);
-		#else
-		final auraChannel = new StreamChannel(cast khaChannel);
+		#if kha_krom
+			// Krom only uses uncompressedData -> no streaming
+			playMode = PlayMode.Play;
 		#end
 
-		final handle = new Handle(auraChannel);
-		final foundChannel = mixChannelHandle.addInputChannel(handle);
+		var newChannel: aura.channels.BaseChannel;
 
+		switch (playMode) {
+			case Play:
+				assert(Critical, sound.uncompressedData != null);
+
+				// TODO: Like Kha, only use resampling channel if pitch is used or if samplerate of sound and system differs
+				newChannel = new ResamplingAudioChannel(sound.uncompressedData, loop, sound.sampleRate);
+
+			case Stream:
+				assert(Critical, sound.compressedData != null);
+
+				final khaChannel: Null<kha.audio1.AudioChannel> = kha.audio2.Audio1.stream(sound, loop);
+				if (khaChannel == null) {
+					return null;
+				}
+
+				#if (kha_html5 || kha_debug_html5)
+					newChannel = SystemImpl.mobileAudioPlaying ? new Html5StreamChannel(cast khaChannel) : new StreamChannel(cast khaChannel);
+				#else
+					newChannel = new StreamChannel(cast khaChannel);
+				#end
+
+				newChannel.stop();
+		}
+
+		final handle = new Handle(newChannel);
+		final foundChannel = mixChannelHandle.addInputChannel(handle);
 		return foundChannel ? handle : null;
-		#end
 	}
 
 	/**
@@ -340,4 +334,9 @@ class AuraOptions {
 
 		return options;
 	}
+}
+
+enum abstract PlayMode(Int) {
+	var Play;
+	var Stream;
 }

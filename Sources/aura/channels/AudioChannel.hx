@@ -14,9 +14,10 @@ class AudioChannel extends BaseChannel {
 	var playbackPosition: Int = 0;
 	var looping: Bool = false;
 
-	var data: Float32Array = null;
+	var data: Float32Array;
 
-	public function new(looping: Bool) {
+	public function new(data: Float32Array, looping: Bool) {
+		this.data = data;
 		this.looping = looping;
 	}
 
