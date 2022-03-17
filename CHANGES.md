@@ -5,7 +5,7 @@ versions. Non-breaking changes (e.g. new features) are _not_ listed here.
 
 _The dates below are given as **YYYY.MM.DD**._
 
-- **2022.17.03**:
+- **2022.03.17** ([`0576c1f`](https://github.com/MoritzBrueckner/aura/commit/0576c1f657c5ff11d72f1916ae1b3f81ee0e2be7)):
 
   `Aura.play()` and `Aura.stream()` were replaced with `Aura.createHandle()`.
   The distinction between both play modes is now handled by the first parameter,
