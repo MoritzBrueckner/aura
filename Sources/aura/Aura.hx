@@ -59,7 +59,27 @@ class Aura {
 		masterChannel.addInputChannel(createMixChannel("music"));
 		masterChannel.addInputChannel(createMixChannel("fx"));
 
-		kha.audio2.Audio.audioCallback = audioCallback;
+
+		if (kha.SystemImpl.mobile) {
+			// kha.js.MobileWebAudio doesn't support a custom audio callback, so
+			// manually synchronize all tracks here (note that because of this
+			// limitation there are no insert effects supported for mobile audio)
+			kha.Scheduler.addTimeTask(masterChannel.getMixChannel().synchronize, 0, 1/60);
+		}
+		else {
+			kha.audio2.Audio.audioCallback = audioCallback;
+		}
+
+		#if (kha_html5 || kha_debug_html5)
+			// Check if virtual html5 stream channels can be made physical
+			kha.Scheduler.addBreakableTimeTask(() -> {
+				if (kha.SystemImpl.mobileAudioPlaying) {
+					Html5StreamChannel.makeChannelsPhysical();
+					return BreakTask;
+				}
+				return ContinueTask;
+			}, 0, 1/60);
+		#end
 	}
 
 	public static function loadAssets(loadConfig: AuraLoadConfig, done: Void->Void, ?failed: Void->Void) {
@@ -200,19 +220,22 @@ class Aura {
 			case Stream:
 				assert(Critical, sound.compressedData != null);
 
-				final khaChannel: Null<kha.audio1.AudioChannel> = kha.audio2.Audio1.stream(sound, loop);
-				if (khaChannel == null) {
-					return null;
-				}
-
 				#if (kha_html5 || kha_debug_html5)
-					newChannel = SystemImpl.mobileAudioPlaying ? new Html5StreamChannel(cast khaChannel) : new StreamChannel(cast khaChannel);
+					if (kha.SystemImpl.mobile) {
+						newChannel = new Html5MobileStreamChannel(sound, loop);
+					}
+					else {
+						newChannel = new Html5StreamChannel(sound, loop);
+					}
 				#else
+					final khaChannel: Null<kha.audio1.AudioChannel> = kha.audio2.Audio1.stream(sound, loop);
+					if (khaChannel == null) {
+						return null;
+					}
 					newChannel = new StreamChannel(cast khaChannel);
+					newChannel.stop();
 				#end
-
-				newChannel.stop();
-		}
+			}
 
 		final handle = new Handle(newChannel);
 		final foundChannel = mixChannelHandle.addInputChannel(handle);
@@ -339,4 +362,9 @@ class AuraOptions {
 enum abstract PlayMode(Int) {
 	var Play;
 	var Stream;
+}
+
+private enum abstract BreakableTaskStatus(Bool) to Bool {
+	var BreakTask = false;
+	var ContinueTask = true;
 }

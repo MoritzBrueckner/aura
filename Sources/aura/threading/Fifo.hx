@@ -8,11 +8,13 @@ package aura.threading;
 @:generic
 @:forward(push)
 abstract Fifo<T>(FifoImpl<T>) {
-	public inline function new()
+	public inline function new() {
 		this = new FifoImpl<T>();
+	}
 
-	public inline function tryPop(): Null<T>
+	public inline function tryPop(): Null<T> {
 		return this.pop(false);
+	}
 }
 
 #if (target.threaded)
