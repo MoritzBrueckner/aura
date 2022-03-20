@@ -173,8 +173,11 @@ private function ditfft2Iterative(time: ComplexArray, freq: ComplexArray, n: Int
 
 		if (reversedI > i) {
 			final temp = time[i].copy();
-			time[i] = time[reversedI].copy();
-			time[reversedI] = temp;
+			freq[i] = time[reversedI];
+			freq[reversedI] = temp;
+		}
+		else if (reversedI == i) {
+			freq[i] = time[reversedI];
 		}
 	}
 
@@ -188,23 +191,18 @@ private function ditfft2Iterative(time: ComplexArray, freq: ComplexArray, n: Int
 		while (sectionOffset < n) {
 
 			for (i in 0...halfLayerSize) {
-				final even = time[sectionOffset + i].copy();
-				final odd = time[sectionOffset + i + halfLayerSize];
+				final even = freq[sectionOffset + i].copy();
+				final odd = freq[sectionOffset + i + halfLayerSize];
 				final twiddle = Complex.exp(tExp * i) * odd;
 
-				time[sectionOffset + i]                 = even + twiddle;
-				time[sectionOffset + i + halfLayerSize] = even - twiddle;
+				freq[sectionOffset + i]                 = even + twiddle;
+				freq[sectionOffset + i + halfLayerSize] = even - twiddle;
 			}
 
 			sectionOffset += layerSize;
 		}
 
 		layerSize <<= 1;
-	}
-
-	// TODO: get rid of this
-	for (i in 0...n) {
-		freq[i] = time[i];
 	}
 }
 
