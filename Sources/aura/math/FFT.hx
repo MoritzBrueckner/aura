@@ -165,6 +165,7 @@ private function ditfft2(time: ComplexArray, t: Int, freq: ComplexArray, f: Int,
 	}
 }
 
+#if AURA_BACKEND_HL @:hlNative("aura_hl", "ditfft2_iterative") #end
 private function ditfft2Iterative(time: ComplexArray, freq: ComplexArray, n: Int, inverse: Bool) {
 	// Decimate
 	final log2N = log2Unsigned(n);

@@ -15,4 +15,12 @@ HL_PRIM void AURA_HL_FUNC(ditfft2)(aura__types__ComplexArrayImpl time_array, int
 	aura_ditfft2(times, t, freqs, f, n, step, inverse);
 }
 
+HL_PRIM void AURA_HL_FUNC(ditfft2_iterative)(aura__types__ComplexArrayImpl time_array, aura__types__ComplexArrayImpl freq_array, int n, bool inverse) {
+	const aura_complex_t *times = (aura_complex_t*) time_array->self;
+	aura_complex_t *freqs = (aura_complex_t*) freq_array->self;
+
+	aura_ditfft2_iterative(times, freqs, n, inverse);
+}
+
 DEFINE_PRIM(_VOID, ditfft2, _BYTES _I32 _BYTES _I32 _I32 _I32 _BOOL)
+DEFINE_PRIM(_VOID, ditfft2_iterative, _BYTES _BYTES _I32 _BOOL)
