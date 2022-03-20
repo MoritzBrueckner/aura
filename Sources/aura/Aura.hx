@@ -59,7 +59,7 @@ class Aura {
 		masterChannel.addInputChannel(createMixChannel("music"));
 		masterChannel.addInputChannel(createMixChannel("fx"));
 
-
+		#if (kha_html5 || kha_debug_html5)
 		if (kha.SystemImpl.mobile) {
 			// kha.js.MobileWebAudio doesn't support a custom audio callback, so
 			// manually synchronize all tracks here (note that because of this
@@ -67,8 +67,11 @@ class Aura {
 			kha.Scheduler.addTimeTask(masterChannel.getMixChannel().synchronize, 0, 1/60);
 		}
 		else {
+		#end
 			kha.audio2.Audio.audioCallback = audioCallback;
+		#if (kha_html5 || kha_debug_html5)
 		}
+		#end
 
 		#if (kha_html5 || kha_debug_html5)
 			// Check if virtual html5 stream channels can be made physical

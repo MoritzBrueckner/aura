@@ -1,16 +1,17 @@
 package aura.channels;
 
-import kha.js.MobileWebAudioChannel;
+#if (kha_html5 || kha_debug_html5)
+
 import js.Browser;
 import js.html.AudioElement;
 import js.html.URL;
 
 import kha.SystemImpl;
 import kha.arrays.Float32Array;
+import kha.js.MobileWebAudioChannel;
 
 import aura.threading.Message;
 
-#if (kha_html5 || kha_debug_html5)
 /**
 	Channel dedicated for streaming playback on html5.
 
