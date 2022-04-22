@@ -33,9 +33,8 @@ abstract Complex(ComplexImpl) {
 		this.imag = other.imag;
 	}
 
-	public inline function scale(s: FastFloat) {
-		this.real *= s;
-		this.imag *= s;
+	public inline function scale(s: FastFloat): Complex {
+		return new Complex(this.real * s, this.imag * s);
 	}
 
 	public static inline function exp(w: FastFloat) {
@@ -73,8 +72,7 @@ abstract Complex(ComplexImpl) {
 		return new Complex(this.real, -this.imag);
 	}
 
-	@:op(A == B)
-	public inline function eq(other: Complex): Bool {
+	public inline function equals(other: Complex): Bool {
 		return this.real == other.real && this.imag == other.imag;
 	}
 }

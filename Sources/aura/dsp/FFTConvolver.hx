@@ -5,13 +5,11 @@ import haxe.ds.Vector;
 import kha.arrays.Float32Array;
 
 import aura.math.FFT;
-import aura.threading.BufferCache;
 import aura.threading.Message.DSPMessage;
 import aura.types.ComplexArray;
 import aura.types.SwapBuffer;
 import aura.utils.BufferUtils;
 import aura.utils.MathUtils;
-import aura.utils.Pointer;
 
 /**
 	Calculates the 1D linear convolution of the input with another buffer called
@@ -23,13 +21,6 @@ class FFTConvolver extends DSP {
 	public static inline var CHUNK_SIZE = Std.int(FFT_SIZE / 2);
 
 	final impulseSwapBuffer: SwapBuffer;
-	final impulseTimes: Float32Array; // TODO: only one FFT input buffer is required, merge with p_fftTimeBuf
-	final impulseFreqs: Vector<ComplexArray>; // One array per channel
-
-	final fftTimeBuf: Float32Array;
-	final fftFreqBuf: ComplexArray;
-	final fftHalfTemp1: ComplexArray;
-	final fftHalfTemp2: ComplexArray;
 
 	/**
 		The part of the last output signal that was longer than the last frame
@@ -52,22 +43,20 @@ class FFTConvolver extends DSP {
 	**/
 	final lastOverlapLength: Vector<Int>;
 
+	static var signalFFT: Null<RealValuedFFT>;
+	static var impulseFFT: Null<RealValuedFFT>; // TODO: only one set of input and temp channels required, merge with multi-output signalFFT
+
 	public function new() {
 		assert(Error, isPowerOf2(FFT_SIZE), 'FFT_SIZE must be a power of 2, but it is $FFT_SIZE');
 
-		impulseSwapBuffer = new SwapBuffer(CHUNK_SIZE * 2);
-
-		impulseTimes = new Float32Array(FFT_SIZE);
-
-		impulseFreqs = new Vector(NUM_CHANNELS);
-		for (i in 0...NUM_CHANNELS) {
-			impulseFreqs[i] = new ComplexArray(FFT_SIZE);
+		if (signalFFT == null) {
+			signalFFT = new RealValuedFFT(FFT_SIZE, 1, 1);
+		}
+		if (impulseFFT == null) {
+			impulseFFT = new RealValuedFFT(FFT_SIZE, 1, NUM_CHANNELS);
 		}
 
-		fftTimeBuf = new Float32Array(FFT_SIZE);
-		fftFreqBuf = new ComplexArray(FFT_SIZE);
-		fftHalfTemp1 = new ComplexArray(Std.int(FFT_SIZE / 2));
-		fftHalfTemp2 = new ComplexArray(Std.int(FFT_SIZE / 2));
+		impulseSwapBuffer = new SwapBuffer(CHUNK_SIZE * 2);
 
 		overlapLast = new Vector(NUM_CHANNELS);
 		for (i in 0...NUM_CHANNELS) {
@@ -85,32 +74,36 @@ class FFTConvolver extends DSP {
 
 		// TODO: Support stereo impulse buffers
 
+		final impulseInput = impulseFFT.getInput(0);
+
 		// Pad impulse response to FFT size
 		for (i in 0...impulse.length) {
-			impulseTimes[i] = impulse[i];
+			impulseInput[i] = impulse[i];
 		}
 		for (i in impulse.length...FFT_SIZE) {
-			impulseTimes[i] = 0.0;
+			impulseInput[i] = 0.0;
 		}
 
-		calculateImpulseFFT(impulseTimes, impulse.length, 0);
-		// TODO: stereo
+		calculateImpulseFFT(impulseInput, impulse.length, 0);
 	}
 
-	// TODO: move this into main thread and use swapbuffer for impulseFreqs instead?
+	// TODO: move this into main thread and use swapbuffer for impulse freqs
+	// instead? Moving the impulse FFT computation into the main thread will
+	// also remove the fft computation while the swap buffer lock is active,
+	// reducing the lock time, but it occupies the main thread more...
 	function updateImpulseFromSwapBuffer(impulseLengths: Array<Int>) {
+		final impulseInput = impulseFFT.getInput(0);
+
 		impulseSwapBuffer.beginRead();
 		for (i in 0...impulseLengths.length) {
-			impulseSwapBuffer.read(impulseTimes, 0, CHUNK_SIZE * i, CHUNK_SIZE);
-			// Moving thes function into the main thread will also remove the fft
-			// calculation while the lock is active, reducing the lock time
-			calculateImpulseFFT(impulseTimes, impulseLengths[i], i);
+			impulseSwapBuffer.read(impulseInput, 0, CHUNK_SIZE * i, CHUNK_SIZE);
+			calculateImpulseFFT(impulseInput, impulseLengths[i], i);
 		}
 		impulseSwapBuffer.endRead();
 	}
 
-	function calculateImpulseFFT(impulseArray: Float32Array, impulseLength: Int, channel: Int) {
-		realfft(impulseArray, impulseFreqs[channel], fftHalfTemp1, fftHalfTemp2, FFT_SIZE);
+	inline function calculateImpulseFFT(impulseArray: Float32Array, impulseLength: Int, channel: Int) {
+		impulseFFT.forwardFFT(0, channel);
 		overlapLength[channel] = impulseLength - 1;
 	}
 
@@ -137,31 +130,36 @@ class FFTConvolver extends DSP {
 			segmentSize = deinterleavedLength;
 		}
 
+		final signalInput = signalFFT.getInput(0);
+		final signalOutput = signalFFT.getOutput(0);
+
 		for (c in 0...NUM_CHANNELS) {
+			final impulseFreqs = impulseFFT.getOutput(c);
+
 			for (s in 0...numSegments) {
 				final segmentOffset = NUM_CHANNELS * s * segmentSize;
 
 				for (i in 0...segmentSize) {
 					// Deinterleave and copy to FFT input buffer
-					fftTimeBuf[i] = buffer[segmentOffset + i * NUM_CHANNELS + c];
+					signalInput[i] = buffer[segmentOffset + i * NUM_CHANNELS + c];
 				}
 				for (i in segmentSize...FFT_SIZE) {
-					fftTimeBuf[i] = 0;
+					signalInput[i] = 0;
 				}
 
-				realfft(fftTimeBuf, fftFreqBuf, fftHalfTemp1, fftHalfTemp2, FFT_SIZE);
+				signalFFT.forwardFFT(0, 0);
 
 				// The actual convolution takes place here
 				for (i in 0...FFT_SIZE) {
-					fftFreqBuf[i] *= impulseFreqs[c][i];
+					signalOutput[i] *= impulseFreqs[i];
 				}
 
 				// Transform back into time domain
-				realifft(fftFreqBuf, fftTimeBuf, fftHalfTemp1, fftHalfTemp2, FFT_SIZE);
+				signalFFT.inverseFFT(0, 0);
 
 				// Copy to output
 				for (i in 0...CHUNK_SIZE) {
-					buffer[segmentOffset + i * NUM_CHANNELS + c] = fftTimeBuf[i];
+					buffer[segmentOffset + i * NUM_CHANNELS + c] = signalInput[i];
 				}
 
 				// Handle overlapping
@@ -169,7 +167,7 @@ class FFTConvolver extends DSP {
 					buffer[segmentOffset + i * NUM_CHANNELS + c] += overlapLast[c][i];
 				}
 				for (i in 0...overlapLength[c]) {
-					overlapLast[c][i] = fftTimeBuf[CHUNK_SIZE + i];
+					overlapLast[c][i] = signalInput[CHUNK_SIZE + i];
 				}
 				lastOverlapLength[c] = overlapLength[c];
 			}

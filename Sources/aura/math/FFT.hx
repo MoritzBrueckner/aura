@@ -1,10 +1,111 @@
 package aura.math;
 
+import haxe.ds.Vector;
+
 import kha.arrays.Float32Array;
 
 import aura.types.Complex;
 import aura.types.ComplexArray;
 import aura.utils.MathUtils;
+
+enum abstract FFTInputType(Int) {
+	var RealValuedInput;
+	var ComplexValuedInput;
+}
+
+/**
+	Container for all required buffers for an FFT computation. The input buffers
+	can either be real or complex which depends on whether you instantiate an
+	`aura.math.FFT.RealValuedFFT` or an `aura.math.FFT.ComplexValuedFFT`.
+
+	Each instance of this class can have multiple input and output buffers whose
+	indices have to be passed to the respective FFT functions. It is more
+	efficient to use multiple buffers for different FFT calculations with the
+	same size instead of multiple instances of this class.
+
+	Make sure to not use objects of this class in different threads at the same
+	time since `FFTBase` is not thread safe!
+**/
+abstract class FFTBase {
+	public final size: Int;
+	public final halfSize: Int;
+
+	public final outputBuffers: Vector<ComplexArray>;
+
+	public inline function new(size: Int, numOutputs: Int) {
+		this.size = size;
+		this.halfSize = size >>> 1;
+
+		outputBuffers = new Vector(numOutputs);
+		for (i in 0...numOutputs) {
+			outputBuffers[i] = new ComplexArray(size);
+		}
+	}
+
+	public abstract function forwardFFT(inputBufferIndex: Int, outputBufferIndex: Int): Void;
+	public abstract function inverseFFT(inputBufferIndex: Int, outputBufferIndex: Int): Void;
+
+	public abstract function getInput(index: Int): Dynamic;
+	public inline function getOutput(index: Int): ComplexArray {
+		return outputBuffers[index];
+	}
+}
+
+class RealValuedFFT extends FFTBase {
+	public final inputBuffers: Vector<Float32Array>;
+
+	final tmpInputBufferHalf: ComplexArray;
+	final tmpOutputBufferHalf: ComplexArray;
+
+	public inline function new(size: Int, numInputs: Int, numOutputs: Int) {
+		super(size, numOutputs);
+
+		inputBuffers = new Vector(numInputs);
+		for (i in 0...numInputs) {
+			inputBuffers[i] = new Float32Array(size);
+		}
+
+		tmpInputBufferHalf = new ComplexArray(halfSize);
+		tmpOutputBufferHalf = new ComplexArray(halfSize);
+	}
+
+	public inline function forwardFFT(inputBufferIndex: Int, outputBufferIndex: Int) {
+		realfft(inputBuffers[inputBufferIndex], outputBuffers[outputBufferIndex], tmpInputBufferHalf, tmpOutputBufferHalf, size);
+	}
+
+	public inline function inverseFFT(inputBufferIndex: Int, outputBufferIndex: Int) {
+		realifft(outputBuffers[outputBufferIndex], inputBuffers[inputBufferIndex], tmpOutputBufferHalf, tmpInputBufferHalf, size);
+	}
+
+	public inline function getInput(index: Int): Float32Array {
+		return inputBuffers[index];
+	}
+}
+
+class ComplexValuedFFT extends FFTBase {
+	public final inputBuffers: Vector<ComplexArray>;
+
+	public inline function new(size: Int, numInputs: Int, numOutputs: Int) {
+		super(size, numOutputs);
+
+		inputBuffers = new Vector(numInputs);
+		for (i in 0...numInputs) {
+			inputBuffers[i] = new ComplexArray(size);
+		}
+	}
+
+	public inline function forwardFFT(inputBufferIndex: Int, outputBufferIndex: Int) {
+		fft(inputBuffers[inputBufferIndex], outputBuffers[outputBufferIndex], size);
+	}
+
+	public inline function inverseFFT(inputBufferIndex: Int, outputBufferIndex: Int) {
+		ifft(outputBuffers[outputBufferIndex], inputBuffers[inputBufferIndex], size);
+	}
+
+	public inline function getInput(index: Int): ComplexArray {
+		return inputBuffers[index];
+	}
+}
 
 /**
 	Calculate the fast fourier transformation of the signal given in `inTimes`
@@ -31,7 +132,7 @@ inline function ifft(inFreqs: ComplexArray, outTimes: ComplexArray, size: Int, s
 	ditfft2(inFreqs, 0, outTimes, 0, size, 1, true);
 	if (scale) {
 		for (i in 0...size) {
-			outTimes[i].scale(1 / size);
+			outTimes[i] = outTimes[i].scale(1 / size);
 		}
 	}
 }
@@ -81,8 +182,10 @@ inline function realfft(inTimes: Float32Array, outFreqs: ComplexArray, timeCmplx
 		final piNi = piN * i;
 		final iSin = Math.sin(piNi);
 		final iCos = Math.cos(piNi);
-		outFreqs[i].real = xPlus.real + iCos * xPlus.imag - iSin * xMinus.real;
-		outFreqs[i].imag = xMinus.imag - iSin * xPlus.imag - iCos * xMinus.real;
+
+		final real = xPlus.real + iCos * xPlus.imag - iSin * xMinus.real;
+		final imag = xMinus.imag - iSin * xPlus.imag - iCos * xMinus.real;
+		outFreqs[i] = new Complex(real, imag);
 	}
 
 	outFreqs[halfSize] = freqCmplxStore[0].real - freqCmplxStore[0].imag;
