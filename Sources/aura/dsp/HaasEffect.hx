@@ -19,7 +19,7 @@ class HaasEffect extends DSP {
 	var delayChannelIdx: Int;
 
 	var diffSamples: Int;
-	var delayBuff: CircularBuffer<Float>;
+	var delayBuff: CircularBuffer;
 
 	public function new(delay: Millisecond) {
 		this.diffSamples = 0;

@@ -1,11 +1,10 @@
 package aura.utils;
 
-import haxe.ds.Vector;
+import kha.FastFloat;
+import kha.arrays.Float32Array;
 
-@:generic
-class CircularBuffer<T> {
-
-	final data: Vector<T>;
+class CircularBuffer {
+	final data: Float32Array;
 	var readHead: Int;
 	var writeHead: Int;
 	var length(get, null): Int;
@@ -14,7 +13,7 @@ class CircularBuffer<T> {
 	public inline function new(size: Int) {
 		assert(Warning, size != 0);
 
-		this.data = new Vector<T>(size);
+		this.data = new Float32Array(size);
 		this.length = size;
 		this.writeHead = 0;
 		this.readHead = 1;
@@ -32,11 +31,11 @@ class CircularBuffer<T> {
 		return data.length;
 	}
 
-	public inline function get(): T {
+	public inline function get(): FastFloat {
 		return data[readHead];
 	}
 
-	public inline function set(value: T) {
+	public inline function set(value: FastFloat) {
 		data[writeHead] = value;
 	}
 
@@ -44,10 +43,4 @@ class CircularBuffer<T> {
 		if (++readHead >= length) readHead = 0;
 		if (++writeHead >= length) writeHead = 0;
 	}
-
-	// TODO
-	// public inline function resize(size: Int) {
-	// 	var newData = new Vector<T>(size);
-	// 	Vector.blit(data, writeHead)
-	// }
 }

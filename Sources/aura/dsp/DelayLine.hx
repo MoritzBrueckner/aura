@@ -12,14 +12,14 @@ class DelayLine extends DSP {
 
 	public final maxDelaySamples: Int;
 
-	final delayBufs: Vector<CircularBuffer<Float>>;
+	final delayBufs: Vector<CircularBuffer>;
 
 	public function new(maxDelaySamples: Int) {
 		this.maxDelaySamples = maxDelaySamples;
 
 		delayBufs = new Vector(NUM_CHANNELS);
 		for (i in 0...NUM_CHANNELS) {
-			delayBufs[i] = new CircularBuffer<Float>(maxDelaySamples);
+			delayBufs[i] = new CircularBuffer(maxDelaySamples);
 		}
 	}
 
