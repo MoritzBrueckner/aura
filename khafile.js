@@ -9,10 +9,9 @@ function addBackends(project) {
 		on_hl |= process.argv.indexOf(hl_target) >= 0;
 	}
 	if (on_hl) {
-		// project.addSources("backends/hl");
 		project.addLibrary("hl");
 		project.addDefine("AURA_BACKEND_HL");
-		console.log("[Aura] Added HL/C backend");
+		console.log("[Aura] Using HL/C backend");
 	}
 
 	const on_html5 = process.argv.indexOf("html5") >= 0;

@@ -48,8 +48,6 @@ void aura_ditfft2_iterative(const aura_complex_t * times, aura_complex_t * freqs
 		uint32_t reversedI = bitReverseUint32(i, log2N);
 
 		if (reversedI >= i) {
-			aura_complex_t temp;
-			aura_copy_complex(&temp, times[i]);
 			aura_copy_complex(&freqs[i], times[reversedI]);
 			aura_copy_complex(&freqs[reversedI], times[i]);
 		}
@@ -65,8 +63,8 @@ void aura_ditfft2_iterative(const aura_complex_t * times, aura_complex_t * freqs
 
 		for (int sectionOffset = 0; sectionOffset < n; sectionOffset += layerSize) {
 			for (int i = 0; i < halfLayerSize; i++) {
-				aura_complex_t even = { 0 };
-				aura_complex_t odd = { 0 };
+				aura_complex_t even;
+				aura_complex_t odd;
 				aura_copy_complex(&even, freqs[sectionOffset + i]);
 				aura_copy_complex(&odd, freqs[sectionOffset + i + halfLayerSize]);
 

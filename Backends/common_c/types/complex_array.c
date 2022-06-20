@@ -16,6 +16,6 @@ aura_complex_t* aura_complex_array_set(aura_complex_t* complex_array, int index,
 	return &(complex_array[index]);
 }
 
-aura_complex_t* aura_complex_array_get(aura_complex_t* complex_array, int index/*, float* real, float* imag*/) {
+aura_complex_t* aura_complex_array_get(aura_complex_t* complex_array, int index) {
 	return &(complex_array[index]);
 }

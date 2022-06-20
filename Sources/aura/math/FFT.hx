@@ -276,9 +276,8 @@ private function ditfft2Iterative(time: ComplexArray, freq: ComplexArray, n: Int
 		final reversedI = bitReverseUint32(i, log2N);
 
 		if (reversedI > i) {
-			final temp = time[i].copy();
 			freq[i] = time[reversedI];
-			freq[reversedI] = temp;
+			freq[reversedI] = time[i];
 		}
 		else if (reversedI == i) {
 			freq[i] = time[reversedI];
