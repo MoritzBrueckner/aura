@@ -5,7 +5,7 @@ versions. Non-breaking changes (e.g. new features) are _not_ listed here.
 
 _The dates below are given as **YYYY.MM.DD**._
 
-- **2022.07.18** ():
+- **2022.07.18** ([`4386c3d`](https://github.com/MoritzBrueckner/aura/commit/4386c3dd6bcfe894016dc0c631c07881cbe7eba6)):
 
   `Aura.dsp.Filter.Channels` was replaced with the new `aura.Types.Channels`
   abstract. `Channels.Both` is now `Channels.All` (Aura currently only supports
