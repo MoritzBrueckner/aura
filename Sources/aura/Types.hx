@@ -12,6 +12,21 @@ typedef Hertz = Int;
 **/
 typedef Millisecond = Float;
 
+enum abstract Channels(Int) {
+	var Left = 1 << 0;
+	var Right = 1 << 1;
+
+	var All = ~0;
+
+	public inline function matches(mask: Channels): Bool {
+		return (this & mask.asInt()) != 0;
+	}
+
+	inline function asInt(): Int {
+		return this;
+	}
+}
+
 abstract Balance(Float) from Float to Float {
 	public static inline var LEFT: Balance = 0.0;
 	public static inline var CENTER: Balance = 0.5;

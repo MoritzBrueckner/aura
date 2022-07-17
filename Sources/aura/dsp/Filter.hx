@@ -5,6 +5,7 @@ import haxe.ds.Vector;
 
 import kha.arrays.Float32Array;
 
+import aura.Types;
 import aura.utils.FrequencyUtils;
 import aura.utils.MathUtils;
 
@@ -32,7 +33,8 @@ class Filter extends DSP {
 		buf[0] = createEmptyVecF(2);  // Two buffers per channel
 		buf[1] = createEmptyVecF(2);
 
-		this.cutoff = createEmptyVecF(2);
+		this.cutoff = new Vector(2);
+		cutoff[0] = cutoff[1] = 1.0;
 	}
 
 	public function process(buffer: Float32Array, bufferLength: Int) {
@@ -60,11 +62,11 @@ class Filter extends DSP {
 		Set the cutoff frequency for this filter. `channels` state for which
 		channels to set the cutoff value.
 	**/
-	public inline function setCutoffFreq(cutoffFreq: Hertz, channels: Channels = Both) {
+	public inline function setCutoffFreq(cutoffFreq: Hertz, channels: Channels = All) {
 		final maxFreq = sampleRateToMaxFreq(Aura.sampleRate);
 		final c = frequencyToFactor(clampI(cutoffFreq, 0, maxFreq), maxFreq);
-		if (Channels.toLeft(channels)) { cutoff[0] = c; }
-		if (Channels.toRight(channels)) { cutoff[1] = c; }
+		if (channels.matches(Channels.Left)) { cutoff[0] = c; }
+		if (channels.matches(Channels.Right)) { cutoff[1] = c; }
 
 		// Optimize process() callback if one or both channels are not affected
 		stepSize = (cutoff[0] == 1.0 || cutoff[1] == 1.0) ? 2 : 1;
@@ -76,8 +78,8 @@ class Filter extends DSP {
 		channels to get the cutoff value, if it's `Both`, the left channel's
 		cutoff frequency is returned.
 	**/
-	public inline function getCutoffFreq(channels: Channels = Both): Hertz {
-		final c = Channels.toLeft(channels) ? cutoff[0] : cutoff[1];
+	public inline function getCutoffFreq(channels: Channels = All): Hertz {
+		final c = channels.matches(Channels.Left) ? cutoff[0] : cutoff[1];
 		return factorToFrequency(c, sampleRateToMaxFreq(Aura.sampleRate));
 	}
 }
@@ -86,18 +88,4 @@ enum abstract FilterMode(Int) {
 	var LowPass;
 	var BandPass;
 	var HighPass;
-}
-
-enum abstract Channels(Int) {
-	var Left;
-	var Right;
-	var Both;
-
-	public static inline function toLeft(channels: Channels): Bool {
-		return channels != Right;
-	}
-
-	public static inline function toRight(channels: Channels): Bool {
-		return channels != Left;
-	}
 }
