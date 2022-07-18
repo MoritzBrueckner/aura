@@ -215,13 +215,17 @@ class Aura {
 
 		switch (playMode) {
 			case Play:
-				assert(Critical, sound.uncompressedData != null);
+				assert(Critical, sound.uncompressedData != null,
+					"Cannot play a sound with no uncompressed data. Make sure to load it as 'uncompressed' in the AuraLoadConfig."
+				);
 
 				// TODO: Like Kha, only use resampling channel if pitch is used or if samplerate of sound and system differs
 				newChannel = new ResamplingAudioChannel(sound.uncompressedData, loop, sound.sampleRate);
 
 			case Stream:
-				assert(Critical, sound.compressedData != null);
+				assert(Critical, sound.compressedData != null,
+					"Cannot stream a sound with no compressed data. Make sure to load it as 'compressed' in the AuraLoadConfig."
+				);
 
 				#if (kha_html5 || kha_debug_html5)
 					if (kha.SystemImpl.mobile) {
