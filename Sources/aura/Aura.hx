@@ -338,6 +338,10 @@ class Aura {
 				buffer.writeLocation = 0;
 			}
 		}
+
+		#if AURA_BENCHMARK
+			Time.endOfFrame();
+		#end
 	}
 }
 
