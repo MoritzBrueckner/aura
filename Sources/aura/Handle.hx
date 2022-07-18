@@ -69,6 +69,8 @@ class Handle {
 	}
 
 	public inline function setVolume(volume: Float) {
+		assert(Critical, volume >= 0, "Volume value must not be a negative number!");
+
 		channel.sendMessage({ id: PVolume, data: maxF(0.0, volume) });
 		this._volume = volume;
 	}
@@ -87,6 +89,8 @@ class Handle {
 	}
 
 	public inline function setPitch(pitch: Float) {
+		assert(Critical, pitch > 0, "Pitch value must be a positive number!");
+
 		channel.sendMessage({ id: PPitch, data: maxF(0.0, pitch) });
 		this._pitch = pitch;
 	}
