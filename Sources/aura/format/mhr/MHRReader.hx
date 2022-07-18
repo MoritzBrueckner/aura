@@ -1,6 +1,8 @@
 /**
 	Specification:
-	https://github.com/kcat/openal-soft/blob/3ef4bffaf959d06527a247faa19cc869781745e4/docs/hrtf.txt
+	V1: https://github.com/kcat/openal-soft/blob/be7938ed385e18c7800c663672262bb2976aa734/docs/hrtf.txt
+	V2: https://github.com/kcat/openal-soft/blob/0349bcc500fdb9b1245a5ddce01b2896bcf9bbb9/docs/hrtf.txt
+	V3: https://github.com/kcat/openal-soft/blob/3ef4bffaf959d06527a247faa19cc869781745e4/docs/hrtf.txt
 **/
 
 package aura.format.mhr;
@@ -29,13 +31,19 @@ class MHRReader {
 
 	public function read(): HRTF {
 		final magic = inp.readString(8, UTF8);
-		if (magic != "MinPHR03") {
-			throw "File is not a valid MHR HRTF Version 3 file!";
-		}
+		final version = versionFromMagic(magic);
 
 		final sampleRate = Int64.toInt(inp.readUInt32());
+		final sampleType = switch (version) {
+			case V1: SampleType16Bit;
+			case V2: inp.readByte();
+			case V3: SampleType24Bit;
+		}
 
-		final channelType = inp.readByte();
+		final channelType = switch (version) {
+			case V1: 0; // mono
+			case V2 | V3: inp.readByte();
+		}
 		final channels = channelType + 1;
 
 		// Samples per HRIR (head related impulse response) per channel
@@ -43,13 +51,16 @@ class MHRReader {
 
 		// Number of fields used by the data set. Each field represents a
 		// set of points for a given distance.
-		final fieldCount = inp.readByte();
+		final fieldCount = version == V1 ? 1 : inp.readByte();
 
 		final fields = new Vector<Field>(fieldCount);
 		var totalHRIRCount = 0;
 		for (i in 0...fieldCount) {
 			final field = new Field();
-			field.distance = inp.readUInt16();
+
+			// 1000mm is arbitrary, but it doesn't matter since the interpolation
+			// can only access one distance anyway...
+			field.distance = version == V1 ? 1000 : inp.readUInt16();
 			field.evCount = inp.readByte();
 			field.azCount = new Vector<Int>(field.evCount);
 			field.evHRIROffsets = new Vector<Int>(field.evCount);
@@ -80,10 +91,20 @@ class MHRReader {
 				final hrir = hrirs[j] = new HRIR();
 
 				hrir.coeffs = new Float32Array(hrirSize * channels);
-				for (s in 0...hrirSize) {
-					final coeff = inp.readInt24();
-					// 8388608 = 2^23
-					hrir.coeffs[s] = coeff / (coeff < 0 ? 8388608.0 : 8388607.0);
+				switch (sampleType) {
+					case SampleType16Bit:
+						for (s in 0...hrirSize) {
+							final coeff = inp.readInt16();
+							// 32768 = 2^15
+							hrir.coeffs[s] = coeff / (coeff < 0 ? 32768.0 : 32767.0);
+						}
+
+					case SampleType24Bit:
+						for (s in 0...hrirSize) {
+							final coeff = inp.readInt24();
+							// 8388608 = 2^23
+							hrir.coeffs[s] = coeff / (coeff < 0 ? 8388608.0 : 8388607.0);
+						}
 				}
 			}
 		}
@@ -128,4 +149,25 @@ class MHRReader {
 	inline function isBitSet(byte: Int, position: Int): Int {
 		return (byte & (1 << position) == 0) ? 0 : 1;
 	}
+}
+
+inline function versionFromMagic(magic: String): MHRVersion {
+	return switch (magic) {
+		case "MinPHR01": V1;
+		case "MinPHR02": V2;
+		case "MinPHR03": V3;
+		default:
+			throw 'File is not an MHR HRTF file! Unknown magic string "$magic".';
+	}
+}
+
+private enum abstract SampleType(Int) from Int {
+	var SampleType16Bit = 0;
+	var SampleType24Bit = 1;
+}
+
+private enum abstract MHRVersion(Int) {
+	var V1 = 1;
+	var V2 = 2;
+	var V3 = 3;
 }
