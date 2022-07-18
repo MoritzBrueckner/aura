@@ -4,48 +4,62 @@ import kha.arrays.Float32Array;
 
 import aura.utils.MathUtils;
 import aura.threading.Message;
+import aura.types.AudioBuffer;
 
 class AudioChannel extends BaseChannel {
 	public static inline var NUM_CHANNELS = 2;
 
-	/**
-		Current playback position in seconds.
-	**/
+	/** The current playback position in samples. **/
 	var playbackPosition: Int = 0;
 	var looping: Bool = false;
 
-	var data: Float32Array;
+	var data: AudioBuffer;
 
 	public function new(data: Float32Array, looping: Bool) {
-		this.data = data;
+		this.data = new AudioBuffer(2, Std.int(data.length / 2));
+		this.data.deinterleaveFromFloat32Array(data, 2);
 		this.looping = looping;
 	}
 
-	function nextSamples(requestedSamples: Float32Array, requestedLength: Int, sampleRate: Hertz): Void {
-		final lerpTime = Std.int(requestedLength / 2); // Stereo, 2 samples per frame
-		final stepBalance = pBalance.getLerpStepSize(lerpTime);
-		final stepDopplerRatio = pDopplerRatio.getLerpStepSize(lerpTime);
-		final stepDstAttenuation = pDstAttenuation.getLerpStepSize(lerpTime);
-		final stepVol = pVolume.getLerpStepSize(lerpTime);
+	function nextSamples(requestedSamples: AudioBuffer, requestedLength: Int, sampleRate: Hertz): Void {
+		assert(Critical, requestedSamples.numChannels == data.numChannels);
 
-		var requestedSamplesIndex = 0;
-		while (requestedSamplesIndex < requestedLength) {
-			var isLeft = true;
+		final stepBalance = pBalance.getLerpStepSize(requestedSamples.channelLength);
+		final stepDopplerRatio = pDopplerRatio.getLerpStepSize(requestedSamples.channelLength);
+		final stepDstAttenuation = pDstAttenuation.getLerpStepSize(requestedSamples.channelLength);
+		final stepVol = pVolume.getLerpStepSize(requestedSamples.channelLength);
 
-			for (_ in 0...minI(data.length - playbackPosition, requestedLength - requestedSamplesIndex)) {
-				requestedSamples[requestedSamplesIndex++] = data[playbackPosition++] * pVolume.currentValue * pDstAttenuation.currentValue;
+		var samplesWritten = 0;
+		// As long as there are more samples requested
+		while (samplesWritten < requestedSamples.channelLength) {
 
-				if (!isLeft) {
+			// Check how many samples we can actually write
+			final samplesToWrite = minI(data.channelLength - playbackPosition, requestedSamples.channelLength - samplesWritten);
+			for (c in 0...requestedSamples.numChannels) {
+				final outChannelView = requestedSamples.getChannelView(c);
+				final dataChannelView = data.getChannelView(c);
+
+				// Reset interpolators for channel
+				pBalance.currentValue = pBalance.lastValue;
+				pDopplerRatio.currentValue = pDopplerRatio.lastValue;
+				pDstAttenuation.currentValue = pDstAttenuation.lastValue;
+				pVolume.currentValue = pVolume.lastValue;
+
+				for (i in 0...samplesToWrite) {
+					final value = dataChannelView[playbackPosition + i] * pVolume.currentValue * pDstAttenuation.currentValue;
+					outChannelView[samplesWritten + i] = value;
+
+					// TODO: SIMD
 					pBalance.currentValue += stepBalance;
 					pDopplerRatio.currentValue += stepDopplerRatio;
 					pDstAttenuation.currentValue += stepDstAttenuation;
 					pVolume.currentValue += stepVol;
 				}
-
-				isLeft = !isLeft;
 			}
+			samplesWritten += samplesToWrite;
+			playbackPosition += samplesToWrite;
 
-			if (playbackPosition >= data.length) {
+			if (playbackPosition >= data.channelLength) {
 				playbackPosition = 0;
 				if (!looping) {
 					finished = true;
@@ -54,16 +68,20 @@ class AudioChannel extends BaseChannel {
 			}
 		}
 
-		while (requestedSamplesIndex < requestedLength) {
-			requestedSamples[requestedSamplesIndex++] = 0;
+		// Fill further requested samples with zeroes
+		for (c in 0...requestedSamples.numChannels) {
+			final channelView = requestedSamples.getChannelView(c);
+			for (i in samplesWritten...requestedSamples.channelLength) {
+				channelView[i] = 0;
+			}
 		}
-
-		processInserts(requestedSamples, requestedLength);
 
 		pBalance.updateLast();
 		pDopplerRatio.updateLast();
 		pDstAttenuation.updateLast();
 		pVolume.updateLast();
+
+		processInserts(requestedSamples, requestedLength);
 	}
 
 	public function play(retrigger: Bool): Void {
@@ -94,21 +112,21 @@ class AudioChannel extends BaseChannel {
 		Return the sound's length in seconds.
 	**/
 	public inline function getLength(): Float {
-		return data.length / kha.audio2.Audio.samplesPerSecond / NUM_CHANNELS;
+		return data.channelLength / kha.audio2.Audio.samplesPerSecond;
 	}
 
 	/**
 		Return the channel's current playback position in seconds.
 	**/
 	public inline function getPlaybackPosition(): Float {
-		return playbackPosition / kha.audio2.Audio.samplesPerSecond / NUM_CHANNELS;
+		return playbackPosition / kha.audio2.Audio.samplesPerSecond;
 	}
 
 	/**
 		Set the channel's current playback position in seconds.
 	**/
 	public inline function setPlaybackPosition(value: Float) {
-		playbackPosition = Math.round(value * kha.audio2.Audio.samplesPerSecond * NUM_CHANNELS);
-		playbackPosition = maxI(minI(playbackPosition, data.length), 0);
+		playbackPosition = Math.round(value * kha.audio2.Audio.samplesPerSecond);
+		playbackPosition = clampI(playbackPosition, 0, data.channelLength);
 	}
 }

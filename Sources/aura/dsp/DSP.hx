@@ -1,9 +1,8 @@
 package aura.dsp;
 
-import kha.arrays.Float32Array;
-
 import aura.threading.Fifo;
 import aura.threading.Message;
+import aura.types.AudioBuffer;
 
 @:allow(aura.dsp.panner.Panner)
 abstract class DSP {
@@ -12,7 +11,7 @@ abstract class DSP {
 	var inUse: Bool;
 	final messages: Fifo<DSPMessage> = new Fifo();
 
-	abstract function process(buffer: Float32Array, bufferLength: Int): Void;
+	abstract function process(buffer: AudioBuffer, bufferLength: Int): Void;
 
 	function synchronize() {
 		var message: Null<DSPMessage>;

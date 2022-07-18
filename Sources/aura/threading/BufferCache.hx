@@ -13,6 +13,7 @@ import haxe.ds.Vector;
 
 import kha.arrays.Float32Array;
 
+import aura.types.AudioBuffer;
 import aura.types.ComplexArray;
 import aura.utils.Pointer;
 
@@ -33,14 +34,14 @@ class BufferCache {
 		Each level in the channel tree has its own buffer that can be shared by
 		the channels on that level.
 	**/
-	static var treeBuffers: Vector<Pointer<Float32Array>>;
+	static var treeBuffers: Vector<Pointer<AudioBuffer>>;
 
 	static var bufferConfigs: Map<BufferType, BufferConfig>;
 
 	public static inline function init() {
 		treeBuffers = new Vector(MAX_TREE_HEIGHT);
 		for (i in 0...treeBuffers.length) {
-			treeBuffers[i] = new Pointer<Float32Array>();
+			treeBuffers[i] = new Pointer<AudioBuffer>();
 		}
 
 		bufferConfigs = BufferType.createAllConfigs();
@@ -53,10 +54,10 @@ class BufferCache {
 		}
 	}
 
-	public static function getTreeBuffer(treeLevel: Int, length: Int): Null<Float32Array> {
+	public static function getTreeBuffer(treeLevel: Int, numChannels: Int, channelLength: Int): Null<AudioBuffer> {
 		var p_buffer = treeBuffers[treeLevel];
 
-		if (!getBuffer(TFloat32Array, p_buffer, length)) {
+		if (!getBuffer(TAudioBuffer, p_buffer, numChannels, channelLength)) {
 			// Unexpected allocation message is already printed
 			trace('  treeLevel: $treeLevel');
 			return null;
@@ -66,12 +67,14 @@ class BufferCache {
 	}
 
 	@:generic
-	public static function getBuffer<T>(bufferType: BufferType, p_buffer: PointerType<T>, length: Int): Bool {
+	public static function getBuffer<T>(bufferType: BufferType, p_buffer: PointerType<T>, numChannels: Int, channelLength): Bool {
 		final bufferCfg = bufferConfigs.get(bufferType);
 
 		var buffer = p_buffer.get();
+		final currentNumChannels = (buffer == null) ? 0 : bufferCfg.getNumChannels(buffer);
+		final currentChannelLength = (buffer == null) ? 0 : bufferCfg.getChannelLength(buffer);
 
-		if (buffer != null && bufferCfg.getLength(buffer) >= length) {
+		if (buffer != null && currentNumChannels >= numChannels && currentChannelLength >= channelLength) {
 			// Buffer is already big enough
 			return true;
 		}
@@ -85,34 +88,33 @@ class BufferCache {
 			// we skip this "frame" instead (see [1] for reference).
 
 			trace("Unexpected allocation request in audio thread.");
-			final haveMsg = (buffer == null) ? 'no buffer' : '${bufferCfg.getLength(buffer)}';
-			trace('  wanted length: $length (have: $haveMsg)');
+			final haveMsgNumC = (buffer == null) ? 'no buffer' : '${currentNumChannels}';
+			final haveMsgen = (buffer == null) ? 'no buffer' : '${currentChannelLength}';
+			trace('  wanted amount of channels: $numChannels (have: $haveMsgNumC)');
+			trace('  wanted channel length: $channelLength (have: $haveMsgen)');
 
 			lastAllocationTimer = 0;
 			kha.audio2.Audio.disableGcInteractions = false;
 			return false;
 		}
 
-		// If the buffer exists but is too small, overallocate by factor 2
-		// to avoid too many allocations, eventually the buffer will be big
-		// enough for the required amount of samples. If the buffer does not
+		// If the buffer exists but too few samples fit in, overallocate by
+		// factor 2 to avoid too many allocations. Eventually the buffer will be
+		// big enough for the required amount of samples. If the buffer does not
 		// exist yet, do not overallocate to prevent too high memory usage
 		// (the requested length should not change much).
-		buffer = cast bufferCfg.construct(buffer == null ? length : length * 2);
+		buffer = cast bufferCfg.construct(numChannels, buffer == null ? channelLength : channelLength * 2);
 		p_buffer.set(buffer);
 		lastAllocationTimer = 0;
 		return true;
 	}
 }
 
+@:structInit
 class BufferConfig {
-	public var construct: Int->Any;
-	public var getLength: Any->Int;
-
-	public function new(construct: Int->Any, getLength: Any->Int) {
-		this.construct = construct;
-		this.getLength = getLength;
-	}
+	public var construct: Int->Int->Any;
+	public var getNumChannels: Any->Int;
+	public var getChannelLength: Any->Int;
 }
 
 /**
@@ -120,6 +122,8 @@ class BufferConfig {
 	with the generic `BufferCache.getBuffer()`.
 **/
 enum abstract BufferType(Int) {
+	/** Represents `aura.types.AudioBuffer`. **/
+	var TAudioBuffer;
 	/** Represents `kha.arrays.Float32Array`. **/
 	var TFloat32Array;
 	/** Represents `Array<Float>`. **/
@@ -129,32 +133,52 @@ enum abstract BufferType(Int) {
 
 	public static function createAllConfigs(): Map<BufferType, BufferConfig> {
 		final out = new Map<BufferType, BufferConfig>();
-		out[TFloat32Array] = new BufferConfig(
-			(length: Int) -> {
-				return new Float32Array(length);
+		out[TAudioBuffer] = ({
+			construct: (numChannels: Int, channelLength: Int) -> {
+				return new AudioBuffer(numChannels, channelLength);
 			},
-			(buffer: Any) -> {
+			getNumChannels: (buffer: Any) -> {
+				return (cast buffer: AudioBuffer).numChannels;
+			},
+			getChannelLength: (buffer: Any) -> {
+				return (cast buffer: AudioBuffer).channelLength;
+			}
+		}: BufferConfig);
+		out[TFloat32Array] = ({
+			construct: (numChannels: Int, channelLength: Int) -> {
+				return new Float32Array(channelLength);
+			},
+			getNumChannels: (buffer: Any) -> {
+				return 1;
+			},
+			getChannelLength: (buffer: Any) -> {
 				return (cast buffer: Float32Array).length;
 			}
-		);
-		out[TArrayFloat] = new BufferConfig(
-			(length: Int) -> {
+		}: BufferConfig);
+		out[TArrayFloat] = ({
+			construct: (numChannels: Int, channelLength: Int) -> {
 				final v = new Array<Float>();
-				v.resize(length);
+				v.resize(channelLength);
 				return v;
 			},
-			(buffer: Any) -> {
+			getNumChannels: (buffer: Any) -> {
+				return 1;
+			},
+			getChannelLength: (buffer: Any) -> {
 				return (cast buffer: Array<Float>).length;
 			}
-		);
-		out[TArrayComplex] = new BufferConfig(
-			(length: Int) -> {
-				return new ComplexArray(length);
+		}: BufferConfig);
+		out[TArrayComplex] = ({
+			construct: (numChannels: Int, channelLength: Int) -> {
+				return new ComplexArray(channelLength);
 			},
-			(buffer: Any) -> {
+			getNumChannels: (buffer: Any) -> {
+				return 1;
+			},
+			getChannelLength: (buffer: Any) -> {
 				return (cast buffer: ComplexArray).length;
 			}
-		);
+		}: BufferConfig);
 		return out;
 	}
 }

@@ -1,14 +1,18 @@
 package aura.channels;
 
+import aura.utils.Pointer;
 import kha.arrays.Float32Array;
 
+import aura.threading.BufferCache;
 import aura.threading.Message;
+import aura.types.AudioBuffer;
 
 /**
 	Wrapper around `kha.audio2.StreamChannel` (for now).
 **/
 class StreamChannel extends BaseChannel {
 	final khaChannel: kha.audio2.StreamChannel;
+	final p_khaBuffer = new Pointer<Float32Array>(null);
 
 	public function new(khaChannel: kha.audio2.StreamChannel) {
 		this.khaChannel = khaChannel;
@@ -33,8 +37,15 @@ class StreamChannel extends BaseChannel {
 		khaChannel.stop();
 	}
 
-	function nextSamples(requestedSamples: Float32Array, requestedLength: Int, sampleRate: Hertz) {
-		khaChannel.nextSamples(requestedSamples, requestedLength, sampleRate);
+	function nextSamples(requestedSamples: AudioBuffer, requestedLength: Int, sampleRate: Hertz) {
+		if (!BufferCache.getBuffer(TFloat32Array, p_khaBuffer, 1, requestedSamples.numChannels * requestedSamples.channelLength)) {
+			requestedSamples.clear();
+			return;
+		}
+		final khaBuffer = p_khaBuffer.get();
+
+		khaChannel.nextSamples(khaBuffer, requestedLength, sampleRate);
+		requestedSamples.deinterleaveFromFloat32Array(khaBuffer, requestedSamples.numChannels);
 	}
 
 	override function parseMessage(message: ChannelMessage) {

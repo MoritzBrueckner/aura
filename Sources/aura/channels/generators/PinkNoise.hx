@@ -2,8 +2,7 @@ package aura.channels.generators;
 
 import haxe.ds.Vector;
 
-import kha.arrays.Float32Array;
-
+import aura.types.AudioBuffer;
 import aura.utils.BufferUtils;
 
 /**
@@ -39,23 +38,25 @@ class PinkNoise extends BaseGenerator {
 		return new Handle(new PinkNoise());
 	}
 
-	function nextSamples(requestedSamples: Float32Array, requestedLength: Int, sampleRate: Hertz) {
-		var c = 0;
-		for (i in 0...requestedLength) {
-			final white = Math.random() * 2 - 1;
+	function nextSamples(requestedSamples: AudioBuffer, requestedLength: Int, sampleRate: Hertz) {
+		for (c in 0...requestedSamples.numChannels) {
+			final channelView = requestedSamples.getChannelView(c);
 
-			// Paul Kellet's refined method from
-			// https://www.firstpr.com.au/dsp/pink-noise/
-			b0[c] = 0.99886 * b0[c] + white * 0.0555179;
-			b1[c] = 0.99332 * b1[c] + white * 0.0750759;
-			b2[c] = 0.96900 * b2[c] + white * 0.1538520;
-			b3[c] = 0.86650 * b3[c] + white * 0.3104856;
-			b4[c] = 0.55000 * b4[c] + white * 0.5329522;
-			b5[c] = -0.7616 * b5[c] - white * 0.0168980;
-			requestedSamples[i] = b0[c] + b1[c] + b2[c] + b3[c] + b4[c] + b5[c] + b6[c] + white * 0.5362;
-			requestedSamples[i] *= 0.11;
-			b6[c] = white * 0.115926;
-			c = 1 - c;
+			for (i in 0...requestedSamples.channelLength) {
+				final white = Math.random() * 2 - 1;
+
+				// Paul Kellet's refined method from
+				// https://www.firstpr.com.au/dsp/pink-noise/
+				b0[c] = 0.99886 * b0[c] + white * 0.0555179;
+				b1[c] = 0.99332 * b1[c] + white * 0.0750759;
+				b2[c] = 0.96900 * b2[c] + white * 0.1538520;
+				b3[c] = 0.86650 * b3[c] + white * 0.3104856;
+				b4[c] = 0.55000 * b4[c] + white * 0.5329522;
+				b5[c] = -0.7616 * b5[c] - white * 0.0168980;
+				channelView[i] = b0[c] + b1[c] + b2[c] + b3[c] + b4[c] + b5[c] + b6[c] + white * 0.5362;
+				channelView[i] *= 0.11;
+				b6[c] = white * 0.115926;
+			}
 		}
 
 		processInserts(requestedSamples, requestedLength);

@@ -5,6 +5,7 @@
 
 package aura;
 
+import aura.channels.AudioChannel;
 import haxe.Exception;
 import haxe.ds.Vector;
 
@@ -20,15 +21,15 @@ import aura.channels.ResamplingAudioChannel;
 import aura.channels.StreamChannel;
 import aura.format.mhr.MHRReader;
 import aura.threading.BufferCache;
+import aura.types.AudioBuffer;
 import aura.types.HRTF;
 import aura.utils.Assert;
 import aura.utils.BufferUtils.clearBuffer;
 import aura.utils.MathUtils;
+import aura.utils.Pointer;
 
 @:access(aura.MixChannelHandle)
 class Aura {
-	static inline var BLOCK_SIZE = 1024;
-
 	public static var options(default, null): Null<AuraOptions> = null;
 
 	public static var sampleRate(default, null): Int;
@@ -38,7 +39,12 @@ class Aura {
 
 	public static final mixChannels = new Map<String, MixChannelHandle>();
 	public static var masterChannel(default, null): MixChannelHandle;
-	static var blockBuffer = new Float32Array(BLOCK_SIZE);
+
+	static inline var BLOCK_SIZE = 1024;
+	static inline var NUM_OUTPUT_CHANNELS = 2;
+	static inline var BLOCK_CHANNEL_SIZE = Std.int(BLOCK_SIZE / NUM_OUTPUT_CHANNELS);
+	static var p_samplesBuffer = new Pointer<Float32Array>(null);
+	static var blockBuffer = new AudioBuffer(NUM_OUTPUT_CHANNELS, BLOCK_CHANNEL_SIZE);
 	static var blockBufPos = 0;
 
 	static final hrtfs = new Map<String, HRTF>();
@@ -277,12 +283,14 @@ class Aura {
 	static function audioCallback(samplesBox: kha.internal.IntBox, buffer: kha.audio2.Buffer): Void {
 		Time.update();
 
-		final samples = samplesBox.value;
-		Aura.lastBufferSize = samples;
-		final sampleCache = BufferCache.getTreeBuffer(0, samples);
+		final samplesRequested = samplesBox.value;
+		Aura.lastBufferSize = samplesRequested;
+
+		BufferCache.getBuffer(TFloat32Array, p_samplesBuffer, 1, samplesRequested);
+		final sampleCache = p_samplesBuffer.get();
 
 		if (sampleCache == null) {
-			for (i in 0...samples) {
+			for (i in 0...samplesRequested) {
 				buffer.data.set(buffer.writeLocation, 0);
 				buffer.writeLocation += 1;
 				if (buffer.writeLocation >= buffer.size) {
@@ -297,40 +305,38 @@ class Aura {
 		var master: MixChannel = masterChannel.getMixChannel();
 		master.synchronize();
 
-		clearBuffer(sampleCache, samples);
+		clearBuffer(sampleCache, samplesRequested);
 
 		if (master != null) {
 			var samplesWritten = 0;
 
 			// The last block still has some values to read from
 			if (blockBufPos != 0) {
-				final offset = blockBufPos;
-				for (i in 0...minI(samples, BLOCK_SIZE - blockBufPos)) {
-					sampleCache[i] = blockBuffer[offset + i];
-					samplesWritten++;
-					blockBufPos++;
-				}
+				final samplesToWrite = minI(samplesRequested, BLOCK_SIZE - blockBufPos);
+				blockBuffer.interleaveToFloat32Array(sampleCache, Std.int(blockBufPos / NUM_OUTPUT_CHANNELS), 0, Std.int(samplesToWrite / NUM_OUTPUT_CHANNELS));
+				samplesWritten += samplesToWrite;
+				blockBufPos += samplesToWrite;
+
 				if (blockBufPos >= BLOCK_SIZE) {
 					blockBufPos = 0;
 				}
 			}
 
-			while (samplesWritten < samples) {
-				master.nextSamples(blockBuffer, BLOCK_SIZE, buffer.samplesPerSecond);
+			while (samplesWritten < samplesRequested) {
+				master.nextSamples(blockBuffer, BLOCK_CHANNEL_SIZE, buffer.samplesPerSecond);
 
-				final offset = samplesWritten;
-				for (i in 0...minI(samples - samplesWritten, BLOCK_SIZE)) {
-					sampleCache[offset + i] = blockBuffer[i];
-					samplesWritten++;
-					blockBufPos++;
-				}
+				final samplesStillWritable = minI(samplesRequested - samplesWritten, BLOCK_SIZE);
+				blockBuffer.interleaveToFloat32Array(sampleCache, 0, samplesWritten, Std.int(samplesStillWritable / NUM_OUTPUT_CHANNELS));
+				samplesWritten += samplesStillWritable;
+				blockBufPos += samplesStillWritable;
+
 				if (blockBufPos >= BLOCK_SIZE) {
 					blockBufPos = 0;
 				}
 			}
 		}
 
-		for (i in 0...samples) {
+		for (i in 0...samplesRequested) {
 			// Write clamped samples to final buffer
 			buffer.data.set(buffer.writeLocation, maxF(minF(sampleCache[i], 1.0), -1.0));
 			buffer.writeLocation += 1;

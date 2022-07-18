@@ -3,9 +3,8 @@ package aura.dsp;
 import aura.utils.BufferUtils.createEmptyVecF;
 import haxe.ds.Vector;
 
-import kha.arrays.Float32Array;
-
 import aura.Types;
+import aura.types.AudioBuffer;
 import aura.utils.FrequencyUtils;
 import aura.utils.MathUtils;
 
@@ -22,9 +21,7 @@ class Filter extends DSP {
 	public var filterMode: FilterMode;
 
 	final buf: Vector<Vector<Float>>;
-	var stepSize: Int = 1;
-	var off: Bool = false;
-	var cutoff: Vector<Float>;
+	final cutoff: Vector<Float>;
 
 	public function new(filterMode: FilterMode) {
 		this.filterMode = filterMode;
@@ -37,23 +34,23 @@ class Filter extends DSP {
 		cutoff[0] = cutoff[1] = 1.0;
 	}
 
-	public function process(buffer: Float32Array, bufferLength: Int) {
-		if (off) { return; }
+	public function process(buffer: AudioBuffer, bufferLength: Int) {
+		for (c in 0...buffer.numChannels) {
+			if (cutoff[c] == 1.0) { continue; }
 
-		final start = (stepSize == 2 && cutoff[0] == 1.0) ? 1 : 0;
-		for (i in (start...bufferLength).step(stepSize)) {
-			// Channel index, buffer is interleaved
-			final c = i % 2;
+			final channelView = buffer.getChannelView(c);
 
-			// http://www.martin-finke.de/blog/articles/audio-plugins-013-filter/
-			buf[c][0] += cutoff[c] * (buffer[i] - buf[c][0]);
-			buf[c][1] += cutoff[c] * (buf[c][0] - buf[c][1]);
+			for (i in 0...buffer.channelLength) {
+				// http://www.martin-finke.de/blog/articles/audio-plugins-013-filter/
+				buf[c][0] += cutoff[c] * (channelView[i] - buf[c][0]);
+				buf[c][1] += cutoff[c] * (buf[c][0] - buf[c][1]);
 
-			// TODO: Move the switch out of the loop, even if that means duplicate code?
-			buffer[i] = switch (filterMode) {
-				case LowPass: buf[c][1];
-				case HighPass: buffer[i] - buf[c][0];
-				case BandPass: buf[c][0] - buf[c][1];
+				// TODO: Move the switch out of the loop, even if that means duplicate code?
+				channelView[i] = switch (filterMode) {
+					case LowPass: buf[c][1];
+					case HighPass: channelView[i] - buf[c][0];
+					case BandPass: buf[c][0] - buf[c][1];
+				}
 			}
 		}
 	}
@@ -67,10 +64,6 @@ class Filter extends DSP {
 		final c = frequencyToFactor(clampI(cutoffFreq, 0, maxFreq), maxFreq);
 		if (channels.matches(Channels.Left)) { cutoff[0] = c; }
 		if (channels.matches(Channels.Right)) { cutoff[1] = c; }
-
-		// Optimize process() callback if one or both channels are not affected
-		stepSize = (cutoff[0] == 1.0 || cutoff[1] == 1.0) ? 2 : 1;
-		off = cutoff[0] == 1.0 && cutoff[1] == 1.0;
 	}
 
 	/**

@@ -11,6 +11,7 @@ import kha.arrays.Float32Array;
 import kha.js.MobileWebAudioChannel;
 
 import aura.threading.Message;
+import aura.types.AudioBuffer;
 
 /**
 	Channel dedicated for streaming playback on html5.
@@ -124,7 +125,7 @@ class Html5StreamChannel extends BaseChannel {
 		finished = true;
 	}
 
-	function nextSamples(requestedSamples: Float32Array, requestedLength: Int, sampleRate: Hertz) {}
+	function nextSamples(requestedSamples: AudioBuffer, requestedLength: Int, sampleRate: Hertz) {}
 
 	override function parseMessage(message: ChannelMessage) {
 		switch (message.id) {
@@ -174,7 +175,7 @@ class Html5MobileStreamChannel extends BaseChannel {
 		finished = true;
 	}
 
-	function nextSamples(requestedSamples: Float32Array, requestedLength: Int, sampleRate: Hertz) {}
+	function nextSamples(requestedSamples: AudioBuffer, requestedLength: Int, sampleRate: Hertz) {}
 
 	override function parseMessage(message: ChannelMessage) {
 		switch (message.id) {

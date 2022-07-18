@@ -2,9 +2,8 @@ package aura.dsp;
 
 import haxe.ds.Vector;
 
-import kha.arrays.Float32Array;
-
 import aura.threading.Message.DSPMessage;
+import aura.types.AudioBuffer;
 import aura.utils.CircularBuffer;
 
 class DelayLine extends DSP {
@@ -35,15 +34,17 @@ class DelayLine extends DSP {
 		}
 	}
 
-	function process(buffer: Float32Array, bufferLength: Int) {
-		for (c in 0...NUM_CHANNELS) {
-			if (delayBufs[c].delay == 0) continue;
+	function process(buffer: AudioBuffer, bufferLength: Int) {
+		for (c in 0...buffer.numChannels) {
+			final delayBuf = delayBufs[c];
+			if (delayBuf.delay == 0) continue;
 
-			final deinterleavedLength = Std.int(bufferLength / NUM_CHANNELS);
-			for (i in 0...deinterleavedLength) {
-				delayBufs[c].set(buffer[i * NUM_CHANNELS + c]);
-				buffer[i * NUM_CHANNELS + c] = delayBufs[c].get();
-				delayBufs[c].increment();
+			final channelView = buffer.getChannelView(c);
+
+			for (i in 0...buffer.channelLength) {
+				delayBuf.set(channelView[i]);
+				channelView[i] = delayBuf.get();
+				delayBuf.increment();
 			}
 		}
 	}

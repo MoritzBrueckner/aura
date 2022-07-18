@@ -1,10 +1,9 @@
 package aura.channels;
 
-import kha.arrays.Float32Array;
-
 import aura.dsp.DSP;
 import aura.threading.Fifo;
 import aura.threading.Message;
+import aura.types.AudioBuffer;
 import aura.utils.Interpolator.LinearInterpolator;
 
 /**
@@ -29,7 +28,7 @@ abstract class BaseChannel {
 	var paused: Bool = false;
 	var finished: Bool = true;
 
-	abstract function nextSamples(requestedSamples: Float32Array, requestedLength: Int, sampleRate: Hertz): Void;
+	abstract function nextSamples(requestedSamples: AudioBuffer, requestedLength: Int, sampleRate: Hertz): Void;
 
 	public abstract function play(retrigger: Bool): Void;
 	public abstract function pause(): Void;
@@ -43,7 +42,7 @@ abstract class BaseChannel {
 		this.treeLevel = level;
 	}
 
-	inline function processInserts(buffer: Float32Array, bufferLength: Int) {
+	inline function processInserts(buffer: AudioBuffer, bufferLength: Int) {
 		for (insert in inserts) {
 			if (insert.bypass) { continue; }
 			insert.process(buffer, bufferLength);

@@ -6,6 +6,7 @@ import kha.arrays.Float32Array;
 
 import aura.math.FFT;
 import aura.threading.Message.DSPMessage;
+import aura.types.AudioBuffer;
 import aura.types.ComplexArray;
 import aura.types.SwapBuffer;
 import aura.utils.BufferUtils;
@@ -107,49 +108,53 @@ class FFTConvolver extends DSP {
 		overlapLength[channel] = impulseLength - 1;
 	}
 
-	public function process(buffer: Float32Array, bufferLength: Int) {
-		for (c in 0...NUM_CHANNELS) {
-			if (overlapLength[c] == 0) return;
+	public function process(buffer: AudioBuffer, bufferLength: Int) {
+		// TODO
+		assert(Critical, buffer.numChannels == NUM_CHANNELS);
+
+		for (c in 0...buffer.numChannels) {
+			if (overlapLength[c] <= 0) return;
 		}
-		final deinterleavedLength = Std.int(bufferLength / NUM_CHANNELS);
 
 		// Ensure correct boundaries
-		final isMultiple = (deinterleavedLength % CHUNK_SIZE) == 0 || (CHUNK_SIZE % deinterleavedLength) == 0;
-		assert(Debug, isMultiple, "deinterleavedLength must be a multiple of CHUNK_SIZE or vice versa");
+		final isMultiple = (buffer.channelLength % CHUNK_SIZE) == 0 || (CHUNK_SIZE % buffer.channelLength) == 0;
+		assert(Debug, isMultiple, "channelLength must be a multiple of CHUNK_SIZE or vice versa");
 
-		var numSegments: Int; // Segments per deinterleaved frame
+		var numSegments: Int; // Segments per channel frame
 		var segmentSize: Int;
-		if (CHUNK_SIZE < deinterleavedLength) {
-			numSegments = Std.int(deinterleavedLength / CHUNK_SIZE);
+		if (CHUNK_SIZE < buffer.channelLength) {
+			numSegments = Std.int(buffer.channelLength / CHUNK_SIZE);
 			segmentSize = CHUNK_SIZE;
 		}
 		else {
-			// TODO: accumulate samples if deinterleavedLength < CHUNK_SIZE,
+			// TODO: accumulate samples if buffer.channelLength < CHUNK_SIZE,
 			//  then delay output
 			numSegments = 1;
-			segmentSize = deinterleavedLength;
+			segmentSize = buffer.channelLength;
 		}
 
 		final signalInput = signalFFT.getInput(0);
 		final signalOutput = signalFFT.getOutput(0);
 
-		for (c in 0...NUM_CHANNELS) {
+		for (c in 0...buffer.numChannels) {
+			final channelView = buffer.getChannelView(c);
 			final impulseFreqs = impulseFFT.getOutput(c);
 
 			for (s in 0...numSegments) {
-				final segmentOffset = NUM_CHANNELS * s * segmentSize;
+				final segmentOffset = s * segmentSize;
 
+				// Copy to FFT input buffer and apply padding
 				for (i in 0...segmentSize) {
-					// Deinterleave and copy to FFT input buffer
-					signalInput[i] = buffer[segmentOffset + i * NUM_CHANNELS + c];
+					signalInput[i] = channelView[segmentOffset + i];
 				}
 				for (i in segmentSize...FFT_SIZE) {
-					signalInput[i] = 0;
+					signalInput[i] = 0.0;
 				}
 
 				signalFFT.forwardFFT(0, 0);
 
 				// The actual convolution takes place here
+				// TODO: SIMD
 				for (i in 0...FFT_SIZE) {
 					signalOutput[i] *= impulseFreqs[i];
 				}
@@ -159,12 +164,12 @@ class FFTConvolver extends DSP {
 
 				// Copy to output
 				for (i in 0...CHUNK_SIZE) {
-					buffer[segmentOffset + i * NUM_CHANNELS + c] = signalInput[i];
+					channelView[segmentOffset + i] = signalInput[i];
 				}
 
 				// Handle overlapping
 				for (i in 0...lastOverlapLength[c]) {
-					buffer[segmentOffset + i * NUM_CHANNELS + c] += overlapLast[c][i];
+					channelView[segmentOffset + i] += overlapLast[c][i];
 				}
 				for (i in 0...overlapLength[c]) {
 					overlapLast[c][i] = signalInput[CHUNK_SIZE + i];

@@ -1,11 +1,13 @@
 // =============================================================================
-// See https://github.com/Kode/Kha/blob/master/Sources/kha/audio2/ResamplingAudioChannel.hx
+// Roughly based on
+// https://github.com/Kode/Kha/blob/master/Sources/kha/audio2/ResamplingAudioChannel.hx
 // =============================================================================
 
 package aura.channels;
 
 import kha.arrays.Float32Array;
 
+import aura.types.AudioBuffer;
 import aura.utils.MathUtils;
 import aura.utils.Interpolator.LinearInterpolator;
 import aura.threading.Message;
@@ -21,112 +23,120 @@ class ResamplingAudioChannel extends AudioChannel {
 		this.sampleRate = sampleRate;
 	};
 
-	override function nextSamples(requestedSamples: Float32Array, requestedLength: Int, sampleRate: Hertz): Void {
-		final lerpTime = Std.int(requestedLength / 2); // Stereo, 2 samples per frame
-		final stepBalance = pBalance.getLerpStepSize(lerpTime);
-		final stepDopplerRatio = pDopplerRatio.getLerpStepSize(lerpTime);
-		final stepDstAttenuation = pDstAttenuation.getLerpStepSize(lerpTime);
-		final stepPitch = pPitch.getLerpStepSize(lerpTime);
-		final stepVol = pVolume.getLerpStepSize(lerpTime);
+	override function nextSamples(requestedSamples: AudioBuffer, requestedLength: Int, sampleRate: Hertz): Void {
+		assert(Critical, requestedSamples.numChannels == data.numChannels);
 
-		var requestedSamplesIndex = 0;
-		while (requestedSamplesIndex < requestedLength) {
-			var isLeft = true;
+		final stepBalance = pBalance.getLerpStepSize(requestedSamples.channelLength);
+		final stepDopplerRatio = pDopplerRatio.getLerpStepSize(requestedSamples.channelLength);
+		final stepDstAttenuation = pDstAttenuation.getLerpStepSize(requestedSamples.channelLength);
+		final stepPitch = pPitch.getLerpStepSize(requestedSamples.channelLength);
+		final stepVol = pVolume.getLerpStepSize(requestedSamples.channelLength);
 
-			for (_ in 0...minI(sampleLength(sampleRate) - playbackPosition, requestedLength - requestedSamplesIndex)) {
-				// Make sure that we store the actual float position
-				floatPosition += pPitch.currentValue * pDopplerRatio.currentValue;
+		final resampleLength = getResampleLength(sampleRate);
 
-				var sampledVal: Float = sampleFloatPos(floatPosition, isLeft, sampleRate);
+		var samplesWritten = 0;
+		// As long as there are more samples requested
+		while (samplesWritten < requestedLength) {
+			final initialFloatPosition = floatPosition;
 
-				final balance: Balance = pBalance.currentValue;
-				final b = (isLeft) ? ~balance : balance;
-				// https://sites.uci.edu/computermusic/2013/03/29/constant-power-panning-using-square-root-of-intensity/
-				sampledVal *= Math.sqrt(b); // 3dB increase in center position, TODO: make configurable (0, 3, 6 dB)?
-				// sampledVal *= minF(1.0, b * 2);
+			// Check how many samples we can actually write
+			final samplesToWrite = minI(resampleLength - playbackPosition, requestedSamples.channelLength - samplesWritten);
+			for (c in 0...requestedSamples.numChannels) {
+				final outChannelView = requestedSamples.getChannelView(c);
 
-				requestedSamples[requestedSamplesIndex++] = sampledVal * pVolume.currentValue * pDstAttenuation.currentValue;
+				// Reset interpolators for channel
+				pBalance.currentValue = pBalance.lastValue;
+				pDopplerRatio.currentValue = pDopplerRatio.lastValue;
+				pDstAttenuation.currentValue = pDstAttenuation.lastValue;
+				pPitch.currentValue = pPitch.lastValue;
+				pVolume.currentValue = pVolume.lastValue;
 
-				if (!isLeft) {
+				floatPosition = initialFloatPosition;
+
+				for (i in 0...samplesToWrite) {
+					floatPosition += pPitch.currentValue * pDopplerRatio.currentValue;
+
+					var sampledVal: Float = sampleFloatPos(floatPosition, c, sampleRate);
+
+					final balance: Balance = pBalance.currentValue;
+					final b = (c == 0) ? ~balance : (
+						c == 1 ? balance : 1.0
+					);
+					// https://sites.uci.edu/computermusic/2013/03/29/constant-power-panning-using-square-root-of-intensity/
+					sampledVal *= Math.sqrt(b); // 3dB increase in center position, TODO: make configurable (0, 3, 6 dB)?
+
+					outChannelView[samplesWritten + i] = sampledVal * pVolume.currentValue * pDstAttenuation.currentValue;
+
 					pBalance.currentValue += stepBalance;
 					pDopplerRatio.currentValue += stepDopplerRatio;
 					pDstAttenuation.currentValue += stepDstAttenuation;
 					pPitch.currentValue += stepPitch;
 					pVolume.currentValue += stepVol;
-				}
 
-				isLeft = !isLeft;
-			}
-
-			if (floatPosition >= sampleLength(sampleRate)) {
-				playbackPosition = 0;
-				floatPosition = floatPosition % 1; // Keep fraction
-				if (!looping) {
-					finished = true;
-					break;
+					if (floatPosition >= resampleLength) {
+						trace("Reset", floatPosition, resampleLength, playbackPosition, samplesWritten, requestedSamples.channelLength);
+						if (looping) {
+							while (floatPosition >= resampleLength) {
+								playbackPosition -= resampleLength;
+								floatPosition -= resampleLength; // Keep fraction
+							}
+						}
+						else {
+							stop();
+							break;
+						}
+					}
+					else {
+						playbackPosition = Std.int(floatPosition);
+					}
 				}
 			}
-			else {
-				playbackPosition = Std.int(floatPosition);
-			}
+			samplesWritten += samplesToWrite;
 		}
 
-		while (requestedSamplesIndex < requestedLength) {
-			requestedSamples[requestedSamplesIndex++] = 0;
+		// Fill further requested samples with zeroes
+		for (c in 0...requestedSamples.numChannels) {
+			final channelView = requestedSamples.getChannelView(c);
+			for (i in samplesWritten...requestedSamples.channelLength) {
+				channelView[i] = 0;
+			}
 		}
-
-		processInserts(requestedSamples, requestedLength);
 
 		pBalance.updateLast();
 		pDopplerRatio.updateLast();
 		pDstAttenuation.updateLast();
 		pPitch.updateLast();
 		pVolume.updateLast();
+
+		processInserts(requestedSamples, requestedLength);
 	}
 
-	inline function sampleFloatPos(position: Float, even: Bool, sampleRate: Hertz): Float {
-		// Like super.sample(), just with position: Float for correct
-		// interpolation of float positions for pitch shifting
+	inline function sampleFloatPos(position: Float, channel: Int, sampleRate: Hertz): Float {
+		// Like super.sample(), just with floating point position
 
-		// Also replaced 'even' to correct the stereo output (buffer is interleaved)
-		// var even = position % 2 == 0;
+		assert(Critical, position >= 0.0);
 
 		final factor = this.sampleRate / sampleRate;
-
-		position = Std.int(position / 2);
 		final pos = factor * position;
-		var pos1 = Math.floor(pos);
-		var pos2 = Math.floor(pos + 1);
-		pos1 *= 2;
-		pos2 *= 2;
 
-		var minimum: Int;
-		var maximum: Int;
+		final channelView = data.getChannelView(channel);
 
-		if (even) {
-			minimum = 0;
-			maximum = data.length - 1;
-			maximum = maximum % 2 == 0 ? maximum : maximum - 1;
-		}
-		else {
-			pos1 += 1;
-			pos2 += 1;
+		final maxPos = data.channelLength - 1;
+		final pos1 = Math.floor(pos);
+		final pos2 = pos1 + 1;
 
-			minimum = 1;
-			maximum = data.length - 1;
-			maximum = maximum % 2 != 0 ? maximum : maximum - 1;
-		}
+		final value1 = (pos1 > maxPos) ? channelView[maxPos] : channelView[pos1];
+		final value2 = (pos2 > maxPos) ? channelView[maxPos] : channelView[pos2];
 
-		var a = (pos1 < minimum || pos1 > maximum) ? 0 : data[pos1];
-		var b = (pos2 < minimum || pos2 > maximum) ? 0 : data[pos2];
-		a = (pos1 > maximum) ? data[maximum] : a;
-		b = (pos2 > maximum) ? data[maximum] : b;
-		return lerp(a, b, pos - Math.floor(pos));
+		return lerp(value1, value2, pos - Math.floor(pos));
 	}
 
-	inline function sampleLength(sampleRate: Int): Int {
-		final value = Math.ceil(data.length * (sampleRate / this.sampleRate));
-		return value % 2 == 0 ? value : value + 1;
+	/**
+		Calculate how many samples are required for a channel of the current
+		data after resampling it to the `targetSampleRate`.
+	**/
+	inline function getResampleLength(targetSampleRate: Hertz): Int {
+		return Math.ceil(data.channelLength * (targetSampleRate / this.sampleRate));
 	}
 
 	override public function play(retrigger: Bool) {

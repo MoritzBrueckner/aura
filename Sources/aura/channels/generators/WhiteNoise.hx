@@ -1,6 +1,6 @@
 package aura.channels.generators;
 
-import kha.arrays.Float32Array;
+import aura.types.AudioBuffer;
 
 /**
 	Random signal with a constant power spectral density.
@@ -16,9 +16,9 @@ class WhiteNoise extends BaseGenerator {
 		return new Handle(new WhiteNoise());
 	}
 
-	function nextSamples(requestedSamples: Float32Array, requestedLength: Int, sampleRate: Hertz) {
-		for (i in 0...requestedLength) {
-			requestedSamples[i] = Math.random() * 2 - 1;
+	function nextSamples(requestedSamples: AudioBuffer, requestedLength: Int, sampleRate: Hertz) {
+		for (i in 0...requestedSamples.rawData.length) {
+			requestedSamples.rawData[i] = Math.random() * 2 - 1;
 		}
 
 		processInserts(requestedSamples, requestedLength);

@@ -1,7 +1,6 @@
 package aura.dsp;
 
-import kha.arrays.Float32Array;
-
+import aura.types.AudioBuffer;
 import aura.utils.CircularBuffer;
 import aura.utils.FrequencyUtils;
 
@@ -26,13 +25,16 @@ class HaasEffect extends DSP {
 		this.setDelay(delay);
 	}
 
-	public function process(buffer: Float32Array, bufferLength: Int) {
+	public function process(buffer: AudioBuffer, bufferLength: Int) {
 		if (diffSamples == 0) return;
 
-		for (i in 0...bufferLength) {
-			if (i % 2 == delayChannelIdx) {
-				delayBuff.set(buffer[i]);
-				buffer[i] = delayBuff.get();
+		for (c in 0...buffer.numChannels) {
+			if (c != delayChannelIdx) { continue; }
+
+			final channelView = buffer.getChannelView(c);
+			for (i in 0...buffer.channelLength) {
+				delayBuff.set(channelView[i]);
+				channelView[i] = delayBuff.get();
 				delayBuff.increment();
 			}
 		}

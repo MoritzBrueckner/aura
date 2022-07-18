@@ -6,11 +6,10 @@ import haxe.ds.Vector;
 import sys.thread.Mutex;
 #end
 
-import kha.arrays.Float32Array;
-
 import aura.utils.BufferUtils.clearBuffer;
 import aura.threading.BufferCache;
 import aura.threading.Message;
+import aura.types.AudioBuffer;
 
 /**
 	A channel that mixes together the output of multiple input channels.
@@ -127,16 +126,16 @@ class MixChannel extends BaseChannel {
 		super.synchronize();
 	}
 
-	function nextSamples(requestedSamples: Float32Array, requestedLength: Int, sampleRate: Hertz): Void {
+	function nextSamples(requestedSamples: AudioBuffer, requestedLength: Int, sampleRate: Hertz): Void {
 		// No input channel added yet, skip useless computations
 		if (inputChannelsCopy == null) {
-			clearBuffer(requestedSamples, requestedLength);
+			requestedSamples.clear();
 			return;
 		}
 
-		final inputBuffer = BufferCache.getTreeBuffer(treeLevel + 1, requestedLength);
+		final inputBuffer = BufferCache.getTreeBuffer(treeLevel, requestedSamples.numChannels, requestedSamples.channelLength);
 		if (inputBuffer == null) {
-			clearBuffer(requestedSamples, requestedLength);
+			requestedSamples.clear();
 			return;
 		}
 
@@ -151,16 +150,16 @@ class MixChannel extends BaseChannel {
 			if (first) {
 				// To prevent feedback loops, the input buffer has to be cleared
 				// before all inputs are added to it. To not waste calculations,
-				// we do not use clearBuffer() here but instead just override
+				// we do not clear the buffer here but instead just override
 				// the previous sample cache.
-				for (i in 0...requestedLength) {
-					requestedSamples[i] = inputBuffer[i];
+				for (i in 0...requestedSamples.rawData.length) {
+					requestedSamples.rawData[i] = inputBuffer.rawData[i];
 				}
 				first = false;
 			}
 			else {
-				for (i in 0...requestedLength) {
-					requestedSamples[i] += inputBuffer[i];
+				for (i in 0...requestedSamples.rawData.length) {
+					requestedSamples.rawData[i] += inputBuffer.rawData[i];
 				}
 			}
 		}
@@ -174,10 +173,15 @@ class MixChannel extends BaseChannel {
 		// }
 
 		// Apply volume of this channel
-		final stepVol = pVolume.getLerpStepSize(requestedLength);
-		for (i in 0...requestedLength) {
-			requestedSamples[i] *= pVolume.currentValue;
-			pVolume.currentValue += stepVol;
+		final stepVol = pVolume.getLerpStepSize(requestedSamples.channelLength);
+		for (c in 0...requestedSamples.numChannels) {
+			final channelView = requestedSamples.getChannelView(c);
+
+			for (i in 0...requestedSamples.channelLength) {
+				channelView[i] *= pVolume.currentValue;
+				pVolume.currentValue += stepVol;
+			}
+			pVolume.currentValue = pVolume.lastValue;
 		}
 
 		pVolume.updateLast();

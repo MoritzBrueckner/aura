@@ -2,8 +2,7 @@ package aura.channels.generators;
 
 import haxe.ds.Vector;
 
-import kha.arrays.Float32Array;
-
+import aura.types.AudioBuffer;
 import aura.utils.BufferUtils;
 
 /**
@@ -23,14 +22,16 @@ class BrownNoise extends BaseGenerator {
 		return new Handle(new BrownNoise());
 	}
 
-	function nextSamples(requestedSamples: Float32Array, requestedLength: Int, sampleRate: Hertz) {
-		var c = 0;
-		for (i in 0...requestedLength) {
-			final white = Math.random() * 2 - 1;
-			requestedSamples[i] = (last[c] + (0.02 * white)) / 1.02;
-			last[c] = requestedSamples[i];
-			requestedSamples[i] *= 3.5;
-			c = 1 - c;
+	function nextSamples(requestedSamples: AudioBuffer, requestedLength: Int, sampleRate: Hertz) {
+		for (c in 0...requestedSamples.numChannels) {
+			final channelView = requestedSamples.getChannelView(c);
+
+			for (i in 0...requestedSamples.channelLength) {
+				final white = Math.random() * 2 - 1;
+				channelView[i] = (last[c] + (0.02 * white)) / 1.02;
+				last[c] = channelView[i];
+				channelView[i] * 3.5;
+			}
 		}
 
 		processInserts(requestedSamples, requestedLength);
