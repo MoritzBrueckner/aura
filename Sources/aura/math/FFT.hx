@@ -116,7 +116,7 @@ class ComplexValuedFFT extends FFTBase {
 	@param size The size of the FFT. Must be a power of 2.
 **/
 inline function fft(inTimes: ComplexArray, outFreqs: ComplexArray, size: Int) {
-	ditfft2(inTimes, 0, outFreqs, 0, size, 1, false);
+	ditfft2Iterative(inTimes, outFreqs, size, false);
 }
 
 /**
@@ -129,7 +129,7 @@ inline function fft(inTimes: ComplexArray, outFreqs: ComplexArray, size: Int) {
 	@param scale If true, scale output values by `1 / size`.
 **/
 inline function ifft(inFreqs: ComplexArray, outTimes: ComplexArray, size: Int, scale = true) {
-	ditfft2(inFreqs, 0, outTimes, 0, size, 1, true);
+	ditfft2Iterative(inFreqs, outTimes, size, true);
 	if (scale) {
 		for (i in 0...size) {
 			outTimes[i] = outTimes[i].scale(1 / size);
