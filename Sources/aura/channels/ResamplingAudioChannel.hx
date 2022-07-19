@@ -74,7 +74,6 @@ class ResamplingAudioChannel extends AudioChannel {
 					pVolume.currentValue += stepVol;
 
 					if (floatPosition >= resampleLength) {
-						trace("Reset", floatPosition, resampleLength, playbackPosition, samplesWritten, requestedSamples.channelLength);
 						if (looping) {
 							while (floatPosition >= resampleLength) {
 								playbackPosition -= resampleLength;
