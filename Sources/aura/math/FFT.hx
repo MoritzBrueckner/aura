@@ -6,6 +6,7 @@ import kha.arrays.Float32Array;
 
 import aura.types.Complex;
 import aura.types.ComplexArray;
+import aura.utils.BufferUtils;
 import aura.utils.MathUtils;
 
 enum abstract FFTInputType(Int) {
@@ -21,7 +22,8 @@ enum abstract FFTInputType(Int) {
 	Each instance of this class can have multiple input and output buffers whose
 	indices have to be passed to the respective FFT functions. It is more
 	efficient to use multiple buffers for different FFT calculations with the
-	same size instead of multiple instances of this class.
+	same size instead of multiple instances of this class. The input buffers
+	are guaranteed to be zero-initialized.
 
 	Make sure to not use objects of this class in different threads at the same
 	time since `FFTBase` is not thread safe!
@@ -62,7 +64,7 @@ class RealValuedFFT extends FFTBase {
 
 		inputBuffers = new Vector(numInputs);
 		for (i in 0...numInputs) {
-			inputBuffers[i] = new Float32Array(size);
+			inputBuffers[i] = createEmptyF32Array(size);
 		}
 
 		tmpInputBufferHalf = new ComplexArray(halfSize);

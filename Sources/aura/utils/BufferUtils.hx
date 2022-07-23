@@ -54,3 +54,9 @@ inline function createEmptyVecF(length: Int): Vector<Float> {
 		return vec;
 	#end
 }
+
+inline function createEmptyF32Array(length: Int): Float32Array {
+	final out = new Float32Array(length);
+	clearBuffer(out);
+	return out;
+}
