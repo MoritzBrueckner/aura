@@ -54,7 +54,14 @@ enum Angle {
 }
 
 #if cpp
-	typedef AtomicInt = cpp.AtomicInt;
+	@:forward
+	@:forwardStatics
+	abstract AtomicInt(cpp.AtomicInt) from Int to Int {
+		public inline function toPtr(): cpp.Pointer<cpp.AtomicInt> {
+			final val: cpp.AtomicInt = this; // For some reason, this line is required for correct codegen...
+			return cpp.Pointer.addressOf(val);
+		}
+	}
 #else
 	typedef AtomicInt = Int;
 #end

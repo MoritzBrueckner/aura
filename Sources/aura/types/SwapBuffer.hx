@@ -47,7 +47,7 @@ class SwapBuffer {
 	public inline function beginRead() {
 		curReadRowIdx = latestWriteRow;
 		#if cpp
-			readerCount[curReadRowIdx] = AtomicInt.atomicInc(cpp.Pointer.addressOf(readerCount[curReadRowIdx]));
+			readerCount[curReadRowIdx] = AtomicInt.atomicInc(readerCount[curReadRowIdx].toPtr());
 		#else
 			readerCount[curReadRowIdx]++;
 		#end
@@ -55,7 +55,7 @@ class SwapBuffer {
 
 	public inline function endRead() {
 		#if cpp
-			readerCount[curReadRowIdx] = AtomicInt.atomicDec(cpp.Pointer.addressOf(readerCount[curReadRowIdx]));
+			readerCount[curReadRowIdx] = AtomicInt.atomicDec(readerCount[curReadRowIdx].toPtr());
 		#else
 			readerCount[curReadRowIdx]--;
 		#end
