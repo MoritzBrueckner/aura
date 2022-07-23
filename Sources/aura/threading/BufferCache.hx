@@ -36,7 +36,7 @@ class BufferCache {
 	**/
 	static var treeBuffers: Vector<Pointer<AudioBuffer>>;
 
-	static var bufferConfigs: Map<BufferType, BufferConfig>;
+	static var bufferConfigs: Vector<BufferConfig>;
 
 	public static inline function init() {
 		treeBuffers = new Vector(MAX_TREE_HEIGHT);
@@ -68,7 +68,7 @@ class BufferCache {
 
 	@:generic
 	public static function getBuffer<T>(bufferType: BufferType, p_buffer: PointerType<T>, numChannels: Int, channelLength): Bool {
-		final bufferCfg = bufferConfigs.get(bufferType);
+		final bufferCfg = bufferConfigs[bufferType];
 
 		var buffer = p_buffer.get();
 		final currentNumChannels = (buffer == null) ? 0 : bufferCfg.getNumChannels(buffer);
@@ -121,7 +121,7 @@ class BufferConfig {
 	Type-unsafe workaround for covariance and unification issues when working
 	with the generic `BufferCache.getBuffer()`.
 **/
-enum abstract BufferType(Int) {
+enum abstract BufferType(Int) to Int {
 	/** Represents `aura.types.AudioBuffer`. **/
 	var TAudioBuffer;
 	/** Represents `kha.arrays.Float32Array`. **/
@@ -131,8 +131,10 @@ enum abstract BufferType(Int) {
 	/** Represents `Array<dsp.Complex>`. **/
 	var TArrayComplex;
 
-	public static function createAllConfigs(): Map<BufferType, BufferConfig> {
-		final out = new Map<BufferType, BufferConfig>();
+	private var enumSize;
+
+	public static function createAllConfigs(): Vector<BufferConfig> {
+		final out = new Vector<BufferConfig>(enumSize);
 		out[TAudioBuffer] = ({
 			construct: (numChannels: Int, channelLength: Int) -> {
 				return new AudioBuffer(numChannels, channelLength);
