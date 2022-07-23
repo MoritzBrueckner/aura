@@ -140,10 +140,12 @@ class MixChannel extends BaseChannel {
 		}
 
 		var first = true;
+		var foundPlayableInput = false;
 		for (channel in inputChannelsCopy) {
 			if (channel == null || !channel.isPlayable()) {
 				continue;
 			}
+			foundPlayableInput = true;
 
 			channel.nextSamples(inputBuffer, requestedLength, sampleRate);
 
@@ -163,14 +165,22 @@ class MixChannel extends BaseChannel {
 				}
 			}
 		}
+
 		// for (channel in internalStreamChannels) {
 		// 	if (channel == null || !channel.isPlayable())
 		// 		continue;
+		// 	foundPlayableInput = true;
 		// 	channel.nextSamples(inputBuffer, samples, buffer.samplesPerSecond);
 		// 	for (i in 0...samples) {
 		// 		sampleCacheAccumulated[i] += inputBuffer[i] * channel.volume;
 		// 	}
 		// }
+
+		if (!foundPlayableInput) {
+			// Didn't read from input channels, clear possible garbage values
+			requestedSamples.clear();
+			return;
+		}
 
 		// Apply volume of this channel
 		final stepVol = pVolume.getLerpStepSize(requestedSamples.channelLength);
