@@ -1,3 +1,7 @@
+const fs = require("fs");
+
+const optickPathKey = "AURA_OPTICK_PATH";
+
 // See https://github.com/Kode/Kha/wiki/Hashlink
 const hl_targets = ["windows-hl", "linux-hl", "osx-hl", "android-hl", "ios-hl"];
 
@@ -22,18 +26,38 @@ function addBackends(project) {
 	project.localLibraryPath = 'Libraries';
 }
 
-function main() {
+async function main() {
 	const project = new Project('aura');
 
 	project.addSources('Sources');
 
 	if (process.argv.indexOf("-aura-no-backend") == -1) {
 		addBackends(project);
-	} else {
+	}
+	else {
 		project.addDefine("AURA_NO_BACKEND");
+	}
+
+	const withOptick = optickPathKey in process.env;
+	if (withOptick) {
+		const optickPath = process.env[optickPathKey];
+
+		if (fs.existsSync(optickPath)) {
+			project.addDefine("AURA_WITH_OPTICK");
+
+			await project.addProject(optickPath);
+
+			// Unfortunately there is no metadata to include a specified header
+			// in the cpp file that calls a certain _inlined_ Haxe function, so
+			// instead we need to add it everywhere for now (bad workaround)...
+			project.addParameter("--macro addGlobalMetadata('aura', '@:headerCode(\"#include <optick.h>\")')");
+		}
+		else {
+			console.warn(`Aura: Path ${optickPath} does not exist, building without Optick support.`);
+		}
 	}
 
 	resolve(project);
 }
 
-main();
+await main();

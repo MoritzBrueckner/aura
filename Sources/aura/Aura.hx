@@ -26,6 +26,7 @@ import aura.types.HRTF;
 import aura.utils.Assert;
 import aura.utils.BufferUtils.clearBuffer;
 import aura.utils.MathUtils;
+import aura.utils.Profiler;
 import aura.utils.Pointer;
 
 @:access(aura.MixChannelHandle)
@@ -89,6 +90,10 @@ class Aura {
 				return ContinueTask;
 			}, 0, 1/60);
 		#end
+
+		kha.System.notifyOnApplicationState(null, null, null, null, () -> {
+			Profiler.shutdown();
+		});
 	}
 
 	public static function loadAssets(loadConfig: AuraLoadConfig, done: Void->Void, ?failed: Void->Void) {
@@ -281,6 +286,8 @@ class Aura {
 		@param buffer The buffer into which to write the output samples.
 	**/
 	static function audioCallback(samplesBox: kha.internal.IntBox, buffer: kha.audio2.Buffer): Void {
+		Profiler.frame("AudioCallback");
+
 		Time.update();
 
 		final samplesRequested = samplesBox.value;

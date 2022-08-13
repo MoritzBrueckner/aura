@@ -10,6 +10,7 @@ import kha.arrays.Float32Array;
 import aura.types.AudioBuffer;
 import aura.utils.MathUtils;
 import aura.utils.Interpolator.LinearInterpolator;
+import aura.utils.Profiler;
 import aura.threading.Message;
 
 class ResamplingAudioChannel extends AudioChannel {
@@ -24,6 +25,8 @@ class ResamplingAudioChannel extends AudioChannel {
 	};
 
 	override function nextSamples(requestedSamples: AudioBuffer, requestedLength: Int, sampleRate: Hertz): Void {
+		Profiler.event();
+
 		assert(Critical, requestedSamples.numChannels == data.numChannels);
 
 		final stepBalance = pBalance.getLerpStepSize(requestedSamples.channelLength);

@@ -6,10 +6,10 @@ import haxe.ds.Vector;
 import sys.thread.Mutex;
 #end
 
-import aura.utils.BufferUtils.clearBuffer;
 import aura.threading.BufferCache;
 import aura.threading.Message;
 import aura.types.AudioBuffer;
+import aura.utils.Profiler;
 
 /**
 	A channel that mixes together the output of multiple input channels.
@@ -127,6 +127,8 @@ class MixChannel extends BaseChannel {
 	}
 
 	function nextSamples(requestedSamples: AudioBuffer, requestedLength: Int, sampleRate: Hertz): Void {
+		Profiler.event();
+
 		// No input channel added yet, skip useless computations
 		if (inputChannelsCopy == null) {
 			requestedSamples.clear();

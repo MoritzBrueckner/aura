@@ -11,6 +11,7 @@ import aura.types.ComplexArray;
 import aura.types.SwapBuffer;
 import aura.utils.BufferUtils;
 import aura.utils.MathUtils;
+import aura.utils.Profiler;
 
 /**
 	Calculates the 1D linear convolution of the input with another buffer called
@@ -109,6 +110,8 @@ class FFTConvolver extends DSP {
 	}
 
 	public function process(buffer: AudioBuffer, bufferLength: Int) {
+		Profiler.event();
+
 		// TODO
 		assert(Critical, buffer.numChannels == NUM_CHANNELS);
 
