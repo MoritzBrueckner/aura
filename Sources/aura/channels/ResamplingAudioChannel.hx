@@ -56,8 +56,6 @@ class ResamplingAudioChannel extends AudioChannel {
 				floatPosition = initialFloatPosition;
 
 				for (i in 0...samplesToWrite) {
-					floatPosition += pPitch.currentValue * pDopplerRatio.currentValue;
-
 					var sampledVal: Float = sampleFloatPos(floatPosition, c, sampleRate);
 
 					final balance: Balance = pBalance.currentValue;
@@ -68,6 +66,8 @@ class ResamplingAudioChannel extends AudioChannel {
 					sampledVal *= Math.sqrt(b); // 3dB increase in center position, TODO: make configurable (0, 3, 6 dB)?
 
 					outChannelView[samplesWritten + i] = sampledVal * pVolume.currentValue * pDstAttenuation.currentValue;
+
+					floatPosition += pPitch.currentValue * pDopplerRatio.currentValue;
 
 					pBalance.currentValue += stepBalance;
 					pDopplerRatio.currentValue += stepDopplerRatio;
