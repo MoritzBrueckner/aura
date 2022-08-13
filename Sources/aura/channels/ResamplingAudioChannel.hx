@@ -35,12 +35,14 @@ class ResamplingAudioChannel extends AudioChannel {
 		final resampleLength = getResampleLength(sampleRate);
 
 		var samplesWritten = 0;
-		// As long as there are more samples requested
-		while (samplesWritten < requestedLength) {
+		var reachedEndOfData = false;
+		// As long as there are more samples requested and there is data left
+		while (samplesWritten < requestedLength && !reachedEndOfData) {
 			final initialFloatPosition = floatPosition;
 
 			// Check how many samples we can actually write
 			final samplesToWrite = minI(resampleLength - playbackPosition, requestedSamples.channelLength - samplesWritten);
+
 			for (c in 0...requestedSamples.numChannels) {
 				final outChannelView = requestedSamples.getChannelView(c);
 
@@ -82,6 +84,7 @@ class ResamplingAudioChannel extends AudioChannel {
 						}
 						else {
 							stop();
+							reachedEndOfData = true;
 							break;
 						}
 					}
