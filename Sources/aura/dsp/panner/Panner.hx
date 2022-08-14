@@ -99,11 +99,17 @@ abstract class Panner {
 		final listener = Aura.listener;
 		var dopplerRatio: FastFloat = 1.0;
 		if (dopplerFactor != 0.0 && (listener.velocity.length != 0 || this.velocity.length != 0)) {
-			final dist = this.location.sub(listener.location);
-			final vr = listener.velocity.dot(dist) / dist.length;
-			final vs = this.velocity.dot(dist) / dist.length;
+			final soundSpeed = SPEED_OF_SOUND * Time.delta; // meters per frame
+			final speedBound = soundSpeed - 0.0001; // epsilon to prevent division by zero
 
-			final soundSpeed = SPEED_OF_SOUND * Time.delta;
+			final displacementToSource = this.location.sub(listener.location);
+			final dist = displacementToSource.length;
+
+			// Calculate radial velocity, clamp at speed of sound to prevent
+			// negative frequencies
+			final vr = clampF(listener.velocity.dot(displacementToSource) / dist, -speedBound, speedBound);
+			final vs = clampF(this.velocity.dot(displacementToSource) / dist, -speedBound, speedBound);
+
 			dopplerRatio = (soundSpeed + vr) / (soundSpeed + vs);
 			dopplerRatio = Math.pow(dopplerRatio, dopplerFactor);
 		}
