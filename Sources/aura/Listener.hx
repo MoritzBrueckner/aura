@@ -12,6 +12,7 @@ class Listener {
 
 	var lastLocation: Vec3;
 	var velocity: Vec3;
+	var initializedLocation = false;
 
 	public function new() {
 		this.location = new Vec3(0, 0, 0);
@@ -40,7 +41,13 @@ class Listener {
 		Set the listener's location (and its velocity based on that).
 	**/
 	public inline function setLocation(location: Vec3) {
-		this.velocity.setFrom(this.location.sub(this.lastLocation));
+		if (!initializedLocation) {
+			initializedLocation = true;
+		} else {
+			// Prevent jumps in the doppler effect caused by initial distance
+			// too far away from the origin
+			this.velocity.setFrom(this.location.sub(this.lastLocation));
+		}
 		this.lastLocation.setFrom(this.location);
 		this.location.setFrom(location);
 	}
@@ -58,6 +65,7 @@ class Listener {
 		default values.
 	**/
 	public inline function reset() {
+		initializedLocation = false;
 		this.location.setFrom(new Vec3(0, 0, 0));
 		this.lastLocation.setFrom(new Vec3(0, 0, 0));
 		this.velocity.setFrom(new Vec3(0, 0, 0));

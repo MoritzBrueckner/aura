@@ -24,6 +24,7 @@ abstract class Panner {
 	**/
 	var location: Vec3 = new Vec3(0, 0, 0);
 	var lastLocation: Vec3 = new Vec3(0, 0, 0);
+	var initializedLocation = false;
 
 	/**
 		The velocity of this audio source in world space.
@@ -69,7 +70,16 @@ abstract class Panner {
 		Set the location of this panner in world space.
 	**/
 	public inline function setLocation(location: Vec3) {
+		this.lastLocation.setFrom(this.location);
 		this.location = location;
+
+		if (!initializedLocation) {
+			initializedLocation = true;
+		} else {
+			// Prevent jumps in the doppler effect caused by initial distance
+			// too far away from the origin
+			this.velocity = this.location.sub(this.lastLocation);
+		}
 	}
 
 	function calculateAttenuation(dirToChannel: FastVector3) {
@@ -97,9 +107,6 @@ abstract class Panner {
 			dopplerRatio = (soundSpeed + vr) / (soundSpeed + vs);
 			dopplerRatio = Math.pow(dopplerRatio, dopplerFactor);
 		}
-
-		this.velocity = this.location.sub(this.lastLocation);
-		this.lastLocation.setFrom(this.location);
 
 		handle.channel.sendMessage({ id: PDopplerRatio, data: dopplerRatio });
 	}
