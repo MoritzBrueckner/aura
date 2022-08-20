@@ -6,7 +6,7 @@ package aura.threading;
 	threading `haxe.ds.List` is used instead.
 **/
 @:generic
-@:forward(push)
+@:forward(add)
 abstract Fifo<T>(FifoImpl<T>) {
 	public inline function new() {
 		this = new FifoImpl<T>();
@@ -21,7 +21,7 @@ abstract Fifo<T>(FifoImpl<T>) {
 	private typedef FifoImpl<T> = sys.thread.Deque<T>;
 #else
 	@:generic
-	@:forward(add, push)
+	@:forward(add)
 	private abstract FifoImpl<T>(List<T>) {
 		public inline function new() {
 			this = new List<T>();

@@ -31,6 +31,6 @@ abstract class DSP {
 	}
 
 	inline function sendMessage(message: DSPMessage) {
-		messages.push(message);
+		messages.add(message);
 	}
 }

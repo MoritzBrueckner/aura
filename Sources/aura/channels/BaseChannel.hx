@@ -90,7 +90,7 @@ abstract class BaseChannel {
 	}
 
 	inline function sendMessage(message: ChannelMessage) {
-		messages.push(message);
+		messages.add(message);
 	}
 }
 
