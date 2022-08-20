@@ -105,6 +105,12 @@ abstract class Panner {
 			final displacementToSource = this.location.sub(listener.location);
 			final dist = displacementToSource.length;
 
+			if (dist == 0) {
+				// We don't have any radial velocity here...
+				handle.channel.sendMessage({ id: PDopplerRatio, data: 1.0 });
+				return;
+			}
+
 			// Calculate radial velocity, clamp at speed of sound to prevent
 			// negative frequencies
 			final vr = clampF(listener.velocity.dot(displacementToSource) / dist, -speedBound, speedBound);
