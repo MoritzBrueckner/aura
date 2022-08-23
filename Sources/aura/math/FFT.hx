@@ -34,6 +34,8 @@ abstract class FFTBase {
 
 	public final outputBuffers: Vector<ComplexArray>;
 
+	final expRotationStepTable: ComplexArray;
+
 	public inline function new(size: Int, numOutputs: Int) {
 		this.size = size;
 		this.halfSize = size >>> 1;
@@ -41,6 +43,22 @@ abstract class FFTBase {
 		outputBuffers = new Vector(numOutputs);
 		for (i in 0...numOutputs) {
 			outputBuffers[i] = new ComplexArray(size);
+		}
+
+		// Since the calculations for the complex exponential inside a FFT are
+		// basically just a rotation around the unit circle with a constant step
+		// size that only depends on the layer size, we can precompute the
+		// complex rotation steps.
+		final numExpTableEntries = log2Unsigned(size);
+		expRotationStepTable = new ComplexArray(numExpTableEntries);
+
+		for (halfLayerIdx in 0...numExpTableEntries) {
+
+			final halfLayerSize = exp2(halfLayerIdx);
+
+			// (-2 * Math.PI) / layerSize == -Math.PI / halfLayerSize,
+			// so we store values corresponding to each possible halfLayer index
+			expRotationStepTable[halfLayerIdx] = Complex.exp(-Math.PI / halfLayerSize);
 		}
 	}
 
@@ -72,11 +90,11 @@ class RealValuedFFT extends FFTBase {
 	}
 
 	public inline function forwardFFT(inputBufferIndex: Int, outputBufferIndex: Int) {
-		realfft(inputBuffers[inputBufferIndex], outputBuffers[outputBufferIndex], tmpInputBufferHalf, tmpOutputBufferHalf, size);
+		realfft(inputBuffers[inputBufferIndex], outputBuffers[outputBufferIndex], tmpInputBufferHalf, tmpOutputBufferHalf, size, expRotationStepTable);
 	}
 
 	public inline function inverseFFT(inputBufferIndex: Int, outputBufferIndex: Int) {
-		realifft(outputBuffers[outputBufferIndex], inputBuffers[inputBufferIndex], tmpOutputBufferHalf, tmpInputBufferHalf, size);
+		realifft(outputBuffers[outputBufferIndex], inputBuffers[inputBufferIndex], tmpOutputBufferHalf, tmpInputBufferHalf, size, expRotationStepTable);
 	}
 
 	public inline function getInput(index: Int): Float32Array {
@@ -97,11 +115,11 @@ class ComplexValuedFFT extends FFTBase {
 	}
 
 	public inline function forwardFFT(inputBufferIndex: Int, outputBufferIndex: Int) {
-		fft(inputBuffers[inputBufferIndex], outputBuffers[outputBufferIndex], size);
+		fft(inputBuffers[inputBufferIndex], outputBuffers[outputBufferIndex], size, expRotationStepTable);
 	}
 
 	public inline function inverseFFT(inputBufferIndex: Int, outputBufferIndex: Int) {
-		ifft(outputBuffers[outputBufferIndex], inputBuffers[inputBufferIndex], size);
+		ifft(outputBuffers[outputBufferIndex], inputBuffers[inputBufferIndex], size, expRotationStepTable);
 	}
 
 	public inline function getInput(index: Int): ComplexArray {
@@ -117,8 +135,8 @@ class ComplexValuedFFT extends FFTBase {
 	@param outFreqs Output buffer in frequency domain. Must have length of `size`.
 	@param size The size of the FFT. Must be a power of 2.
 **/
-inline function fft(inTimes: ComplexArray, outFreqs: ComplexArray, size: Int) {
-	ditfft2Iterative(inTimes, outFreqs, size, false);
+inline function fft(inTimes: ComplexArray, outFreqs: ComplexArray, size: Int, expRotationStepTable: ComplexArray) {
+	ditfft2Iterative(inTimes, outFreqs, size, false, expRotationStepTable);
 }
 
 /**
@@ -130,8 +148,8 @@ inline function fft(inTimes: ComplexArray, outFreqs: ComplexArray, size: Int) {
 	@param size The size of both buffers. Must be a power of 2.
 	@param scale If true, scale output values by `1 / size`.
 **/
-inline function ifft(inFreqs: ComplexArray, outTimes: ComplexArray, size: Int, scale = true) {
-	ditfft2Iterative(inFreqs, outTimes, size, true);
+inline function ifft(inFreqs: ComplexArray, outTimes: ComplexArray, size: Int, expRotationStepTable: ComplexArray, scale = true) {
+	ditfft2Iterative(inFreqs, outTimes, size, true, expRotationStepTable);
 	if (scale) {
 		for (i in 0...size) {
 			outTimes[i] = outTimes[i].scale(1 / size);
@@ -149,7 +167,7 @@ inline function ifft(inFreqs: ComplexArray, outTimes: ComplexArray, size: Int, s
 	@param freqCmplxStore Temporary buffer. May contain any values and will contain garbage values afterwards. Must have length of `Std.int(size / 2)`.
 	@param size The size of the FFT. Must be a power of 2.
 **/
-inline function realfft(inTimes: Float32Array, outFreqs: ComplexArray, timeCmplxStore: ComplexArray, freqCmplxStore: ComplexArray, size: Int) {
+inline function realfft(inTimes: Float32Array, outFreqs: ComplexArray, timeCmplxStore: ComplexArray, freqCmplxStore: ComplexArray, size: Int, expRotationStepTable: ComplexArray) {
 	// Reference:
 	// Lyons, Richard G. (2011). Understanding Digital Signal Processing,
 	//     3rd edn. pp. 694–696 (Section 13.5.2: Performing a 2N-Point Real FFT)
@@ -164,7 +182,7 @@ inline function realfft(inTimes: Float32Array, outFreqs: ComplexArray, timeCmplx
 		timeCmplxStore[i] = new Complex(inTimes[2 * i], inTimes[2 * i + 1]);
 	}
 
-	fft(timeCmplxStore, freqCmplxStore, halfSize);
+	fft(timeCmplxStore, freqCmplxStore, halfSize, expRotationStepTable);
 
 	final piN = Math.PI / halfSize;
 
@@ -208,7 +226,7 @@ inline function realfft(inTimes: Float32Array, outFreqs: ComplexArray, timeCmplx
 	@param timeCmplxStore Temporary buffer. May contain any values and will contain garbage values afterwards. Must have length of `Std.int(size / 2)`.
 	@param size The size of the FFT. Must be a power of 2.
 **/
-inline function realifft(inFreqs: ComplexArray, outTimes: Float32Array, freqCmplxStore: ComplexArray, timeCmplxStore: ComplexArray, size: Int) {
+inline function realifft(inFreqs: ComplexArray, outTimes: Float32Array, freqCmplxStore: ComplexArray, timeCmplxStore: ComplexArray, size: Int, expRotationStepTable: ComplexArray) {
 	// Reference:
 	// Scheibler, Robin (2013). Real FFT Algorithms.
 	//     Available at: http://www.robinscheibler.org/2013/02/13/real-fft.html
@@ -231,7 +249,7 @@ inline function realifft(inFreqs: ComplexArray, outTimes: Float32Array, freqCmpl
 		freqCmplxStore[i] = xEven + xOdd.multWithI();
 	}
 
-	ifft(freqCmplxStore, timeCmplxStore, halfSize, false);
+	ifft(freqCmplxStore, timeCmplxStore, halfSize, expRotationStepTable, false);
 
 	final scale = 2 / size;
 	for (i in 0...halfSize) {
@@ -271,7 +289,7 @@ private function ditfft2(time: ComplexArray, t: Int, freq: ComplexArray, f: Int,
 }
 
 #if AURA_BACKEND_HL @:hlNative("aura_hl", "ditfft2_iterative") #end
-private function ditfft2Iterative(time: ComplexArray, freq: ComplexArray, n: Int, inverse: Bool) {
+private function ditfft2Iterative(time: ComplexArray, freq: ComplexArray, n: Int, inverse: Bool, expRotationStepTable: ComplexArray) {
 	// Decimate
 	final log2N = log2Unsigned(n);
 	for (i in 0...n) {
@@ -287,27 +305,35 @@ private function ditfft2Iterative(time: ComplexArray, freq: ComplexArray, n: Int
 	}
 
 	var layerSize = 2; // Size of the FFT for the current layer in the divide & conquer tree
+	var halfLayerIdx = 0;
 	while (layerSize <= n) { // Iterate over all layers beginning with the lowest
 		final halfLayerSize = layerSize >>> 1;
 
-		final tExp = ((inverse ? 1 : -1) * 2 * Math.PI) / layerSize;
+		final expRotationStep = expRotationStepTable[halfLayerIdx].copy();
+		if (inverse) {
+			expRotationStep.setFrom(expRotationStep.conj());
+		}
 
 		var sectionOffset = 0;
 		while (sectionOffset < n) {
+			final currentExpRotation = new Complex(1.0, 0.0);
 
 			for (i in 0...halfLayerSize) {
 				final even = freq[sectionOffset + i].copy();
 				final odd = freq[sectionOffset + i + halfLayerSize];
-				final twiddle = Complex.exp(tExp * i) * odd;
+				final twiddle = currentExpRotation * odd;
 
 				freq[sectionOffset + i]                 = even + twiddle;
 				freq[sectionOffset + i + halfLayerSize] = even - twiddle;
+
+				currentExpRotation.setFrom(currentExpRotation * expRotationStep);
 			}
 
 			sectionOffset += layerSize;
 		}
 
 		layerSize <<= 1;
+		halfLayerIdx++;
 	}
 }
 

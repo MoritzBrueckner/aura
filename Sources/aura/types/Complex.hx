@@ -42,6 +42,7 @@ abstract Complex(ComplexImpl) {
 	}
 
 	@:op(A + B)
+	@:commutative
 	public inline function add(other: Complex): Complex {
 		return new Complex(this.real + other.real, this.imag + other.imag);
 	}
@@ -61,7 +62,7 @@ abstract Complex(ComplexImpl) {
 	}
 
 	/**
-		Optimized version of `new Complex(0.0, 1.0) * this`.
+		Optimized version of `this * new Complex(0.0, 1.0)`.
 	**/
 	public inline function multWithI(): Complex {
 		return new Complex(-this.imag, this.real);

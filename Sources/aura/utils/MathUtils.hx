@@ -101,3 +101,8 @@ import aura.math.Vec3;
 
 	return res;
 }
+
+/** Calculates 2^n for a given unsigned integer `n`. **/
+@:pure inline function exp2(n: Int): Int {
+	return 1 << n;
+}
