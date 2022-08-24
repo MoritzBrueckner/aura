@@ -17,6 +17,7 @@ aura_complex_t aura_cexp(const float w);
 aura_complex_t aura_cadd(const aura_complex_t a, const aura_complex_t b);
 aura_complex_t aura_csub(const aura_complex_t a, const aura_complex_t b);
 aura_complex_t aura_cmult(const aura_complex_t a, const aura_complex_t b);
+aura_complex_t aura_cconj(const aura_complex_t val);
 
 #ifdef __cplusplus
 }

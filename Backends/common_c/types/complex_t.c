@@ -34,3 +34,8 @@ aura_complex_t aura_cmult(const aura_complex_t a, const aura_complex_t b) {
 	};
 	return out;
 }
+
+aura_complex_t aura_cconj(const aura_complex_t val) {
+	const aura_complex_t out = {.real = val.real, .imag = -val.imag};
+	return out;
+}

@@ -41,7 +41,7 @@ void aura_ditfft2(const aura_complex_t * times, int t, aura_complex_t * freqs, i
 	}
 }
 
-void aura_ditfft2_iterative(const aura_complex_t * times, aura_complex_t * freqs, int n, bool inverse) {
+void aura_ditfft2_iterative(const aura_complex_t * times, aura_complex_t * freqs, int n, bool inverse, const aura_complex_t * exp_lut) {
 	// Decimate
 	const uint32_t log2N = log2Unsigned(n);
 	for (uint32_t i = 0; i < ((uint32_t) n); i++) {
@@ -56,24 +56,34 @@ void aura_ditfft2_iterative(const aura_complex_t * times, aura_complex_t * freqs
 		}
 	}
 
+	int halfLayerIdx = 0;
 	for (int layerSize = 2; layerSize <= n; layerSize <<= 1) {
 		const int halfLayerSize = layerSize >> 1;
 
-		const float tExp = ((inverse ? 1.0f : -1.0f) * 2.0f * PI_FLOAT) / layerSize;
+		aura_complex_t expRotationStep;
+		aura_copy_complex(&expRotationStep, exp_lut[halfLayerIdx]);
+		if (inverse) {
+			expRotationStep = aura_cconj(expRotationStep);
+		}
 
 		for (int sectionOffset = 0; sectionOffset < n; sectionOffset += layerSize) {
+			aura_complex_t currentExpRotation = {.real = 1.0, .imag = 0.0};
+
 			for (int i = 0; i < halfLayerSize; i++) {
 				aura_complex_t even;
 				aura_complex_t odd;
 				aura_copy_complex(&even, freqs[sectionOffset + i]);
 				aura_copy_complex(&odd, freqs[sectionOffset + i + halfLayerSize]);
 
-				const aura_complex_t twiddle = aura_cmult(aura_cexp(tExp * i), odd);
+				const aura_complex_t twiddle = aura_cmult(currentExpRotation, odd);
 
 				aura_copy_complex(&(freqs[sectionOffset + i]), aura_cadd(even, twiddle));
 				aura_copy_complex(&(freqs[sectionOffset + i + halfLayerSize]), aura_csub(even, twiddle));
+
+				aura_copy_complex(&currentExpRotation, aura_cmult(currentExpRotation, expRotationStep));
 			}
 		}
+		halfLayerIdx++;
 	}
 }
 
