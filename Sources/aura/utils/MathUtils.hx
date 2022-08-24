@@ -95,8 +95,10 @@ import aura.math.Vec3;
 	// TODO: optimize? See https://graphics.stanford.edu/~seander/bithacks.html#IntegerLog
 	var res = 0;
 
-	while ((n >>>= 1) != 0) {
+	var tmp = n >>> 1; // Workaround for https://github.com/HaxeFoundation/haxe/issues/10783
+	while (tmp != 0) {
 		res++;
+		tmp >>>= 1;
 	}
 
 	return res;
