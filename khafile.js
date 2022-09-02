@@ -3,23 +3,23 @@ const fs = require("fs");
 const optickPathKey = "AURA_OPTICK_PATH";
 
 // See https://github.com/Kode/Kha/wiki/Hashlink
-const hl_targets = ["windows-hl", "linux-hl", "osx-hl", "android-hl", "ios-hl"];
+const targetsHL = ["windows-hl", "linux-hl", "osx-hl", "android-hl", "ios-hl"];
+const targetsCPP = ["windows", "linux", "osx"];
+const targetsHTML5 = ["html5", "debug-html5"];
 
 function addBackends(project) {
 	project.localLibraryPath = 'Backends';
 
-	let on_hl = false;
-	for (let hl_target of hl_targets) {
-		on_hl |= process.argv.indexOf(hl_target) >= 0;
-	}
-	if (on_hl) {
+	let isHL = targetsHL.indexOf(Project.platform) >= 0;
+
+	if (isHL) {
 		project.addLibrary("hl");
 		project.addDefine("AURA_BACKEND_HL");
 		console.log("[Aura] Using HL/C backend");
 	}
 
-	const on_html5 = process.argv.indexOf("html5") >= 0;
-	if (on_html5) {
+	const isHTML5 = targetsHTML5.indexOf(Project.platform) >= 0;
+	if (isHTML5) {
 		// project.addSources('backends/html5');
 	}
 
@@ -36,6 +36,11 @@ async function main() {
 	}
 	else {
 		project.addDefine("AURA_NO_BACKEND");
+	}
+
+	const isCPP = targetsCPP.indexOf(Project.platform) >= 0;
+	if (isCPP && process.argv.indexOf("--aura-no-simd") == -1) {
+		project.addDefine("AURA_SIMD");
 	}
 
 	const withOptick = optickPathKey in process.env;

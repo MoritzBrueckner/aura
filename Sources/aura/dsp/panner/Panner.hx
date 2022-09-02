@@ -6,7 +6,7 @@ import kha.math.FastVector3;
 import aura.math.Vec3;
 import aura.utils.MathUtils;
 
-abstract class Panner {
+abstract class Panner extends DSP {
 	static inline var REFERENCE_DST = 1.0;
 	static inline var SPEED_OF_SOUND = 343.4; // Air, m/s
 
@@ -31,18 +31,19 @@ abstract class Panner {
 	**/
 	var velocity: Vec3 = new Vec3(0, 0, 0);
 
-	public inline function new(handle: Handle) {
+	public function new(handle: Handle) {
+		this.inUse = true; // Don't allow using panners with addInsert()
 		this.handle = handle;
-		this.handle.panner = this;
+		this.handle.channel.panner = this;
 	}
 
 	public inline function setHandle(handle: Handle) {
 		if (this.handle != null) {
-			this.handle.panner = null;
+			this.handle.channel.panner = null;
 		}
 		reset3D();
 		this.handle = handle;
-		this.handle.panner = this;
+		this.handle.channel.panner = this;
 	}
 
 	/**

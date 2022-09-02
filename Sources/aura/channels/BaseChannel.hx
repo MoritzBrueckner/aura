@@ -1,6 +1,7 @@
 package aura.channels;
 
 import aura.dsp.DSP;
+import aura.dsp.panner.Panner;
 import aura.threading.Fifo;
 import aura.threading.Message;
 import aura.types.AudioBuffer;
@@ -12,14 +13,15 @@ import aura.utils.Interpolator.LinearInterpolator;
 @:allow(aura.Aura)
 @:access(aura.dsp.DSP)
 @:allow(aura.dsp.panner.Panner)
+@:access(aura.dsp.panner.Panner)
 abstract class BaseChannel {
 	final messages: Fifo<ChannelMessage> = new Fifo();
 
 	final inserts: Array<DSP> = [];
+	var panner: Null<Panner> = null;
 
 	// Parameters
 	final pVolume = new LinearInterpolator(1.0);
-	final pBalance = new LinearInterpolator(Balance.CENTER);
 	final pDopplerRatio = new LinearInterpolator(1.0);
 	final pDstAttenuation = new LinearInterpolator(1.0);
 
@@ -47,6 +49,10 @@ abstract class BaseChannel {
 			if (insert.bypass) { continue; }
 			insert.process(buffer, bufferLength);
 		}
+
+		if (panner != null) {
+			panner.process(buffer, bufferLength);
+		}
 	}
 
 	public inline function addInsert(insert: DSP): DSP {
@@ -72,6 +78,10 @@ abstract class BaseChannel {
 		for (insert in inserts) {
 			insert.synchronize();
 		}
+
+		if (panner != null) {
+			panner.synchronize();
+		}
 	}
 
 	function parseMessage(message: ChannelMessage) {
@@ -81,7 +91,6 @@ abstract class BaseChannel {
 			case Stop: stop();
 
 			case PVolume: pVolume.targetValue = cast message.data;
-			case PBalance: pBalance.targetValue = cast message.data;
 			case PDopplerRatio: pDopplerRatio.targetValue = cast message.data;
 			case PDstAttenuation: pDstAttenuation.targetValue = cast message.data;
 

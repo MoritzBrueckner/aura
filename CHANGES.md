@@ -5,6 +5,13 @@ versions. Non-breaking changes (e.g. new features) are _not_ listed here.
 
 _The dates below are given as **YYYY.MM.DD**._
 
+- **2022.09.03**:
+
+  Stereo panning was moved out of the `aura.Handle` class to be completely inside
+  the `auda.dsp.panner.StereoPanner` where it actually belongs. This lays the
+  groundwork for upcoming changes to the `StereoPanner` and potentially different
+  channel formats in the future.
+
 - **2022.07.18** ([`4386c3d`](https://github.com/MoritzBrueckner/aura/commit/4386c3dd6bcfe894016dc0c631c07881cbe7eba6)):
 
   `Aura.dsp.Filter.Channels` was replaced with the new `aura.Types.Channels`

@@ -2,6 +2,8 @@ package aura.dsp.panner;
 
 import kha.arrays.Float32Array;
 
+import aura.threading.Message.DSPMessageID;
+import aura.types.AudioBuffer;
 import aura.types.HRTF;
 import aura.utils.MathUtils;
 import aura.utils.Pointer;
@@ -25,8 +27,6 @@ class HRTFPanner extends Panner {
 		hrtfDelayLine = new DelayLine(Math.ceil(hrtf.maxDelayLength));
 		hrtfConvolver.bypass = true;
 		hrtfDelayLine.bypass = true;
-		handle.channel.addInsert(hrtfConvolver);
-		handle.channel.addInsert(hrtfDelayLine);
 
 		hrirPtrDelay = new Pointer<Int>();
 		hrirPtrImpulseLength = new Pointer<Int>();
@@ -82,8 +82,8 @@ class HRTFPanner extends Panner {
 
 			hrtfConvolver.bypass = false;
 			hrtfDelayLine.bypass = false;
-			hrtfConvolver.sendMessage({id: SwapBufferReady, data: [hrirLength, hrirOppLength]});
-			hrtfDelayLine.sendMessage({id: SetDelays, data: [hrirDelay, hrirOppDelay]});
+			hrtfConvolver.sendMessage({id: DSPMessageID.SwapBufferReady, data: [hrirLength, hrirOppLength]});
+			hrtfDelayLine.sendMessage({id: DSPMessageID.SetDelays, data: [hrirDelay, hrirOppDelay]});
 		}
 		else {
 			for (c in 0...hrtf.numChannels) {
@@ -102,5 +102,15 @@ class HRTFPanner extends Panner {
 		hrtfDelayLine.bypass = true;
 
 		super.reset3D();
+	}
+
+	function process(buffer: AudioBuffer, bufferLength: Int) {
+		if (!hrtfConvolver.bypass) {
+			hrtfConvolver.synchronize();
+			hrtfConvolver.process(buffer, buffer.channelLength);
+
+			hrtfDelayLine.synchronize();
+			hrtfDelayLine.process(buffer, buffer.channelLength);
+		}
 	}
 }

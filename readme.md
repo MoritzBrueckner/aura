@@ -131,16 +131,21 @@ project.addDefine("AURA_WITH_IRON");
 - 2D sound:
 
   ```haxe
+  import aura.dsp.panner.StereoPanner;
+
+  ...
+
   var mySoundHandle = Aura.createHandle(Play, mySound);
+  var panner = StereoPanner(mySoundHandle);
 
   // Some utility constants
-  mySoundHandle.setBalance(LEFT);
-  mySoundHandle.setBalance(CENTER); // Default
-  mySoundHandle.setBalance(RIGHT);
+  panner.setBalance(LEFT);
+  panner.setBalance(CENTER); // Default
+  panner.setBalance(RIGHT);
 
   // Set angle in degrees between -90 (left) and 90 (right)
   // You can also use Rad(value) for radians in [-pi/2, pi/2]
-  mySoundHandle.setBalance(Deg(30));
+  panner.setBalance(Deg(30));
   ```
 
 - 3D sound:

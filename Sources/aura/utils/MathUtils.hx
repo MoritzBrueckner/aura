@@ -34,14 +34,6 @@ import aura.math.Vec3;
 }
 
 /**
-	Returns the cosine of the angle between two vectors. Vectors must be normalized
-	for correct results.
-**/
-@:pure inline function getAngle(vecA: Vec3, vecB: Vec3): Float {
-	return vecA.dot(vecB);
-}
-
-/**
 	Calculate the counterclockwise angle of the rotation of `vecOther` relative
 	to `vecBase` around the rotation axis of `vecNormal`. All input vectors
 	*must* be normalized!
@@ -107,4 +99,12 @@ import aura.math.Vec3;
 /** Calculates 2^n for a given unsigned integer `n`. **/
 @:pure inline function exp2(n: Int): Int {
 	return 1 << n;
+}
+
+@:pure inline function div4(n: Int): Int {
+	return n >>> 2;
+}
+
+@:pure inline function mod4(n: Int): Int {
+	return n & 3;
 }

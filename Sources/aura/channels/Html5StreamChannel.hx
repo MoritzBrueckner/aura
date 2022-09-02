@@ -132,7 +132,6 @@ class Html5StreamChannel extends BaseChannel {
 			// Because we're using a HTML implementation here, we cannot use the
 			// LinearInterpolator parameters
 			case PVolume: audioElement.volume = cast message.data;
-			case PBalance:
 			case PPitch:
 			case PDopplerRatio:
 			case PDstAttenuation:
@@ -182,7 +181,6 @@ class Html5MobileStreamChannel extends BaseChannel {
 			// Because we're using a HTML implementation here, we cannot use the
 			// LinearInterpolator parameters
 			case PVolume: khaChannel.volume = cast message.data;
-			case PBalance:
 			case PPitch:
 			case PDopplerRatio:
 			case PDstAttenuation:

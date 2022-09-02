@@ -24,7 +24,8 @@ class Handle {
 	public var finished(get, never): Bool;
 	inline function get_finished(): Bool { return channel.finished; }
 
-	public var panner(default, null): Null<Panner> = null;
+	public var panner(get, null): Null<Panner>;
+	inline function get_panner(): Null<Panner> { return channel.panner; }
 
 	/**
 		Link to the audio channel in the audio thread.
@@ -33,7 +34,6 @@ class Handle {
 
 	// Parameter cache for getter functions
 	var _volume: Float = 1.0;
-	var _balance: Balance = Balance.CENTER;
 	var _pitch: Float = 1.0;
 
 	public inline function new(channel: BaseChannel) {
@@ -77,15 +77,6 @@ class Handle {
 
 	public inline function getVolume(): Float {
 		return this._volume;
-	}
-
-	public inline function setBalance(balance: Balance) {
-		channel.sendMessage({ id: PBalance, data: balance });
-		this._balance = balance;
-	}
-
-	public inline function getBalance(): Balance {
-		return this._balance;
 	}
 
 	public inline function setPitch(pitch: Float) {

@@ -24,7 +24,6 @@ class AudioChannel extends BaseChannel {
 	function nextSamples(requestedSamples: AudioBuffer, requestedLength: Int, sampleRate: Hertz): Void {
 		assert(Critical, requestedSamples.numChannels == data.numChannels);
 
-		final stepBalance = pBalance.getLerpStepSize(requestedSamples.channelLength);
 		final stepDopplerRatio = pDopplerRatio.getLerpStepSize(requestedSamples.channelLength);
 		final stepDstAttenuation = pDstAttenuation.getLerpStepSize(requestedSamples.channelLength);
 		final stepVol = pVolume.getLerpStepSize(requestedSamples.channelLength);
@@ -40,7 +39,6 @@ class AudioChannel extends BaseChannel {
 				final dataChannelView = data.getChannelView(c);
 
 				// Reset interpolators for channel
-				pBalance.currentValue = pBalance.lastValue;
 				pDopplerRatio.currentValue = pDopplerRatio.lastValue;
 				pDstAttenuation.currentValue = pDstAttenuation.lastValue;
 				pVolume.currentValue = pVolume.lastValue;
@@ -50,7 +48,6 @@ class AudioChannel extends BaseChannel {
 					outChannelView[samplesWritten + i] = value;
 
 					// TODO: SIMD
-					pBalance.currentValue += stepBalance;
 					pDopplerRatio.currentValue += stepDopplerRatio;
 					pDstAttenuation.currentValue += stepDstAttenuation;
 					pVolume.currentValue += stepVol;
@@ -76,7 +73,6 @@ class AudioChannel extends BaseChannel {
 			}
 		}
 
-		pBalance.updateLast();
 		pDopplerRatio.updateLast();
 		pDstAttenuation.updateLast();
 		pVolume.updateLast();

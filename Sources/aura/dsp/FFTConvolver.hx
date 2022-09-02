@@ -5,7 +5,7 @@ import haxe.ds.Vector;
 import kha.arrays.Float32Array;
 
 import aura.math.FFT;
-import aura.threading.Message.DSPMessage;
+import aura.threading.Message;
 import aura.types.AudioBuffer;
 import aura.types.ComplexArray;
 import aura.types.SwapBuffer;
@@ -183,7 +183,7 @@ class FFTConvolver extends DSP {
 	}
 
 	override function parseMessage(message: DSPMessage) {
-		switch (message.id) {
+		switch (message.id: DSPMessageID) {
 			case SwapBufferReady:
 				updateImpulseFromSwapBuffer(message.data);
 

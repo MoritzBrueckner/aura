@@ -29,7 +29,6 @@ class ResamplingAudioChannel extends AudioChannel {
 
 		assert(Critical, requestedSamples.numChannels == data.numChannels);
 
-		final stepBalance = pBalance.getLerpStepSize(requestedSamples.channelLength);
 		final stepDopplerRatio = pDopplerRatio.getLerpStepSize(requestedSamples.channelLength);
 		final stepDstAttenuation = pDstAttenuation.getLerpStepSize(requestedSamples.channelLength);
 		final stepPitch = pPitch.getLerpStepSize(requestedSamples.channelLength);
@@ -50,7 +49,6 @@ class ResamplingAudioChannel extends AudioChannel {
 				final outChannelView = requestedSamples.getChannelView(c);
 
 				// Reset interpolators for channel
-				pBalance.currentValue = pBalance.lastValue;
 				pDopplerRatio.currentValue = pDopplerRatio.lastValue;
 				pDstAttenuation.currentValue = pDstAttenuation.lastValue;
 				pPitch.currentValue = pPitch.lastValue;
@@ -61,18 +59,10 @@ class ResamplingAudioChannel extends AudioChannel {
 				for (i in 0...samplesToWrite) {
 					var sampledVal: Float = sampleFloatPos(floatPosition, c, sampleRate);
 
-					final balance: Balance = pBalance.currentValue;
-					final b = (c == 0) ? ~balance : (
-						c == 1 ? balance : 1.0
-					);
-					// https://sites.uci.edu/computermusic/2013/03/29/constant-power-panning-using-square-root-of-intensity/
-					sampledVal *= Math.sqrt(b); // 3dB increase in center position, TODO: make configurable (0, 3, 6 dB)?
-
 					outChannelView[samplesWritten + i] = sampledVal * pVolume.currentValue * pDstAttenuation.currentValue;
 
 					floatPosition += pPitch.currentValue * pDopplerRatio.currentValue;
 
-					pBalance.currentValue += stepBalance;
 					pDopplerRatio.currentValue += stepDopplerRatio;
 					pDstAttenuation.currentValue += stepDstAttenuation;
 					pPitch.currentValue += stepPitch;
@@ -107,7 +97,6 @@ class ResamplingAudioChannel extends AudioChannel {
 			}
 		}
 
-		pBalance.updateLast();
 		pDopplerRatio.updateLast();
 		pDstAttenuation.updateLast();
 		pPitch.updateLast();

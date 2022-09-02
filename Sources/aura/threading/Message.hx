@@ -14,7 +14,6 @@ enum abstract ChannelMessageID(Int) {
 
 	// Parameters
 	final PVolume;
-	final PBalance;
 	final PPitch;
 	final PDopplerRatio;
 	final PDstAttenuation;
@@ -23,15 +22,17 @@ enum abstract ChannelMessageID(Int) {
 @:struct
 @:structInit
 class DSPMessage {
-	public final id: DSPMessageID;
+	public final id: Int;
 	public final data: Any;
 }
 
-enum abstract DSPMessageID(Int) {
+enum abstract DSPMessageID(Int) from Int to Int {
 	final BypassEnable;
 	final BypassDisable;
 
 	final SwapBufferReady;
 
 	final SetDelays;
+
+	final _SubtypeOffset;
 }

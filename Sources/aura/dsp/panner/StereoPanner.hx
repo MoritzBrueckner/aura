@@ -1,14 +1,25 @@
 package aura.dsp.panner;
 
+import aura.threading.Message.DSPMessageID;
+import aura.threading.Message.DSPMessage;
+import aura.types.AudioBuffer;
+import aura.utils.Interpolator.LinearInterpolator;
 import aura.utils.MathUtils;
 
+using aura.utils.StepIterator;
+
 class StereoPanner extends Panner {
+	final pVolumeLeft = new LinearInterpolator(1.0);
+	final pVolumeRight = new LinearInterpolator(1.0);
+
+	var _balance = Balance.CENTER;
+
 	override public function update3D() {
 		final listener = Aura.listener;
 		final dirToChannel = this.location.sub(listener.location);
 
 		if (dirToChannel.length == 0) {
-			handle.setBalance(Balance.CENTER);
+			setBalance(Balance.CENTER);
 			handle.channel.sendMessage({ id: PDstAttenuation, data: 1.0 });
 			return;
 		}
@@ -21,7 +32,7 @@ class StereoPanner extends Panner {
 		final projectedChannelPos = projectPointOntoPlane(dirToChannel, up).normalized();
 
 		// Angle cosine
-		var angle = getAngle(listener.look, projectedChannelPos);
+		var angle = listener.look.dot(projectedChannelPos);
 
 		// The calculated angle cosine looks like this on the unit circle:
 		//   /  1  \
@@ -34,17 +45,85 @@ class StereoPanner extends Panner {
 
 		// The angle cosine doesn't contain side information, so if the sound is
 		// to the right of the listener, we must invert the angle
-		if (getAngle(listener.right, projectedChannelPos) > 0) {
+		if (listener.right.dot(projectedChannelPos) > 0) {
 			angle = 1 - angle;
 		}
-		handle.setBalance(angle);
+
+		setBalance(angle);
 
 		super.update3D();
 	}
 
 	override public function reset3D() {
-		handle.setBalance(Balance.CENTER);
+		setBalance(Balance.CENTER);
 
 		super.reset3D();
 	}
+
+	public inline function setBalance(balance: Balance) {
+		this._balance = balance;
+
+		sendMessage({ id: PVolumeLeft, data: Math.sqrt(~balance) });
+		sendMessage({ id: PVolumeRight, data: Math.sqrt(balance) });
+	}
+
+	public inline function getBalance(): Balance {
+		return this._balance;
+	}
+
+	function process(buffer: AudioBuffer, bufferLength: Int) {
+		assert(Critical, buffer.numChannels == 2, "A StereoPanner can only be applied to stereo channels");
+
+		final channelViewL = buffer.getChannelView(0);
+		final channelViewR = buffer.getChannelView(1);
+
+		final stepSizeL = pVolumeLeft.getLerpStepSize(buffer.channelLength);
+		final stepSizeR = pVolumeRight.getLerpStepSize(buffer.channelLength);
+
+		#if AURA_SIMD
+			final stepSizesL = pVolumeLeft.getLerpStepSizes32x4(buffer.channelLength);
+			final stepSizesR = pVolumeRight.getLerpStepSizes32x4(buffer.channelLength);
+
+			final lenRemainder = mod4(buffer.channelLength);
+			final startRemainder = buffer.channelLength - lenRemainder - 1;
+
+			for (i in (0...buffer.channelLength).step(4)) {
+				pVolumeLeft.applySIMD32x4(channelViewL, i, stepSizesL);
+				pVolumeRight.applySIMD32x4(channelViewR, i, stepSizesR);
+			}
+
+			for (i in startRemainder...lenRemainder) {
+				channelViewL[i] *= pVolumeLeft.currentValue;
+				channelViewR[i] *= pVolumeRight.currentValue;
+				pVolumeLeft.currentValue += stepSizeL;
+				pVolumeRight.currentValue += stepSizeR;
+			}
+		#else
+			for (i in 0...buffer.channelLength) {
+				channelViewL[i] *= pVolumeLeft.currentValue;
+				channelViewR[i] *= pVolumeRight.currentValue;
+				pVolumeLeft.currentValue += stepSizeL;
+				pVolumeRight.currentValue += stepSizeR;
+			}
+		#end
+
+		pVolumeLeft.updateLast();
+		pVolumeRight.updateLast();
+	}
+
+	override function parseMessage(message: DSPMessage) {
+		final id: StereoPannerMessageID = message.id;
+		switch (id) {
+			case PVolumeLeft: pVolumeLeft.targetValue = cast message.data;
+			case PVolumeRight: pVolumeRight.targetValue = cast message.data;
+
+			default:
+				super.parseMessage(message);
+		}
+	}
+}
+
+enum abstract StereoPannerMessageID(Int) from Int to Int {
+	final PVolumeLeft = DSPMessageID._SubtypeOffset;
+	final PVolumeRight;
 }

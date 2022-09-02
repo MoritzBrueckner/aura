@@ -2,7 +2,7 @@ package aura.dsp;
 
 import haxe.ds.Vector;
 
-import aura.threading.Message.DSPMessage;
+import aura.threading.Message;
 import aura.types.AudioBuffer;
 import aura.utils.CircularBuffer;
 
@@ -50,7 +50,7 @@ class DelayLine extends DSP {
 	}
 
 	override function parseMessage(message: DSPMessage) {
-		switch (message.id) {
+		switch (message.id: DSPMessageID) {
 			case SetDelays:
 				setDelays(message.data);
 

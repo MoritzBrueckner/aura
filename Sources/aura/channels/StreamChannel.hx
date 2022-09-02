@@ -53,7 +53,6 @@ class StreamChannel extends BaseChannel {
 			// Because we're using a Kha implementation here, we cannot use the
 			// LinearInterpolator parameters
 			case PVolume: khaChannel.volume = cast message.data;
-			case PBalance:
 			case PPitch:
 			case PDopplerRatio:
 			case PDstAttenuation:
