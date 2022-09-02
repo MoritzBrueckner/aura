@@ -5,7 +5,7 @@ targets to improve performance.
 
 The backends are enabled by default, but if you want to only use the generic
 Haxe sources (for performance comparisons e.g.), compile your Kha project with
-the command line flag `-aura-no-backend`.
+the command line flag `--aura-no-backend`.
 
 ## Folder Structure
 

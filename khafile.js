@@ -31,7 +31,7 @@ async function main() {
 
 	project.addSources('Sources');
 
-	if (process.argv.indexOf("-aura-no-backend") == -1) {
+	if (process.argv.indexOf("--aura-no-backend") == -1) {
 		addBackends(project);
 	}
 	else {
