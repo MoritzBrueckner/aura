@@ -5,7 +5,7 @@ versions. Non-breaking changes (e.g. new features) are _not_ listed here.
 
 _The dates below are given as **YYYY.MM.DD**._
 
-- **2022.09.03**:
+- **2022.09.03** ([`3feb4ee`](https://github.com/MoritzBrueckner/aura/commit/3feb4eec6f5c9e10a7bc305c91c47c2aa1d52e1e)):
 
   Stereo panning was moved out of the `aura.Handle` class to be completely inside
   the `auda.dsp.panner.StereoPanner` where it actually belongs. This lays the
