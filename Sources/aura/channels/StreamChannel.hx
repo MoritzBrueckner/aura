@@ -37,14 +37,14 @@ class StreamChannel extends BaseChannel {
 		khaChannel.stop();
 	}
 
-	function nextSamples(requestedSamples: AudioBuffer, requestedLength: Int, sampleRate: Hertz) {
+	function nextSamples(requestedSamples: AudioBuffer, sampleRate: Hertz) {
 		if (!BufferCache.getBuffer(TFloat32Array, p_khaBuffer, 1, requestedSamples.numChannels * requestedSamples.channelLength)) {
 			requestedSamples.clear();
 			return;
 		}
 		final khaBuffer = p_khaBuffer.get();
 
-		khaChannel.nextSamples(khaBuffer, requestedLength, sampleRate);
+		khaChannel.nextSamples(khaBuffer, requestedSamples.channelLength, sampleRate);
 		requestedSamples.deinterleaveFromFloat32Array(khaBuffer, requestedSamples.numChannels);
 	}
 

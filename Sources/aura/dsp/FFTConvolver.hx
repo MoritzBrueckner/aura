@@ -109,7 +109,7 @@ class FFTConvolver extends DSP {
 		overlapLength[channel] = impulseLength - 1;
 	}
 
-	public function process(buffer: AudioBuffer, bufferLength: Int) {
+	public function process(buffer: AudioBuffer) {
 		Profiler.event();
 
 		// TODO

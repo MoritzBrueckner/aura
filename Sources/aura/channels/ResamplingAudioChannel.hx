@@ -24,7 +24,7 @@ class ResamplingAudioChannel extends AudioChannel {
 		this.sampleRate = sampleRate;
 	};
 
-	override function nextSamples(requestedSamples: AudioBuffer, requestedLength: Int, sampleRate: Hertz): Void {
+	override function nextSamples(requestedSamples: AudioBuffer, sampleRate: Hertz): Void {
 		Profiler.event();
 
 		assert(Critical, requestedSamples.numChannels == data.numChannels);
@@ -39,7 +39,7 @@ class ResamplingAudioChannel extends AudioChannel {
 		var samplesWritten = 0;
 		var reachedEndOfData = false;
 		// As long as there are more samples requested and there is data left
-		while (samplesWritten < requestedLength && !reachedEndOfData) {
+		while (samplesWritten < requestedSamples.channelLength && !reachedEndOfData) {
 			final initialFloatPosition = floatPosition;
 
 			// Check how many samples we can actually write
@@ -102,7 +102,7 @@ class ResamplingAudioChannel extends AudioChannel {
 		pPitch.updateLast();
 		pVolume.updateLast();
 
-		processInserts(requestedSamples, requestedLength);
+		processInserts(requestedSamples);
 	}
 
 	inline function sampleFloatPos(position: Float, channel: Int, sampleRate: Hertz): Float {

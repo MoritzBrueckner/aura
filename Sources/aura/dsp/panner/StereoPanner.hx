@@ -71,7 +71,7 @@ class StereoPanner extends Panner {
 		return this._balance;
 	}
 
-	function process(buffer: AudioBuffer, bufferLength: Int) {
+	function process(buffer: AudioBuffer) {
 		assert(Critical, buffer.numChannels == 2, "A StereoPanner can only be applied to stereo channels");
 
 		final channelViewL = buffer.getChannelView(0);

@@ -25,7 +25,7 @@ class HaasEffect extends DSP {
 		this.setDelay(delay);
 	}
 
-	public function process(buffer: AudioBuffer, bufferLength: Int) {
+	public function process(buffer: AudioBuffer) {
 		if (diffSamples == 0) return;
 
 		for (c in 0...buffer.numChannels) {

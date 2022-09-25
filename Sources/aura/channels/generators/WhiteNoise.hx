@@ -16,11 +16,11 @@ class WhiteNoise extends BaseGenerator {
 		return new Handle(new WhiteNoise());
 	}
 
-	function nextSamples(requestedSamples: AudioBuffer, requestedLength: Int, sampleRate: Hertz) {
+	function nextSamples(requestedSamples: AudioBuffer, sampleRate: Hertz) {
 		for (i in 0...requestedSamples.rawData.length) {
 			requestedSamples.rawData[i] = Math.random() * 2 - 1;
 		}
 
-		processInserts(requestedSamples, requestedLength);
+		processInserts(requestedSamples);
 	}
 }

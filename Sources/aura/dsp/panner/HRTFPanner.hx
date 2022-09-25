@@ -104,13 +104,13 @@ class HRTFPanner extends Panner {
 		super.reset3D();
 	}
 
-	function process(buffer: AudioBuffer, bufferLength: Int) {
+	function process(buffer: AudioBuffer) {
 		if (!hrtfConvolver.bypass) {
 			hrtfConvolver.synchronize();
-			hrtfConvolver.process(buffer, buffer.channelLength);
+			hrtfConvolver.process(buffer);
 
 			hrtfDelayLine.synchronize();
-			hrtfDelayLine.process(buffer, buffer.channelLength);
+			hrtfDelayLine.process(buffer);
 		}
 	}
 }

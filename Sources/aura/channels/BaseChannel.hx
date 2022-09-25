@@ -30,7 +30,7 @@ abstract class BaseChannel {
 	var paused: Bool = false;
 	var finished: Bool = true;
 
-	abstract function nextSamples(requestedSamples: AudioBuffer, requestedLength: Int, sampleRate: Hertz): Void;
+	abstract function nextSamples(requestedSamples: AudioBuffer, sampleRate: Hertz): Void;
 
 	public abstract function play(retrigger: Bool): Void;
 	public abstract function pause(): Void;
@@ -44,14 +44,14 @@ abstract class BaseChannel {
 		this.treeLevel = level;
 	}
 
-	inline function processInserts(buffer: AudioBuffer, bufferLength: Int) {
+	inline function processInserts(buffer: AudioBuffer) {
 		for (insert in inserts) {
 			if (insert.bypass) { continue; }
-			insert.process(buffer, bufferLength);
+			insert.process(buffer);
 		}
 
 		if (panner != null) {
-			panner.process(buffer, bufferLength);
+			panner.process(buffer);
 		}
 	}
 

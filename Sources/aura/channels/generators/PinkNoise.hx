@@ -38,7 +38,7 @@ class PinkNoise extends BaseGenerator {
 		return new Handle(new PinkNoise());
 	}
 
-	function nextSamples(requestedSamples: AudioBuffer, requestedLength: Int, sampleRate: Hertz) {
+	function nextSamples(requestedSamples: AudioBuffer, sampleRate: Hertz) {
 		for (c in 0...requestedSamples.numChannels) {
 			final channelView = requestedSamples.getChannelView(c);
 
@@ -59,6 +59,6 @@ class PinkNoise extends BaseGenerator {
 			}
 		}
 
-		processInserts(requestedSamples, requestedLength);
+		processInserts(requestedSamples);
 	}
 }

@@ -330,7 +330,7 @@ class Aura {
 			}
 
 			while (samplesWritten < samplesRequested) {
-				master.nextSamples(blockBuffer, BLOCK_CHANNEL_SIZE, buffer.samplesPerSecond);
+				master.nextSamples(blockBuffer, buffer.samplesPerSecond);
 
 				final samplesStillWritable = minI(samplesRequested - samplesWritten, BLOCK_SIZE);
 				blockBuffer.interleaveToFloat32Array(sampleCache, 0, samplesWritten, Std.int(samplesStillWritable / NUM_OUTPUT_CHANNELS));

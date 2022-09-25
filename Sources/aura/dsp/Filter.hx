@@ -34,7 +34,7 @@ class Filter extends DSP {
 		cutoff[0] = cutoff[1] = 1.0;
 	}
 
-	public function process(buffer: AudioBuffer, bufferLength: Int) {
+	public function process(buffer: AudioBuffer) {
 		for (c in 0...buffer.numChannels) {
 			if (cutoff[c] == 1.0) { continue; }
 

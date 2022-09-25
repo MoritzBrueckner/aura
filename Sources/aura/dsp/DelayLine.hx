@@ -34,7 +34,7 @@ class DelayLine extends DSP {
 		}
 	}
 
-	function process(buffer: AudioBuffer, bufferLength: Int) {
+	function process(buffer: AudioBuffer) {
 		for (c in 0...buffer.numChannels) {
 			final delayBuf = delayBufs[c];
 			if (delayBuf.delay == 0) continue;

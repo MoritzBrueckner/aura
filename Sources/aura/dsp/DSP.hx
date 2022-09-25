@@ -11,7 +11,7 @@ abstract class DSP {
 	var inUse: Bool;
 	final messages: Fifo<DSPMessage> = new Fifo();
 
-	abstract function process(buffer: AudioBuffer, bufferLength: Int): Void;
+	abstract function process(buffer: AudioBuffer): Void;
 
 	function synchronize() {
 		var message: Null<DSPMessage>;

@@ -126,7 +126,7 @@ class MixChannel extends BaseChannel {
 		super.synchronize();
 	}
 
-	function nextSamples(requestedSamples: AudioBuffer, requestedLength: Int, sampleRate: Hertz): Void {
+	function nextSamples(requestedSamples: AudioBuffer, sampleRate: Hertz): Void {
 		Profiler.event();
 
 		// No input channel added yet, skip useless computations
@@ -149,7 +149,7 @@ class MixChannel extends BaseChannel {
 			}
 			foundPlayableInput = true;
 
-			channel.nextSamples(inputBuffer, requestedLength, sampleRate);
+			channel.nextSamples(inputBuffer, sampleRate);
 
 			if (first) {
 				// To prevent feedback loops, the input buffer has to be cleared
@@ -198,7 +198,7 @@ class MixChannel extends BaseChannel {
 
 		pVolume.updateLast();
 
-		processInserts(requestedSamples, requestedLength);
+		processInserts(requestedSamples);
 	}
 
 	/**

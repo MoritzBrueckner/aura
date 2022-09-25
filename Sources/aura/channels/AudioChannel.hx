@@ -21,7 +21,7 @@ class AudioChannel extends BaseChannel {
 		this.looping = looping;
 	}
 
-	function nextSamples(requestedSamples: AudioBuffer, requestedLength: Int, sampleRate: Hertz): Void {
+	function nextSamples(requestedSamples: AudioBuffer, sampleRate: Hertz): Void {
 		assert(Critical, requestedSamples.numChannels == data.numChannels);
 
 		final stepDopplerRatio = pDopplerRatio.getLerpStepSize(requestedSamples.channelLength);
@@ -77,7 +77,7 @@ class AudioChannel extends BaseChannel {
 		pDstAttenuation.updateLast();
 		pVolume.updateLast();
 
-		processInserts(requestedSamples, requestedLength);
+		processInserts(requestedSamples);
 	}
 
 	public function play(retrigger: Bool): Void {

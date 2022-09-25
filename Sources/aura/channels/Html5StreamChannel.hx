@@ -125,7 +125,7 @@ class Html5StreamChannel extends BaseChannel {
 		finished = true;
 	}
 
-	function nextSamples(requestedSamples: AudioBuffer, requestedLength: Int, sampleRate: Hertz) {}
+	function nextSamples(requestedSamples: AudioBuffer, sampleRate: Hertz) {}
 
 	override function parseMessage(message: ChannelMessage) {
 		switch (message.id) {
@@ -174,7 +174,7 @@ class Html5MobileStreamChannel extends BaseChannel {
 		finished = true;
 	}
 
-	function nextSamples(requestedSamples: AudioBuffer, requestedLength: Int, sampleRate: Hertz) {}
+	function nextSamples(requestedSamples: AudioBuffer, sampleRate: Hertz) {}
 
 	override function parseMessage(message: ChannelMessage) {
 		switch (message.id) {
