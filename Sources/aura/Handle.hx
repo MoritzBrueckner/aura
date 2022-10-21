@@ -3,6 +3,7 @@ package aura;
 import aura.channels.BaseChannel;
 import aura.dsp.DSP;
 import aura.dsp.panner.Panner;
+import aura.threading.Message;
 import aura.utils.MathUtils;
 
 /**
@@ -49,15 +50,15 @@ class Handle {
 			If true, restart playback from the beginning, else do nothing.
 	**/
 	public inline function play(retrigger = false) {
-		channel.sendMessage({ id: Play, data: retrigger });
+		channel.sendMessage({ id: ChannelMessageID.Play, data: retrigger });
 	}
 
 	public inline function pause() {
-		channel.sendMessage({ id: Pause, data: null });
+		channel.sendMessage({ id: ChannelMessageID.Pause, data: null });
 	}
 
 	public inline function stop() {
-		channel.sendMessage({ id: Stop, data: null });
+		channel.sendMessage({ id: ChannelMessageID.Stop, data: null });
 	}
 
 	public inline function addInsert(insert: DSP): DSP {
@@ -71,7 +72,7 @@ class Handle {
 	public inline function setVolume(volume: Float) {
 		assert(Critical, volume >= 0, "Volume value must not be a negative number!");
 
-		channel.sendMessage({ id: PVolume, data: maxF(0.0, volume) });
+		channel.sendMessage({ id: ChannelMessageID.PVolume, data: maxF(0.0, volume) });
 		this._volume = volume;
 	}
 
@@ -82,7 +83,7 @@ class Handle {
 	public inline function setPitch(pitch: Float) {
 		assert(Critical, pitch > 0, "Pitch value must be a positive number!");
 
-		channel.sendMessage({ id: PPitch, data: maxF(0.0, pitch) });
+		channel.sendMessage({ id: ChannelMessageID.PPitch, data: maxF(0.0, pitch) });
 		this._pitch = pitch;
 	}
 

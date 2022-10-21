@@ -1,7 +1,6 @@
 package aura.dsp.panner;
 
-import aura.threading.Message.DSPMessageID;
-import aura.threading.Message.DSPMessage;
+import aura.threading.Message;
 import aura.types.AudioBuffer;
 import aura.utils.Interpolator.LinearInterpolator;
 import aura.utils.MathUtils;
@@ -20,7 +19,7 @@ class StereoPanner extends Panner {
 
 		if (dirToChannel.length == 0) {
 			setBalance(Balance.CENTER);
-			handle.channel.sendMessage({ id: PDstAttenuation, data: 1.0 });
+			handle.channel.sendMessage({ id: ChannelMessageID.PDstAttenuation, data: 1.0 });
 			return;
 		}
 
@@ -63,8 +62,8 @@ class StereoPanner extends Panner {
 	public inline function setBalance(balance: Balance) {
 		this._balance = balance;
 
-		sendMessage({ id: PVolumeLeft, data: Math.sqrt(~balance) });
-		sendMessage({ id: PVolumeRight, data: Math.sqrt(balance) });
+		sendMessage({ id: StereoPannerMessageID.PVolumeLeft, data: Math.sqrt(~balance) });
+		sendMessage({ id: StereoPannerMessageID.PVolumeRight, data: Math.sqrt(balance) });
 	}
 
 	public inline function getBalance(): Balance {
@@ -111,11 +110,10 @@ class StereoPanner extends Panner {
 		pVolumeRight.updateLast();
 	}
 
-	override function parseMessage(message: DSPMessage) {
-		final id: StereoPannerMessageID = message.id;
-		switch (id) {
-			case PVolumeLeft: pVolumeLeft.targetValue = cast message.data;
-			case PVolumeRight: pVolumeRight.targetValue = cast message.data;
+	override function parseMessage(message: Message) {
+		switch (message.id) {
+			case StereoPannerMessageID.PVolumeLeft: pVolumeLeft.targetValue = cast message.data;
+			case StereoPannerMessageID.PVolumeRight: pVolumeRight.targetValue = cast message.data;
 
 			default:
 				super.parseMessage(message);
@@ -123,7 +121,7 @@ class StereoPanner extends Panner {
 	}
 }
 
-enum abstract StereoPannerMessageID(Int) from Int to Int {
-	final PVolumeLeft = DSPMessageID._SubtypeOffset;
+class StereoPannerMessageID extends DSPMessageID {
+	final PVolumeLeft;
 	final PVolumeRight;
 }

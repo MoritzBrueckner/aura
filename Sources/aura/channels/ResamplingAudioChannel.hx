@@ -7,11 +7,11 @@ package aura.channels;
 
 import kha.arrays.Float32Array;
 
+import aura.threading.Message;
 import aura.types.AudioBuffer;
 import aura.utils.MathUtils;
 import aura.utils.Interpolator.LinearInterpolator;
 import aura.utils.Profiler;
-import aura.threading.Message;
 
 class ResamplingAudioChannel extends AudioChannel {
 	public var sampleRate: Hertz;
@@ -150,9 +150,9 @@ class ResamplingAudioChannel extends AudioChannel {
 		floatPosition = playbackPosition;
 	}
 
-	override function parseMessage(message: ChannelMessage) {
+	override function parseMessage(message: Message) {
 		switch (message.id) {
-			case PPitch: pPitch.targetValue = cast message.data;
+			case ChannelMessageID.PPitch: pPitch.targetValue = cast message.data;
 
 			default:
 				super.parseMessage(message);

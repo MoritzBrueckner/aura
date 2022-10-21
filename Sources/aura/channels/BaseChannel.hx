@@ -15,7 +15,7 @@ import aura.utils.Interpolator.LinearInterpolator;
 @:allow(aura.dsp.panner.Panner)
 @:access(aura.dsp.panner.Panner)
 abstract class BaseChannel {
-	final messages: Fifo<ChannelMessage> = new Fifo();
+	final messages: Fifo<Message> = new Fifo();
 
 	final inserts: Array<DSP> = [];
 	var panner: Null<Panner> = null;
@@ -70,7 +70,7 @@ abstract class BaseChannel {
 	}
 
 	function synchronize() {
-		var message: Null<ChannelMessage>;
+		var message: Null<Message>;
 		while ((message = messages.tryPop()) != null) {
 			parseMessage(message);
 		}
@@ -84,21 +84,21 @@ abstract class BaseChannel {
 		}
 	}
 
-	function parseMessage(message: ChannelMessage) {
+	function parseMessage(message: Message) {
 		switch (message.id) {
-			case Play: play(cast message.data);
-			case Pause: pause();
-			case Stop: stop();
+			case ChannelMessageID.Play: play(cast message.data);
+			case ChannelMessageID.Pause: pause();
+			case ChannelMessageID.Stop: stop();
 
-			case PVolume: pVolume.targetValue = cast message.data;
-			case PDopplerRatio: pDopplerRatio.targetValue = cast message.data;
-			case PDstAttenuation: pDstAttenuation.targetValue = cast message.data;
+			case ChannelMessageID.PVolume: pVolume.targetValue = cast message.data;
+			case ChannelMessageID.PDopplerRatio: pDopplerRatio.targetValue = cast message.data;
+			case ChannelMessageID.PDstAttenuation: pDstAttenuation.targetValue = cast message.data;
 
 			default:
 		}
 	}
 
-	inline function sendMessage(message: ChannelMessage) {
+	inline function sendMessage(message: Message) {
 		messages.add(message);
 	}
 }

@@ -2,7 +2,7 @@ package aura.dsp.panner;
 
 import kha.arrays.Float32Array;
 
-import aura.threading.Message.DSPMessageID;
+import aura.threading.Message;
 import aura.types.AudioBuffer;
 import aura.types.HRTF;
 import aura.utils.MathUtils;
@@ -42,7 +42,7 @@ class HRTFPanner extends Panner {
 		if (dirToChannel.length == 0) {
 			hrtfConvolver.bypass = true;
 			hrtfDelayLine.bypass = true;
-			handle.channel.sendMessage({ id: PDstAttenuation, data: 1.0 });
+			handle.channel.sendMessage({ id: ChannelMessageID.PDstAttenuation, data: 1.0 });
 			return;
 		}
 

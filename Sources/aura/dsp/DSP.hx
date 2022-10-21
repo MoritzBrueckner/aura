@@ -9,28 +9,28 @@ abstract class DSP {
 	public var bypass: Bool;
 
 	var inUse: Bool;
-	final messages: Fifo<DSPMessage> = new Fifo();
+	final messages: Fifo<Message> = new Fifo();
 
 	abstract function process(buffer: AudioBuffer): Void;
 
 	function synchronize() {
-		var message: Null<DSPMessage>;
+		var message: Null<Message>;
 		while ((message = messages.tryPop()) != null) {
 			parseMessage(message);
 		}
 	}
 
-	function parseMessage(message: DSPMessage) {
+	function parseMessage(message: Message) {
 		switch (message.id) {
 			// TODO
-			case BypassEnable:
-			case BypassDisable:
+			case DSPMessageID.BypassEnable:
+			case DSPMessageID.BypassDisable:
 
 			default:
 		}
 	}
 
-	inline function sendMessage(message: DSPMessage) {
+	inline function sendMessage(message: Message) {
 		messages.add(message);
 	}
 }

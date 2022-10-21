@@ -7,7 +7,6 @@ import js.html.AudioElement;
 import js.html.URL;
 
 import kha.SystemImpl;
-import kha.arrays.Float32Array;
 import kha.js.MobileWebAudioChannel;
 
 import aura.threading.Message;
@@ -127,14 +126,14 @@ class Html5StreamChannel extends BaseChannel {
 
 	function nextSamples(requestedSamples: AudioBuffer, sampleRate: Hertz) {}
 
-	override function parseMessage(message: ChannelMessage) {
+	override function parseMessage(message: Message) {
 		switch (message.id) {
 			// Because we're using a HTML implementation here, we cannot use the
 			// LinearInterpolator parameters
-			case PVolume: audioElement.volume = cast message.data;
-			case PPitch:
-			case PDopplerRatio:
-			case PDstAttenuation:
+			case ChannelMessageID.PVolume: audioElement.volume = cast message.data;
+			case ChannelMessageID.PPitch:
+			case ChannelMessageID.PDopplerRatio:
+			case ChannelMessageID.PDstAttenuation:
 
 			default:
 				super.parseMessage(message);
@@ -176,14 +175,14 @@ class Html5MobileStreamChannel extends BaseChannel {
 
 	function nextSamples(requestedSamples: AudioBuffer, sampleRate: Hertz) {}
 
-	override function parseMessage(message: ChannelMessage) {
+	override function parseMessage(message: Message) {
 		switch (message.id) {
 			// Because we're using a HTML implementation here, we cannot use the
 			// LinearInterpolator parameters
-			case PVolume: khaChannel.volume = cast message.data;
-			case PPitch:
-			case PDopplerRatio:
-			case PDstAttenuation:
+			case ChannelMessageID.PVolume: khaChannel.volume = cast message.data;
+			case ChannelMessageID.PPitch:
+			case ChannelMessageID.PDopplerRatio:
+			case ChannelMessageID.PDstAttenuation:
 
 			default:
 				super.parseMessage(message);

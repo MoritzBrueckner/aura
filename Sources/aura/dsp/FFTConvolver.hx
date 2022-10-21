@@ -182,9 +182,9 @@ class FFTConvolver extends DSP {
 		}
 	}
 
-	override function parseMessage(message: DSPMessage) {
-		switch (message.id: DSPMessageID) {
-			case SwapBufferReady:
+	override function parseMessage(message: Message) {
+		switch (message.id) {
+			case DSPMessageID.SwapBufferReady:
 				updateImpulseFromSwapBuffer(message.data);
 
 			default:

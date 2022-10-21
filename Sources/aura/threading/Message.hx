@@ -2,12 +2,16 @@ package aura.threading;
 
 @:struct
 @:structInit
-class ChannelMessage {
-	public final id: ChannelMessageID;
+class Message {
+	public final id: Int;
 	public final data: Any;
 }
 
-enum abstract ChannelMessageID(Int) {
+@:autoBuild(aura.utils.macro.ExtensibleEnumBuilder.build())
+@:build(aura.utils.macro.ExtensibleEnumBuilder.build())
+class MessageID {}
+
+class ChannelMessageID extends MessageID {
 	final Play;
 	final Pause;
 	final Stop;
@@ -19,20 +23,11 @@ enum abstract ChannelMessageID(Int) {
 	final PDstAttenuation;
 }
 
-@:struct
-@:structInit
-class DSPMessage {
-	public final id: Int;
-	public final data: Any;
-}
-
-enum abstract DSPMessageID(Int) from Int to Int {
+class DSPMessageID extends MessageID {
 	final BypassEnable;
 	final BypassDisable;
 
 	final SwapBufferReady;
 
 	final SetDelays;
-
-	final _SubtypeOffset;
 }

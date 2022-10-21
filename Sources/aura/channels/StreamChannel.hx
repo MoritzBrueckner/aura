@@ -48,14 +48,14 @@ class StreamChannel extends BaseChannel {
 		requestedSamples.deinterleaveFromFloat32Array(khaBuffer, requestedSamples.numChannels);
 	}
 
-	override function parseMessage(message: ChannelMessage) {
+	override function parseMessage(message: Message) {
 		switch (message.id) {
 			// Because we're using a Kha implementation here, we cannot use the
 			// LinearInterpolator parameters
-			case PVolume: khaChannel.volume = cast message.data;
-			case PPitch:
-			case PDopplerRatio:
-			case PDstAttenuation:
+			case ChannelMessageID.PVolume: khaChannel.volume = cast message.data;
+			case ChannelMessageID.PPitch:
+			case ChannelMessageID.PDopplerRatio:
+			case ChannelMessageID.PDstAttenuation:
 
 			default:
 				super.parseMessage(message);

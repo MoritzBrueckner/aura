@@ -49,9 +49,9 @@ class DelayLine extends DSP {
 		}
 	}
 
-	override function parseMessage(message: DSPMessage) {
-		switch (message.id: DSPMessageID) {
-			case SetDelays:
+	override function parseMessage(message: Message) {
+		switch (message.id) {
+			case DSPMessageID.SetDelays:
 				setDelays(message.data);
 
 			default:

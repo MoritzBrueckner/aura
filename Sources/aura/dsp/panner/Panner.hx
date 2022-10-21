@@ -4,6 +4,7 @@ import kha.FastFloat;
 import kha.math.FastVector3;
 
 import aura.math.Vec3;
+import aura.threading.Message;
 import aura.utils.MathUtils;
 
 abstract class Panner extends DSP {
@@ -63,8 +64,8 @@ abstract class Panner extends DSP {
 		hear the sound at the same position as before you called `reset3D()`.
 	**/
 	public function reset3D() {
-		handle.channel.sendMessage({ id: PDopplerRatio, data: 1.0 });
-		handle.channel.sendMessage({ id: PDstAttenuation, data: 1.0 });
+		handle.channel.sendMessage({ id: ChannelMessageID.PDopplerRatio, data: 1.0 });
+		handle.channel.sendMessage({ id: ChannelMessageID.PDstAttenuation, data: 1.0 });
 	};
 
 	/**
@@ -93,7 +94,7 @@ abstract class Panner extends DSP {
 			case Exponential:
 				Math.pow(dst / REFERENCE_DST, -attenuationFactor);
 		}
-		handle.channel.sendMessage({ id: PDstAttenuation, data: dstAttenuation });
+		handle.channel.sendMessage({ id: ChannelMessageID.PDstAttenuation, data: dstAttenuation });
 	}
 
 	function calculateDoppler() {
@@ -108,7 +109,7 @@ abstract class Panner extends DSP {
 
 			if (dist == 0) {
 				// We don't have any radial velocity here...
-				handle.channel.sendMessage({ id: PDopplerRatio, data: 1.0 });
+				handle.channel.sendMessage({ id: ChannelMessageID.PDopplerRatio, data: 1.0 });
 				return;
 			}
 
@@ -121,7 +122,7 @@ abstract class Panner extends DSP {
 			dopplerRatio = Math.pow(dopplerRatio, dopplerFactor);
 		}
 
-		handle.channel.sendMessage({ id: PDopplerRatio, data: dopplerRatio });
+		handle.channel.sendMessage({ id: ChannelMessageID.PDopplerRatio, data: dopplerRatio });
 	}
 }
 
