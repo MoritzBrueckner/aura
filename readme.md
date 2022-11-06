@@ -23,23 +23,24 @@
 
 # Setup
 
-In your project directory, create a folder called `Subprojects`. Then, open a command line in that folder and execute the following command (Git must be installed on your machine):
+1. In your project directory, create a folder called `Subprojects`.
+2. Open a command line in that folder and execute the following command (Git must be installed on your machine):
 
-```
-git clone https://github.com/MoritzBrueckner/aura.git
-```
+   ```sh
+   git clone https://github.com/MoritzBrueckner/aura.git
+   ```
 
-Then, add the following line to your project's `khafile.js` (if you're using [Armory 3D](https://armory3d.org/), you can skip this step):
+3. Add the following line to your project's `khafile.js` (if you're using [Armory 3D](https://armory3d.org/), you can skip this step):
 
-```js
-await project.addProject("Subprojects/aura");
-```
+   ```js
+   await project.addProject("Subprojects/aura");
+   ```
 
-If you're using [Iron](https://github.com/armory3d/iron), but not Armory 3D, please also add the following to your Khafile to be able to use Iron's vector classes with Aura:
+4. *[Optional]* If you're using [Iron](https://github.com/armory3d/iron), but not Armory 3D, please also add the following to your Khafile to be able to use Iron's vector classes with Aura:
 
-```js
-project.addDefine("AURA_WITH_IRON");
-```
+   ```js
+   project.addDefine("AURA_WITH_IRON");
+   ```
 
 # Usage
 
@@ -53,30 +54,28 @@ project.addDefine("AURA_WITH_IRON");
   Aura.init(); // <-- Don't forget this!
 
   var loadConfig: AuraLoadConfig = {
-      uncompressed: [  // <-- List of sounds to uncompress
-          "MySoundFile",
-      ],
-      compressed: [  // <-- List of sounds to remain compressed
-          "AnotherSoundFile",
-      ],
-      hrtf: [  // <-- List of .mhr HRTF files for the HRTFPanner, if used
-          "myHRTF_mhr",
-      ],
-      // Empty lists can be omitted!
+      // List of sounds to uncompress
+      uncompressed: ["MySoundFile"],
+
+      // List of sounds to remain compressed
+      compressed: ["AnotherSoundFile"],
+
+      // List of .mhr HRTF files for the HRTFPanner, if used (empty lists can be omitted)
+      hrtf: ["myHRTF_mhr"],
   };
 
   Aura.loadSounds(loadConfig, () -> {
-      // You can access the loaded sounds with `Aura.getSound()`
+      // Access a loaded sound
       var mySound: kha.Sound = Aura.getSound("MySoundFile");
   });
   ```
-
-  > Alternative to referencing sounds by hard-coded names (like it's done in the above example), you can also rely on Kha's asset system and use the IDE's autocompletion for assistance:
+  > **Note**<br>
+  > Instead of referencing sounds by hard-coded names (like it is done in the above example), you can also rely on Kha's asset system and use the IDE's autocompletion for assistance:
   > ```haxe
   > kha.Assets.sounds.MySoundFileName; // Note the "Name" ending. This will give you the ID name for this sound
-  > kha.Assets.blobs.myHRTF_mhrName; // The same works for blobs (and for other asset types as well)
+  > kha.Assets.blobs.myHRTF_mhrName;   // The same works for blobs and all other asset types
   > ```
-  > As a positive side effect you will get errors during compile time if an asset does not exist.
+  > As a positive side effect, there will be errors during _compile time_ if an asset does not exist.
 
 - Play a sound:
 
