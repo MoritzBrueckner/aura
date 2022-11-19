@@ -5,6 +5,8 @@ package aura.utils;
 
 import aura.math.Vec3;
 
+public static inline var LN10 = 2.302585092994046;
+
 @:pure inline function maxI(a: Int, b: Int): Int {
 	return a > b ? a : b;
 }
@@ -31,6 +33,13 @@ import aura.math.Vec3;
 
 @:pure inline function clampF(val: Float, min: Float = 0.0, max: Float = 1.0): Float {
 	return maxF(min, minF(max, val));
+}
+
+/**
+    Returns the base-10 logarithm of a number.
+**/
+@:pure inline function log10(v: Float): Float {
+	return Math.log(v) / LN10;
 }
 
 /**
