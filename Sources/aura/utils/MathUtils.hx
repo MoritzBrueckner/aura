@@ -5,7 +5,10 @@ package aura.utils;
 
 import aura.math.Vec3;
 
-public static inline var LN10 = 2.302585092994046;
+/** 1.0 / ln(10) in double precision **/
+inline var LN10_INV_DOUBLE = 0.43429448190325181666793241674895398318767547607421875;
+/** 1.0 / ln(10) in single precision **/
+inline var LN10_INV_SINGLE = 0.4342944920063018798828125;
 
 @:pure inline function maxI(a: Int, b: Int): Int {
 	return a > b ? a : b;
@@ -36,10 +39,10 @@ public static inline var LN10 = 2.302585092994046;
 }
 
 /**
-    Returns the base-10 logarithm of a number.
+	Returns the base-10 logarithm of a number.
 **/
 @:pure inline function log10(v: Float): Float {
-	return Math.log(v) / LN10;
+	return Math.log(v) * LN10_INV_DOUBLE;
 }
 
 /**
