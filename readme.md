@@ -105,7 +105,7 @@
   var voiceChannel = Aura.createMixChannel("voice");
 
   // Mix the output of `voiceChannel` into the master channel
-  Aura.masterChannel.addInputChannel(voiceChannel);
+  voiceChannel.setMixChannel(Aura.masterChannel);
 
   Aura.createHandle(Play, mySound, false, voiceChannel).play();
   ```

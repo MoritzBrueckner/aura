@@ -5,6 +5,25 @@ versions. Non-breaking changes (e.g. new features) are _not_ listed here.
 
 _The dates below are given as **YYYY.MM.DD**._
 
+- **2022.11.21**:
+
+  The way channels are connected to mix channels has changed:
+
+  ```haxe
+  final myMixChannel: aura.MixChannelHandle = Aura.createMixChannel();
+  final myInputChannnel: aura.Handle = Aura.createHandle(...);
+
+  myMixChannel.removeInputChannel(myInputChannel);
+  // becomes
+  myInputChannel.setMixChannel(null);
+
+  // and
+
+  myMixChannel.addInputChannel(myInputChannel);
+  // becomes
+  myInputChannel.setMixChannel(myMixChannel);
+  ```
+
 - **2022.09.03** ([`3feb4ee`](https://github.com/MoritzBrueckner/aura/commit/3feb4eec6f5c9e10a7bc305c91c47c2aa1d52e1e)):
 
   Stereo panning was moved out of the `aura.Handle` class to be completely inside

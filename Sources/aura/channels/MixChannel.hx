@@ -90,6 +90,10 @@ class MixChannel extends BaseChannel {
 		#end
 	}
 
+	public inline function getNumInputs() {
+		return numUsedInputs;
+	}
+
 	/**
 		Copy the references to the inputs channels for thread safety. This
 		function does not acquire any additional mutexes.

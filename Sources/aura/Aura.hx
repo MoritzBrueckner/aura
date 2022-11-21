@@ -63,8 +63,8 @@ class Aura {
 
 		// Create a few preconfigured mix channels
 		masterChannel = createMixChannel("master");
-		masterChannel.addInputChannel(createMixChannel("music"));
-		masterChannel.addInputChannel(createMixChannel("fx"));
+		createMixChannel("music").setMixChannel(masterChannel);
+		createMixChannel("fx").setMixChannel(masterChannel);
 
 		#if (kha_html5 || kha_debug_html5)
 		if (kha.SystemImpl.mobile) {
@@ -256,7 +256,7 @@ class Aura {
 			}
 
 		final handle = new Handle(newChannel);
-		final foundChannel = mixChannelHandle.addInputChannel(handle);
+		final foundChannel = handle.setMixChannel(mixChannelHandle);
 		return foundChannel ? handle : null;
 	}
 

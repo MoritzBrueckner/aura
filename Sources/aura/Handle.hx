@@ -32,6 +32,7 @@ class Handle {
 		Link to the audio channel in the audio thread.
 	**/
 	final channel: BaseChannel;
+	var parentHandle: Null<MixChannelHandle> = null;
 
 	// Parameter cache for getter functions
 	var _volume: Float = 1.0;
@@ -67,6 +68,45 @@ class Handle {
 
 	public inline function removeInsert(insert: DSP) {
 		channel.removeInsert(insert);
+	}
+
+	/**
+		Set the mix channel into which this channel routes its output.
+		Returns `true` if setting the mix channel was successful and `false` if
+		there would be a circular dependency or the amount of input channels of
+		the mix channel is already maxed out.
+	**/
+	public function setMixChannel(mixChannelHandle: MixChannelHandle): Bool {
+		if (mixChannelHandle == parentHandle) {
+			return true;
+		}
+
+		if (parentHandle != null) {
+			@:privateAccess parentHandle.removeInputChannel(this);
+			parentHandle = null;
+		}
+
+		if (mixChannelHandle == null) {
+			return true;
+		}
+
+		// Return false for circular references (including mixChannelHandle == this)
+		var curHandle = mixChannelHandle;
+		while (curHandle != null) {
+			if (curHandle == this) {
+				return false;
+			}
+			curHandle = curHandle.parentHandle;
+		}
+
+		final success = @:privateAccess mixChannelHandle.addInputChannel(this);
+		if (success) {
+			parentHandle = mixChannelHandle;
+		} else {
+			parentHandle = null;
+		}
+
+		return success;
 	}
 
 	public inline function setVolume(volume: Float) {
