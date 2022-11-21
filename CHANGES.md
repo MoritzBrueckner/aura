@@ -5,9 +5,9 @@ versions. Non-breaking changes (e.g. new features) are _not_ listed here.
 
 _The dates below are given as **YYYY.MM.DD**._
 
-- **2022.11.21**:
+- **2022.11.21** ([`db8902c`](https://github.com/MoritzBrueckner/aura/commit/db8902c2816cdb7acbe221c97e3f454175df79c5)):
 
-  The way channels are connected to mix channels has changed:
+  The way channels are connected to mix channels was changed:
 
   ```haxe
   final myMixChannel: aura.MixChannelHandle = Aura.createMixChannel();
