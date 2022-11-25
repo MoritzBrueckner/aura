@@ -12,7 +12,6 @@ import haxe.ds.Vector;
 import kha.Assets;
 import kha.SystemImpl;
 import kha.arrays.Float32Array;
-import kha.audio2.Audio1;
 
 import aura.MixChannelHandle;
 import aura.channels.Html5StreamChannel;
