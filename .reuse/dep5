@@ -3,7 +3,7 @@ Upstream-Name: Aura
 Upstream-Contact: Moritz Brückner <gitlab@moritz-brueckner.de>
 Source: https://github.com/MoritzBrueckner/aura
 
-Files: Sources/* Backends/*
+Files: Sources/* Backends/* Tests/*
 Copyright: 2021 Moritz Brückner & Aura Contributors
 License: Zlib
 

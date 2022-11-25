@@ -1,0 +1,20 @@
+<!--
+	Custom index.html to prevent a wrong layout of test results due to the Kha canvas.
+-->
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8"/>
+		<title>Aura Unit Tests</title>
+	</head>
+
+	<body style="margin: 0; padding: 0;">
+		<!--
+			We still need to include the canvas to prevent Kha errors, but it's
+			at size (0, 0).
+		-->
+		<canvas id="khanvas" width="0" height="0" tabindex="-1"></canvas>
+
+		<script src="kha.js"></script>
+	</body>
+</html>

@@ -1,0 +1,80 @@
+{
+	// See https://go.microsoft.com/fwlink/?LinkId=733558
+	// for the documentation about the tasks.json format
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Aura: Run unit tests",
+			"type": "process",
+			"group": {
+				"kind": "test",
+				"isDefault": true
+			},
+			"presentation": {
+				"reveal": "always",
+				"panel": "dedicated",
+			},
+
+			"command": "node",
+			"args": [
+				"run.js"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}",
+				"env": {
+					"KHA_PATH": "${command:kha.findKha}",
+					"ELECTRON_BIN": "${command:kha.findKhaElectron}",
+
+					// "ELECTRON_NO_ATTACH_CONSOLE": "true",
+				}
+			},
+
+			"problemMatcher": [
+				"$haxe", // Default Haxe matcher
+				{
+					// Electron
+					"owner": "custom",
+					"fileLocation": ["relative", "${workspaceFolder}"],
+					"pattern": [
+						// {
+						// 	"regexp": "^\\s*Error:\\s+(.*)\\s*$",
+						// 	"message": 1
+						// },
+						// {
+						// 	"regexp": "^\\s*Stack:\\s*$",
+						// },
+						// {
+						// 	"regexp": "^\\s*$",
+						// },
+						// {
+						// 	"regexp": "^\\s*Called from\\s+(.*)\\s+\\(file:\\/\\/\\/(.*)\\s+line\\s+(\\d+)\\s+column\\s+(\\d+)\\)\\s*$",
+						// 	"code": 1,
+						// 	"file": 2,
+						// 	"line": 3,
+						// 	"column": 4
+						// }
+						{
+							"regexp": "^\\s*Error:\\s+Uncaught\\s+(.*):(\\d+):\\s+(.*)\\s*$",
+							"file": 1,
+							"line": 2,
+							"message": 3
+						},
+					]
+				},
+				{
+					// Also catch exceptions thrown by test failures in nodejs
+					"owner": "haxe",
+					"fileLocation": ["relative", "${workspaceFolder}"],
+					"pattern": [
+						{
+							"regexp": "^\\<ref\\s+\\*1\\>\\s+Error:\\s+(.*):(\\d+):(.*)$",
+							"file": 1,
+							"line": 2,
+							"message": 3,
+						},
+					]
+				}
+			],
+		},
+	]
+}

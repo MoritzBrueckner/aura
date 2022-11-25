@@ -1,0 +1,2 @@
+-lib utest:1.13.2
+-lib instrument:git:https://github.com/AlexHaxe/haxe-instrument.git#92a5691c7e77a696532e2e13ac1f717841f43015
