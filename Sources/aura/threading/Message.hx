@@ -4,7 +4,7 @@ package aura.threading;
 @:structInit
 class Message {
 	public final id: Int;
-	public final data: Any;
+	public final data: Null<Any>;
 }
 
 @:autoBuild(aura.utils.macro.ExtensibleEnumBuilder.build())

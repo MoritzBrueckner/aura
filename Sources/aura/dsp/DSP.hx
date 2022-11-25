@@ -6,9 +6,9 @@ import aura.types.AudioBuffer;
 
 @:allow(aura.dsp.panner.Panner)
 abstract class DSP {
-	public var bypass: Bool;
+	public var bypass = false;
 
-	var inUse: Bool;
+	var inUse = false;
 	final messages: Fifo<Message> = new Fifo();
 
 	abstract function process(buffer: AudioBuffer): Void;

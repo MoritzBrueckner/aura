@@ -45,7 +45,7 @@ class Assert {
 		Helper function to prevent Haxe "bug" that actually throws an error
 		even when using `macro throw` (inlining this method also does not work).
 	**/
-	static function throwAssertionError(exprString: String, message: String, ?pos: PosInfos) {
+	static function throwAssertionError(exprString: String, message: Null<String>, ?pos: PosInfos) {
 		throw new AuraAssertionException(exprString, message, pos);
 	}
 }
