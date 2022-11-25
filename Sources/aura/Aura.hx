@@ -147,7 +147,7 @@ class Aura {
 				break;
 			}
 			Assets.loadBlob(hrtfName, (blob: kha.Blob) -> {
-				final reader = new MHRReader(blob.bytes);
+				final reader = new MHRReader(blob.toBytes());
 				var hrtf: HRTF;
 				try {
 					hrtf = reader.read();
