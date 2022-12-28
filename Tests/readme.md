@@ -5,8 +5,8 @@ The `/Tests` directory contains a test suite to test some of Aura's functionalit
 Because Kha/Kinc currently cannot run in headless mode (see the relevant
 [issue](https://github.com/Kode/Kinc/issues/564)) in targets other than node.js
 and the node.js target breaks quite often due to Kha updates, the tests currently
-run semi-automatic (invoked by the user) on the debug-html5 target in Electron.
-As a consquence, it is currently not possible to run them in a CI pipeline.
+run semi-automatically (i.e. invoked by the user) on the debug-html5 target in Electron.
+As a consequence, it is currently not possible to run them in a CI pipeline.
 
 ## Setup
 
@@ -36,7 +36,7 @@ in the SDK at `<sdk-path>/nodejs`.
 
 2. Point the environment variable `ELECTRON_BIN` to an Electron executable.
 
-3. Run
+3. Run the following:
    ```batch
    node run.js
    ```

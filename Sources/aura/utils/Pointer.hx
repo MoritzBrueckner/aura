@@ -30,7 +30,7 @@ class Pointer<T> {
 **/
 @:generic
 typedef PointerType<T> = {
-	public var value:Null<T>;
+	public var value: Null<T>;
 
 	public function set(value: Null<T>): Void;
 	public function get(): Null<T>;

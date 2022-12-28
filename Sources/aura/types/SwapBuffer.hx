@@ -7,6 +7,7 @@ import kha.arrays.Float32Array;
 import aura.Types.AtomicInt;
 
 // TODO: Make generic in some way
+@:nullSafety(StrictThreaded)
 class SwapBuffer {
 	static final ROW_COUNT = 2;
 
@@ -16,8 +17,8 @@ class SwapBuffer {
 	public final data: Vector<Vector<Float32Array>>;
 	final readerCount: Vector<AtomicInt>;
 	final newerBuf: Vector<AtomicInt>;
-	var latestWriteRow: AtomicInt;
 
+	var latestWriteRow: AtomicInt = 0;
 	var curWriteBufIdx: AtomicInt = 0;
 	var curWriteRowIdx: AtomicInt = 0;
 	var curReadRowIdx: AtomicInt = 0;

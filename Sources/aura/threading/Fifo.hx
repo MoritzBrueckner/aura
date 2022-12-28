@@ -7,6 +7,7 @@ package aura.threading;
 **/
 @:generic
 @:forward(add)
+@:nullSafety(StrictThreaded)
 abstract Fifo<T>(FifoImpl<T>) {
 	public inline function new() {
 		this = new FifoImpl<T>();
@@ -22,6 +23,7 @@ abstract Fifo<T>(FifoImpl<T>) {
 #else
 	@:generic
 	@:forward(add)
+	@:nullSafety(StrictThreaded)
 	private abstract FifoImpl<T>(List<T>) {
 		public inline function new() {
 			this = new List<T>();

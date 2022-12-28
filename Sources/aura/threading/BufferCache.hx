@@ -67,7 +67,7 @@ class BufferCache {
 	}
 
 	@:generic
-	public static function getBuffer<T>(bufferType: BufferType, p_buffer: PointerType<T>, numChannels: Int, channelLength): Bool {
+	public static function getBuffer<T>(bufferType: BufferType, p_buffer: PointerType<T>, numChannels: Int, channelLength: Int): Bool {
 		final bufferCfg = bufferConfigs[bufferType];
 
 		var buffer = p_buffer.get();

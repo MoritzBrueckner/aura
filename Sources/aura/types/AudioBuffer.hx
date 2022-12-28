@@ -25,7 +25,7 @@ class AudioBuffer {
 		}
 	}
 
-	public inline function getChannelView(channelIndex: Int) {
+	public inline function getChannelView(channelIndex: Int): AudioBufferChannelView {
 		return channelViews[channelIndex];
 	}
 
