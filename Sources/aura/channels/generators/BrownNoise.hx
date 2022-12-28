@@ -2,6 +2,8 @@ package aura.channels.generators;
 
 import haxe.ds.Vector;
 
+import kha.FastFloat;
+
 import aura.types.AudioBuffer;
 import aura.utils.BufferUtils;
 
@@ -9,10 +11,10 @@ import aura.utils.BufferUtils;
 	Signal noise produced by Brownian motion.
 **/
 class BrownNoise extends BaseGenerator {
-	final last: Vector<Float>;
+	final last: Vector<FastFloat>;
 
 	inline function new() {
-		last = createEmptyVecF(2);
+		last = createEmptyVecF32(2);
 	}
 
 	/**

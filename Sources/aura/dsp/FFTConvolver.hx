@@ -2,6 +2,7 @@ package aura.dsp;
 
 import haxe.ds.Vector;
 
+import kha.FastFloat;
 import kha.arrays.Float32Array;
 
 import aura.math.FFT;
@@ -31,7 +32,7 @@ class FFTConvolver extends DSP {
 		FFT segment, the overlap vectors are preallocated to `CHUNK_SIZE - 1`.
 		Use `overlapLength` to get the true length.
 	**/
-	final overlapLast: Vector<Vector<Float>>;
+	final overlapLast: Vector<Vector<FastFloat>>;
 
 	/**
 		The (per-channel) overlap length of the convolution result for the
@@ -63,7 +64,7 @@ class FFTConvolver extends DSP {
 		overlapLast = new Vector(NUM_CHANNELS);
 		for (i in 0...NUM_CHANNELS) {
 			// Max. impulse size is CHUNK_SIZE
-			overlapLast[i] = new Vector<Float>(CHUNK_SIZE - 1);
+			overlapLast[i] = new Vector<FastFloat>(CHUNK_SIZE - 1);
 		}
 		overlapLength = createEmptyVecI(NUM_CHANNELS);
 		lastOverlapLength = createEmptyVecI(NUM_CHANNELS);

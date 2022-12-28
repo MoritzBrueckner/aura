@@ -20,7 +20,13 @@ inline function initZeroesI(vector: Vector<Int>) {
 	}
 }
 
-inline function initZeroesF(vector: Vector<Float>) {
+inline function initZeroesF64(vector: Vector<Float>) {
+	for (i in 0...vector.length) {
+		vector[i] = 0.0;
+	}
+}
+
+inline function initZeroesF32(vector: Vector<FastFloat>) {
 	for (i in 0...vector.length) {
 		vector[i] = 0.0;
 	}
@@ -45,12 +51,22 @@ inline function createEmptyVecI(length: Int): Vector<Int> {
 	Creates an empty float vector with the given length. It is guaranteed to be
 	always filled with 0, independent of the target.
 **/
-inline function createEmptyVecF(length: Int): Vector<Float> {
+inline function createEmptyVecF64(length: Int): Vector<Float> {
 	#if target.static
 		return new Vector<Float>(length);
 	#else
 		final vec = new Vector<Float>(length);
-		inline initZeroesF(vec);
+		inline initZeroesF64(vec);
+		return vec;
+	#end
+}
+
+inline function createEmptyVecF32(length: Int): Vector<FastFloat> {
+	#if target.static
+		return new Vector<FastFloat>(length);
+	#else
+		final vec = new Vector<FastFloat>(length);
+		inline initZeroesF32(vec);
 		return vec;
 	#end
 }

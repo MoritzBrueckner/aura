@@ -2,6 +2,8 @@ package aura.channels.generators;
 
 import haxe.ds.Vector;
 
+import kha.FastFloat;
+
 import aura.types.AudioBuffer;
 import aura.utils.BufferUtils;
 
@@ -13,22 +15,22 @@ import aura.utils.BufferUtils;
 **/
 class PinkNoise extends BaseGenerator {
 
-	final b0: Vector<Float>;
-	final b1: Vector<Float>;
-	final b2: Vector<Float>;
-	final b3: Vector<Float>;
-	final b4: Vector<Float>;
-	final b5: Vector<Float>;
-	final b6: Vector<Float>;
+	final b0: Vector<FastFloat>;
+	final b1: Vector<FastFloat>;
+	final b2: Vector<FastFloat>;
+	final b3: Vector<FastFloat>;
+	final b4: Vector<FastFloat>;
+	final b5: Vector<FastFloat>;
+	final b6: Vector<FastFloat>;
 
 	inline function new() {
-		b0 = createEmptyVecF(2);
-		b1 = createEmptyVecF(2);
-		b2 = createEmptyVecF(2);
-		b3 = createEmptyVecF(2);
-		b4 = createEmptyVecF(2);
-		b5 = createEmptyVecF(2);
-		b6 = createEmptyVecF(2);
+		b0 = createEmptyVecF32(2);
+		b1 = createEmptyVecF32(2);
+		b2 = createEmptyVecF32(2);
+		b3 = createEmptyVecF32(2);
+		b4 = createEmptyVecF32(2);
+		b5 = createEmptyVecF32(2);
+		b6 = createEmptyVecF32(2);
 	}
 
 	/**

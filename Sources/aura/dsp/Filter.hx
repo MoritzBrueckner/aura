@@ -1,10 +1,12 @@
 package aura.dsp;
 
-import aura.utils.BufferUtils.createEmptyVecF;
 import haxe.ds.Vector;
+
+import kha.FastFloat;
 
 import aura.Types;
 import aura.types.AudioBuffer;
+import aura.utils.BufferUtils;
 import aura.utils.FrequencyUtils;
 import aura.utils.MathUtils;
 
@@ -20,15 +22,15 @@ class Filter extends DSP {
 	**/
 	public var filterMode: FilterMode;
 
-	final buf: Vector<Vector<Float>>;
-	final cutoff: Vector<Float>;
+	final buf: Vector<Vector<FastFloat>>;
+	final cutoff: Vector<FastFloat>;
 
 	public function new(filterMode: FilterMode) {
 		this.filterMode = filterMode;
 
 		this.buf = new Vector(2); // Two channels
-		buf[0] = createEmptyVecF(2);  // Two buffers per channel
-		buf[1] = createEmptyVecF(2);
+		buf[0] = createEmptyVecF32(2);  // Two buffers per channel
+		buf[1] = createEmptyVecF32(2);
 
 		this.cutoff = new Vector(2);
 		cutoff[0] = cutoff[1] = 1.0;
