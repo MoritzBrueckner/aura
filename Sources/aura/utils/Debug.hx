@@ -117,7 +117,7 @@ class Debug {
 	}
 
 	public static function createRenderTarget(w: Int, h: Int): Image {
-		return Image.createRenderTarget(Std.int(w), Std.int(h), null, NoDepthAndStencil, 1, 0);
+		return Image.createRenderTarget(Std.int(w), Std.int(h), null, NoDepthAndStencil, 1);
 	}
 	#end
 }
