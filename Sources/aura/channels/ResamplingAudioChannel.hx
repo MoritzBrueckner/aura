@@ -12,6 +12,7 @@ import aura.types.AudioBuffer;
 import aura.utils.MathUtils;
 import aura.utils.Interpolator.LinearInterpolator;
 import aura.utils.Profiler;
+import aura.utils.Resampler;
 
 class ResamplingAudioChannel extends AudioChannel {
 	public var sampleRate: Hertz;
@@ -34,7 +35,7 @@ class ResamplingAudioChannel extends AudioChannel {
 		final stepPitch = pPitch.getLerpStepSize(requestedSamples.channelLength);
 		final stepVol = pVolume.getLerpStepSize(requestedSamples.channelLength);
 
-		final resampleLength = getResampleLength(sampleRate);
+		final resampleLength = Resampler.getResampleLength(data.channelLength, this.sampleRate, sampleRate);
 
 		var samplesWritten = 0;
 		var reachedEndOfData = false;
@@ -57,7 +58,7 @@ class ResamplingAudioChannel extends AudioChannel {
 				floatPosition = initialFloatPosition;
 
 				for (i in 0...samplesToWrite) {
-					var sampledVal: Float = sampleFloatPos(floatPosition, c, sampleRate);
+					var sampledVal: Float = Resampler.sampleAtTargetPositionLerp(data.getChannelView(c), floatPosition, this.sampleRate, sampleRate);
 
 					outChannelView[samplesWritten + i] = sampledVal * pVolume.currentValue * pDstAttenuation.currentValue;
 
@@ -103,34 +104,6 @@ class ResamplingAudioChannel extends AudioChannel {
 		pVolume.updateLast();
 
 		processInserts(requestedSamples);
-	}
-
-	inline function sampleFloatPos(position: Float, channel: Int, sampleRate: Hertz): Float {
-		// Like super.sample(), just with floating point position
-
-		assert(Critical, position >= 0.0);
-
-		final factor = this.sampleRate / sampleRate;
-		final pos = factor * position;
-
-		final channelView = data.getChannelView(channel);
-
-		final maxPos = data.channelLength - 1;
-		final pos1 = Math.floor(pos);
-		final pos2 = pos1 + 1;
-
-		final value1 = (pos1 > maxPos) ? channelView[maxPos] : channelView[pos1];
-		final value2 = (pos2 > maxPos) ? channelView[maxPos] : channelView[pos2];
-
-		return lerp(value1, value2, pos - Math.floor(pos));
-	}
-
-	/**
-		Calculate how many samples are required for a channel of the current
-		data after resampling it to the `targetSampleRate`.
-	**/
-	inline function getResampleLength(targetSampleRate: Hertz): Int {
-		return Math.ceil(data.channelLength * (targetSampleRate / this.sampleRate));
 	}
 
 	override public function play(retrigger: Bool) {
