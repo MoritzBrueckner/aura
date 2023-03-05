@@ -56,7 +56,7 @@ class AudioBuffer {
 	}
 }
 
-abstract AudioBufferChannelView(Float32Array) from Float32Array {
+abstract AudioBufferChannelView(Float32Array) from Float32Array to Float32Array {
 	public function new(size: Int) {
 		this = new Float32Array(size);
 	}
