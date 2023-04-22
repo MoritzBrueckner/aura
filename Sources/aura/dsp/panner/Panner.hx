@@ -3,6 +3,7 @@ package aura.dsp.panner;
 import kha.FastFloat;
 import kha.math.FastVector3;
 
+import aura.channels.BaseChannel.BaseChannelHandle;
 import aura.math.Vec3;
 import aura.threading.Message;
 import aura.utils.MathUtils;
@@ -18,7 +19,7 @@ abstract class Panner extends DSP {
 	public var maxDistance = 10.0;
 	// public var minDistance = 1;
 
-	var handle: Handle;
+	var handle: BaseChannelHandle;
 
 	/**
 		The location of this audio source in world space.
@@ -32,13 +33,13 @@ abstract class Panner extends DSP {
 	**/
 	var velocity: Vec3 = new Vec3(0, 0, 0);
 
-	public function new(handle: Handle) {
+	public function new(handle: BaseChannelHandle) {
 		this.inUse = true; // Don't allow using panners with addInsert()
 		this.handle = handle;
 		this.handle.channel.panner = this;
 	}
 
-	public inline function setHandle(handle: Handle) {
+	public inline function setHandle(handle: BaseChannelHandle) {
 		if (this.handle != null) {
 			this.handle.channel.panner = null;
 		}

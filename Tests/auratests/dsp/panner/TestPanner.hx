@@ -4,7 +4,7 @@ import utest.Assert;
 
 import kha.arrays.Float32Array;
 
-import aura.Handle;
+import aura.Aura;
 import aura.Types.Balance;
 import aura.dsp.panner.Panner;
 import aura.math.Vec3;
@@ -16,11 +16,11 @@ private class NonAbstractPanner extends Panner {
 	public function process(buffer: AudioBuffer) {}
 }
 
-@:access(aura.Handle)
 @:access(aura.channels.BaseChannel)
+@:access(aura.channels.BaseChannelHandle)
 @:access(aura.dsp.panner.Panner)
 class TestPanner extends utest.Test {
-	var handle: Handle;
+	var handle: BaseChannelHandle;
 	var panner: Panner;
 
 	function setup() {

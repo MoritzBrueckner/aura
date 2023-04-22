@@ -5,7 +5,6 @@
 
 package aura;
 
-import aura.channels.AudioChannel;
 import haxe.Exception;
 import haxe.ds.Vector;
 
@@ -13,10 +12,10 @@ import kha.Assets;
 import kha.SystemImpl;
 import kha.arrays.Float32Array;
 
-import aura.MixChannelHandle;
 import aura.channels.Html5StreamChannel;
 import aura.channels.MixChannel;
-import aura.channels.ResamplingAudioChannel;
+import aura.channels.UncompBufferChannel;
+import aura.channels.UncompBufferResamplingChannel;
 import aura.channels.StreamChannel;
 import aura.format.mhr.MHRReader;
 import aura.threading.BufferCache;
@@ -28,7 +27,12 @@ import aura.utils.MathUtils;
 import aura.utils.Profiler;
 import aura.utils.Pointer;
 
-@:access(aura.MixChannelHandle)
+// Convenience typedefs to auto-import them with this module
+typedef BaseChannelHandle = aura.channels.BaseChannel.BaseChannelHandle;
+typedef UncompBufferChannelHandle = aura.channels.UncompBufferChannel.UncompBufferChannelHandle;
+typedef MixChannelHandle = aura.channels.MixChannel.MixChannelHandle;
+
+@:access(aura.channels.MixChannelHandle)
 class Aura {
 	public static var options(default, null): Null<AuraOptions> = null;
 
@@ -211,50 +215,79 @@ class Aura {
 		return hrtfs.get(hrtfName);
 	}
 
-	public static function createHandle(playMode: PlayMode, sound: kha.Sound, loop: Bool = false, mixChannelHandle: Null<MixChannelHandle> = null): Null<Handle> {
+	/**
+		Create a new audio channel to play an uncompressed and pre-loaded sound, and return a main-thread handle object to the newly created channel.
+		The playback of the newly created channel does not start automatically.
+
+		@param sound The _uncompressed_ sound to play by the created channel
+		@param loop Whether to loop the playback of the channel
+		@param mixChannelHandle (Optional) A handle for the `MixChannel`
+			to which to route the audio output of the newly created channel.
+			If the parameter is `null` (default), route the channel's output
+			to the master channel
+
+		@return A main-thread handle to the newly created channel, or `null`
+			if the created channel could not be assigned to the given mix channel
+			(e.g. in case of circular dependencies)
+	**/
+	public static function createUncompBufferChannel(sound: kha.Sound, loop: Bool = false, mixChannelHandle: Null<MixChannelHandle> = null): Null<UncompBufferChannelHandle> {
+		assert(Critical, sound.uncompressedData != null,
+			"Cannot play a sound with no uncompressed data. Make sure to load it as 'uncompressed' in the AuraLoadConfig."
+		);
+
 		if (mixChannelHandle == null) {
 			mixChannelHandle = masterChannel;
 		}
 
+		// TODO: Like Kha, only use resampling channel if pitch is used or if samplerate of sound and system differs
+		final newChannel = new UncompBufferResamplingChannel(sound.uncompressedData, loop, sound.sampleRate);
+
+		final handle = new UncompBufferChannelHandle(newChannel);
+		final foundChannel = handle.setMixChannel(mixChannelHandle);
+		return foundChannel ? handle : null;
+	}
+
+	/**
+		Create a new audio channel to play a compressed and pre-loaded sound, and return a main-thread handle object to the newly created channel.
+		The playback of the newly created channel does not start automatically.
+
+		@param sound The _compressed_ sound to play by the created channel
+		@param loop Whether to loop the playback of the channel
+		@param mixChannelHandle (Optional) A handle for the `MixChannel`
+			to which to route the audio output of the newly created channel.
+			If the parameter is `null` (default), route the channel's output
+			to the master channel
+
+		@return A main-thread handle to the newly created channel, or `null`
+			if the created channel could not be assigned to the given mix channel
+			(e.g. in case of circular dependencies)
+	**/
+	public static function createCompBufferChannel(sound: kha.Sound, loop: Bool = false, mixChannelHandle: Null<MixChannelHandle> = null): Null<BaseChannelHandle> {
 		#if kha_krom
 			// Krom only uses uncompressedData -> no streaming
-			playMode = PlayMode.Play;
+			return createUncompBufferChannel(sound, loop, mixChannelHandle);
 		#end
 
-		var newChannel: aura.channels.BaseChannel;
+		assert(Critical, sound.compressedData != null,
+			"Cannot stream a sound with no compressed data. Make sure to load it as 'compressed' in the AuraLoadConfig."
+		);
 
-		switch (playMode) {
-			case Play:
-				assert(Critical, sound.uncompressedData != null,
-					"Cannot play a sound with no uncompressed data. Make sure to load it as 'uncompressed' in the AuraLoadConfig."
-				);
+		if (mixChannelHandle == null) {
+			mixChannelHandle = masterChannel;
+		}
 
-				// TODO: Like Kha, only use resampling channel if pitch is used or if samplerate of sound and system differs
-				newChannel = new ResamplingAudioChannel(sound.uncompressedData, loop, sound.sampleRate);
-
-			case Stream:
-				assert(Critical, sound.compressedData != null,
-					"Cannot stream a sound with no compressed data. Make sure to load it as 'compressed' in the AuraLoadConfig."
-				);
-
-				#if (kha_html5 || kha_debug_html5)
-					if (kha.SystemImpl.mobile) {
-						newChannel = new Html5MobileStreamChannel(sound, loop);
-					}
-					else {
-						newChannel = new Html5StreamChannel(sound, loop);
-					}
-				#else
-					final khaChannel: Null<kha.audio1.AudioChannel> = kha.audio2.Audio1.stream(sound, loop);
-					if (khaChannel == null) {
-						return null;
-					}
-					newChannel = new StreamChannel(cast khaChannel);
-					newChannel.stop();
-				#end
+		#if (kha_html5 || kha_debug_html5)
+			final newChannel = kha.SystemImpl.mobile ? new Html5MobileStreamChannel(sound, loop) : new Html5StreamChannel(sound, loop);
+		#else
+			final khaChannel: Null<kha.audio1.AudioChannel> = kha.audio2.Audio1.stream(sound, loop);
+			if (khaChannel == null) {
+				return null;
 			}
+			final newChannel = new StreamChannel(cast khaChannel);
+			newChannel.stop();
+		#end
 
-		final handle = new Handle(newChannel);
+		final handle = new BaseChannelHandle(newChannel);
 		final foundChannel = handle.setMixChannel(mixChannelHandle);
 		return foundChannel ? handle : null;
 	}
@@ -380,11 +413,6 @@ class AuraOptions {
 
 		return options;
 	}
-}
-
-enum abstract PlayMode(Int) {
-	var Play;
-	var Stream;
 }
 
 private enum abstract BreakableTaskStatus(Bool) to Bool {

@@ -2,6 +2,7 @@ package aura.dsp.panner;
 
 import kha.arrays.Float32Array;
 
+import aura.channels.BaseChannel.BaseChannelHandle;
 import aura.threading.Message;
 import aura.types.AudioBuffer;
 import aura.types.HRTF;
@@ -18,7 +19,7 @@ class HRTFPanner extends Panner {
 	final hrir: Float32Array;
 	final hrirOpp: Float32Array;
 
-	public function new(handle: Handle, hrtf: HRTF) {
+	public function new(handle: BaseChannelHandle, hrtf: HRTF) {
 		super(handle);
 
 		this.hrtf = hrtf;

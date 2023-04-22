@@ -14,7 +14,7 @@ import aura.utils.Interpolator.LinearInterpolator;
 import aura.utils.Profiler;
 import aura.utils.Resampler;
 
-class ResamplingAudioChannel extends AudioChannel {
+class UncompBufferResamplingChannel extends UncompBufferChannel {
 	public var sampleRate: Hertz;
 	public var floatPosition: Float = 0.0;
 

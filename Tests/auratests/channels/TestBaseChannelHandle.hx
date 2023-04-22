@@ -1,20 +1,19 @@
-package auratests;
+package auratests.channels;
 
 import utest.Assert;
 
-import aura.Handle;
-import aura.MixChannelHandle;
+import aura.Aura;
 import aura.channels.MixChannel;
-import aura.channels.ResamplingAudioChannel;
+import aura.channels.UncompBufferResamplingChannel;
 
-class TestHandle extends utest.Test {
-	var handle: Handle;
-	var channel: ResamplingAudioChannel;
+class TestBaseChannelHandle extends utest.Test {
+	var handle: BaseChannelHandle;
+	var channel: UncompBufferResamplingChannel;
 	var data = new kha.arrays.Float32Array(8);
 
 	function setup() {
-		channel = new ResamplingAudioChannel(data, false, 44100);
-		handle = new Handle(channel);
+		channel = new UncompBufferResamplingChannel(data, false, 44100);
+		handle = new BaseChannelHandle(channel);
 	}
 
 	function teardown() {}

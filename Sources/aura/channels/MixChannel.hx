@@ -6,10 +6,65 @@ import haxe.ds.Vector;
 import sys.thread.Mutex;
 #end
 
+import aura.channels.BaseChannel.BaseChannelHandle;
 import aura.threading.BufferCache;
 import aura.threading.Message;
 import aura.types.AudioBuffer;
 import aura.utils.Profiler;
+
+
+/**
+	Main-thread handle to a `MixChannel` in the audio thread.
+**/
+class MixChannelHandle extends BaseChannelHandle {
+	#if AURA_DEBUG
+	public var name: String = "";
+	public var inputHandles: Array<BaseChannelHandle> = new Array();
+	#end
+
+	public inline function getNumInputs(): Int {
+		return getMixChannel().getNumInputs();
+	}
+
+	/**
+		Adds an input channel. Returns `true` if adding the channel was
+		successful, `false` if the amount of input channels is already maxed
+		out.
+	**/
+	inline function addInputChannel(channelHandle: BaseChannelHandle): Bool {
+		assert(Error, channelHandle != null, "channelHandle must not be null");
+
+		final foundChannel = getMixChannel().addInputChannel(channelHandle.channel);
+		#if AURA_DEBUG
+			if (foundChannel) inputHandles.push(channelHandle);
+		#end
+		return foundChannel;
+	}
+
+	/**
+		Removes an input channel from this `MixChannel`.
+	**/
+	inline function removeInputChannel(channelHandle: BaseChannelHandle) {
+		#if AURA_DEBUG
+			inputHandles.remove(channelHandle);
+		#end
+		getMixChannel().removeInputChannel(channelHandle.channel);
+	}
+
+	inline function getMixChannel(): MixChannel {
+		return cast this.channel;
+	}
+
+	#if AURA_DEBUG
+	public override function getDebugAttrs(): Map<String, String> {
+		return super.getDebugAttrs().mergeIntoThis([
+			"Name" => name,
+			"Num inserts" => Std.string(@:privateAccess channel.inserts.length),
+		]);
+	}
+	#end
+}
+
 
 /**
 	A channel that mixes together the output of multiple input channels.

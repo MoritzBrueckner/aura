@@ -1,5 +1,6 @@
 package aura.channels.generators;
 
+import aura.channels.BaseChannel.BaseChannelHandle;
 import aura.types.AudioBuffer;
 
 /**
@@ -12,8 +13,8 @@ class WhiteNoise extends BaseGenerator {
 	/**
 		Creates a new WhiteNoise channel and returns a handle to it.
 	**/
-	public static function create(): Handle {
-		return new Handle(new WhiteNoise());
+	public static function create(): BaseChannelHandle {
+		return new BaseChannelHandle(new WhiteNoise());
 	}
 
 	function nextSamples(requestedSamples: AudioBuffer, sampleRate: Hertz) {

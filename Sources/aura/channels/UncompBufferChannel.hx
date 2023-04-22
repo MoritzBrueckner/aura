@@ -2,18 +2,50 @@ package aura.channels;
 
 import kha.arrays.Float32Array;
 
+import aura.channels.BaseChannel.BaseChannelHandle;
 import aura.utils.MathUtils;
-import aura.threading.Message;
 import aura.types.AudioBuffer;
 
-class AudioChannel extends BaseChannel {
+class UncompBufferChannelHandle extends BaseChannelHandle {
+
+	// TODO make thread-safe!
+
+	/**
+		Return the sound's length in seconds.
+	**/
+	public inline function getLength(): Float {
+		return getUncompBufferChannel().data.channelLength / Aura.sampleRate;
+	}
+
+	/**
+		Return the channel's current playback position in seconds.
+	**/
+	public inline function getPlaybackPosition(): Float {
+		return getUncompBufferChannel().playbackPosition / Aura.sampleRate;
+	}
+
+	/**
+		Set the channel's current playback position in seconds.
+	**/
+	public inline function setPlaybackPosition(value: Float) {
+		final pos = Math.round(value * Aura.sampleRate);
+		getUncompBufferChannel().playbackPosition = clampI(pos, 0, getUncompBufferChannel().data.channelLength);
+	}
+
+	inline function getUncompBufferChannel(): UncompBufferChannel {
+		return cast this.channel;
+	}
+}
+
+@:allow(aura.channels.UncompBufferChannelHandle)
+class UncompBufferChannel extends BaseChannel {
 	public static inline var NUM_CHANNELS = 2;
 
 	/** The current playback position in samples. **/
 	var playbackPosition: Int = 0;
 	var looping: Bool = false;
 
-	var data: AudioBuffer;
+	final data: AudioBuffer;
 
 	public function new(data: Float32Array, looping: Bool) {
 		this.data = new AudioBuffer(2, Std.int(data.length / 2));
@@ -80,7 +112,7 @@ class AudioChannel extends BaseChannel {
 		processInserts(requestedSamples);
 	}
 
-	public function play(retrigger: Bool): Void {
+	function play(retrigger: Bool): Void {
 		paused = false;
 		finished = false;
 		if (retrigger) {
@@ -88,41 +120,12 @@ class AudioChannel extends BaseChannel {
 		}
 	}
 
-	public function pause(): Void {
+	function pause(): Void {
 		paused = true;
 	}
 
-	public function stop(): Void {
+	function stop(): Void {
 		playbackPosition = 0;
 		finished = true;
-	}
-
-	/**
-		Returns whether the sound has stopped playing.
-	**/
-	public inline function isFinished(): Bool {
-		return finished;
-	}
-
-	/**
-		Return the sound's length in seconds.
-	**/
-	public inline function getLength(): Float {
-		return data.channelLength / kha.audio2.Audio.samplesPerSecond;
-	}
-
-	/**
-		Return the channel's current playback position in seconds.
-	**/
-	public inline function getPlaybackPosition(): Float {
-		return playbackPosition / kha.audio2.Audio.samplesPerSecond;
-	}
-
-	/**
-		Set the channel's current playback position in seconds.
-	**/
-	public inline function setPlaybackPosition(value: Float) {
-		playbackPosition = Math.round(value * kha.audio2.Audio.samplesPerSecond);
-		playbackPosition = clampI(playbackPosition, 0, data.channelLength);
 	}
 }

@@ -80,24 +80,25 @@
 - Play a sound:
 
   ```haxe
-  // Plays the sound `mySound` without repeat on the master channel
-  Aura.createHandle(Play, mySound).play();
+  // Plays the uncompressed sound `mySound` without repeat on the master channel
+  Aura.createUncompBufferChannel(mySound).play();
 
-  // Plays the sound `mySound` with repeat on the master channel
-  Aura.createHandle(Play, mySound, true).play();
+  // Plays the uncompressed sound `mySound` with repeat on the master channel
+  Aura.createUncompBufferChannel(mySound, true).play();
 
-  // Plays the sound `mySound` without repeat on the predefined fx channel
-  Aura.createHandle(Play, mySound, false, Aura.mixChannels["fx"]).play();
-
-  // You can also stream sounds directly from disk. Whether a sound can be
-  // streamed highly depends on the target and whether the sound is compressed
-  // or not. Please consult the Kha sources if in doubt.
-  Aura.createHandle(Stream, mySound, false, Aura.mixChannels["music"]).play();
+  // Plays the uncompressed sound `mySound` without repeat on the predefined fx channel
+  Aura.createUncompBufferChannel(mySound, false, Aura.mixChannels["fx"]).play();
+  ```
+  You can also play audio from compressed sounds without having to uncompress them first (Kha calls this "streaming").
+  This is useful for longer sounds such as background music, they need less memory and load faster if they do not need to be uncompressed, but on the other side this is more computationally demanding than playing uncompressed sounds.
+  Whether a sound can be streamed highly depends on the target, please consult the Kha sources if in doubt.
+  ```haxe
+  Aura.createCompBufferChannel(mySound, false, Aura.mixChannels["music"]).play();
   ```
 
-  `Aura.createHandle()` returns a [`Handle`](https://github.com/MoritzBrueckner/aura/blob/master/Sources/aura/Handle.hx) object with which you can control the playback and relevant parameters.
+  Both `Aura.createUncompBufferChannel()` and `Aura.createCompBufferChannel()` return so-called handle objects with which you can control channel playback and relevant parameters.
 
-- Create a `MixChannel` to control a group of sounds:
+- Create a `MixChannelHandle` to control a group of sounds:
 
   ```haxe
   // Create a channel for all voices for example.
@@ -107,7 +108,8 @@
   // Mix the output of `voiceChannel` into the master channel
   voiceChannel.setMixChannel(Aura.masterChannel);
 
-  Aura.createHandle(Play, mySound, false, voiceChannel).play();
+  // Create a new channel handle for `mySound` and mix the output of that channel into the voice mix channel
+  Aura.createUncompBufferChannel(mySound, false, voiceChannel).play();
   ```
 
 - Add a lowpass filter to the master channel:
@@ -117,7 +119,7 @@
 
   ...
 
-  Aura.createHandle(Play, mySound).play();
+  Aura.createUncompBufferChannel(mySound).play();
 
   var lowPass = new Filter(LowPass);
   lowPass.setCutoffFreq(1000); // Frequency in Hertz
@@ -134,7 +136,7 @@
 
   ...
 
-  var mySoundHandle = Aura.createHandle(Play, mySound);
+  var mySoundHandle = Aura.createUncompBufferChannel(mySound);
   var panner = StereoPanner(mySoundHandle);
 
   // Some utility constants
@@ -156,7 +158,7 @@
   ...
 
   var cam = getCurrentCamera(); // <-- dummy function
-  var mySoundHandle = Aura.createHandle(Play, mySound);
+  var mySoundHandle = Aura.createUncompBufferChannel(mySound);
 
   // Create a panner for the sound handle (choose one)
   new StereoPanner(channel); // Simple left-right panner

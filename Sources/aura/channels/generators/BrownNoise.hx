@@ -4,6 +4,7 @@ import haxe.ds.Vector;
 
 import kha.FastFloat;
 
+import aura.channels.BaseChannel.BaseChannelHandle;
 import aura.types.AudioBuffer;
 import aura.utils.BufferUtils;
 
@@ -20,8 +21,8 @@ class BrownNoise extends BaseGenerator {
 	/**
 		Creates a new BrownNoise channel and returns a handle to it.
 	**/
-	public static function create(): Handle {
-		return new Handle(new BrownNoise());
+	public static function create(): BaseChannelHandle {
+		return new BaseChannelHandle(new BrownNoise());
 	}
 
 	function nextSamples(requestedSamples: AudioBuffer, sampleRate: Hertz) {

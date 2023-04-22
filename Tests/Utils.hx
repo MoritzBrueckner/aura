@@ -1,12 +1,12 @@
 package;
 
-import aura.Handle;
-import aura.channels.AudioChannel;
+import aura.Aura;
+import aura.channels.UncompBufferChannel;
 
-inline function createDummyHandle(): Handle {
+inline function createDummyHandle(): BaseChannelHandle {
 	final data = new kha.arrays.Float32Array(8);
-	final channel = new AudioChannel(data, false);
-	return new Handle(channel);
+	final channel = new UncompBufferChannel(data, false);
+	return new BaseChannelHandle(channel);
 }
 
 inline function int32ToBytesString(i: Int): String {

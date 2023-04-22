@@ -5,14 +5,14 @@ import utest.Assert;
 import kha.arrays.Float32Array;
 
 import aura.Types.Balance;
-import aura.channels.ResamplingAudioChannel;
+import aura.channels.UncompBufferResamplingChannel;
 import aura.types.AudioBuffer;
 
-@:access(aura.channels.ResamplingAudioChannel)
-class TestResamplingAudioChannel extends utest.Test {
+@:access(aura.channels.UncompBufferResamplingChannel)
+class TestUncompBufferResamplingChannel extends utest.Test {
 	static inline var channelLength = 16;
 
-	var audioChannel: ResamplingAudioChannel;
+	var audioChannel: UncompBufferResamplingChannel;
 
 	final rampLeft = new Array<Float>();
 	final rampRight = new Array<Float>();
@@ -31,7 +31,7 @@ class TestResamplingAudioChannel extends utest.Test {
 	}
 
 	function setup() {
-		audioChannel = new ResamplingAudioChannel(data, false, 1000);
+		audioChannel = new UncompBufferResamplingChannel(data, false, 1000);
 	}
 
 	function teardown() {}
