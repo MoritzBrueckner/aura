@@ -8,9 +8,9 @@ const targetsCPP = ["windows", "linux", "osx"];
 const targetsHTML5 = ["html5", "debug-html5"];
 
 function addBackends(project) {
-	project.localLibraryPath = 'Backends';
+	project.localLibraryPath = "Backends";
 
-	let isHL = targetsHL.indexOf(Project.platform) >= 0;
+	const isHL = targetsHL.indexOf(Project.platform) >= 0;
 
 	if (isHL) {
 		project.addLibrary("hl");
@@ -20,10 +20,10 @@ function addBackends(project) {
 
 	const isHTML5 = targetsHTML5.indexOf(Project.platform) >= 0;
 	if (isHTML5) {
-		// project.addSources('backends/html5');
+		// project.addSources("backends/html5");
 	}
 
-	project.localLibraryPath = 'Libraries';
+	project.localLibraryPath = "Libraries";
 }
 
 async function main() {
@@ -43,7 +43,7 @@ async function main() {
 		project.addDefine("AURA_SIMD");
 	}
 
-	const withOptick = optickPathKey in process.env;
+	const withOptick = optickPathKey in process.env && isCPP;
 	if (withOptick) {
 		const optickPath = process.env[optickPathKey];
 
