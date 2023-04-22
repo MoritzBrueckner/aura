@@ -7,7 +7,7 @@ class CircularBuffer {
 	final data: Float32Array;
 	var readHead: Int;
 	var writeHead: Int;
-	var length(get, null): Int;
+	public var length(get, null): Int;
 	public var delay = 0;
 
 	public inline function new(size: Int) {

@@ -66,6 +66,7 @@ class Debug {
 			}
 		}
 	}
+	#end
 
 	static function copyToClipboard(text: String) {
 		#if (kha_html5 || kha_debug_html5)
@@ -111,7 +112,7 @@ class Debug {
 
 		g.color = kha.Color.fromFloats(0.023, 0.443, 0.796);
 		g.opacity = 0.5;
-		g.drawLine(x + w / 2, y, x + w / 2, y + h, 2);
+		// g.drawLine(x + w / 2, y, x + w / 2, y + h, 2);
 
 		g.end();
 	}
@@ -119,5 +120,5 @@ class Debug {
 	public static function createRenderTarget(w: Int, h: Int): Image {
 		return Image.createRenderTarget(Std.int(w), Std.int(h), null, NoDepthAndStencil, 1);
 	}
-	#end
+	// #end
 }

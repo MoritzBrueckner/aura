@@ -60,7 +60,7 @@ import haxe.macro.Type.ClassType;
 	- Little complexity and compile time added by using a macro.
 **/
 class ExtensibleEnumBuilder {
-	static var SUBTYPE_VARNAME = "_SubtypeOffset";
+	@:persistent static final SUBTYPE_VARNAME = "_SubtypeOffset";
 
 	public static macro function build(): Array<Field> {
 		final fields = Context.getBuildFields();
@@ -122,7 +122,7 @@ class ExtensibleEnumBuilder {
 		return classType.pack.length == 0 ? name : classType.pack.join(".") + "." + name;
 	}
 
-	static function strPathToExpr(path: String): Expr {
+	static inline function strPathToExpr(path: String): Expr {
 		// final pathArray = path.split(".");
 		// final first = EConst(CIdent(pathArray.shift()));
 		// var expr = { expr: first, pos: Context.currentPos() };
