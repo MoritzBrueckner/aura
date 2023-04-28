@@ -101,7 +101,7 @@
 - Create a `MixChannelHandle` to control a group of sounds:
 
   ```haxe
-  // Create a channel for all voices for example.
+  // Create a channel for all voices for example and store a handle to it in `voiceChannel`.
   // The channel can also be accessed with `Aura.mixChannels["voice"]`
   var voiceChannel = Aura.createMixChannel("voice");
 
@@ -191,10 +191,10 @@ The following targets were tested so far:
 
 | Target | Tested environments | Supported | Notes |
 | --- | --- | :---: | --- |
-| [Armorcore](https://github.com/armory3d/armorcore) (Krom) | Windows | ✔ | |
-| HTML5 | | ✔ | - No dedicated audio thread for non-streaming playback<br>- If `kha.SystemImpl.mobileAudioPlaying` is true, streamed playback is not included in the Aura mix pipeline (no DSP etc.) |
-| Hashlink/C | Windows | ✔ | |
-| hxcpp | Windows | ✔ | |
+| [Armorcore](https://github.com/armory3d/armorcore) (Krom) | Windows 10 | ✔ | |
+| HTML5 | Electron, Firefox | ✔ | - No dedicated audio thread for non-streaming playback<br>- If `kha.SystemImpl.mobileAudioPlaying` is true, streamed playback is not included in the Aura mix pipeline (no DSP etc.) |
+| Hashlink/C | Windows 10 | ✔ | |
+| hxcpp | Windows 10 | ✔ | |
 
 # License
 
