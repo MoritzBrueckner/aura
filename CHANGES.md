@@ -5,7 +5,7 @@ versions. Non-breaking changes (e.g. new features) are _not_ listed here.
 
 _The dates below are given as **YYYY.MM.DD**._
 
-- **2023.04.29** ()
+- **2023.04.29** ([`8c1da0b`](https://github.com/MoritzBrueckner/aura/commit/8c1da0b039c55f56400f6270ca109b58c4a48526))
 
   This commit introduced multiple compatibility-breaking changes:
 
