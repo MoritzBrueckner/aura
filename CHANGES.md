@@ -15,21 +15,21 @@ _The dates below are given as **YYYY.MM.DD**._
 
   3. `Aura.createHandle()` was replaced with `Aura.createUncompBufferChannel()` as well as `Aura.createCompBufferChannel()`, depending on the first parameter of `createHandle()` that is now obsolete:
 
-    ```haxe
-    Aura.createHandle(Play, mySound, loop, mixChannelHandle);
-    // becomes
-    Aura.createUncompBufferChannel(mySound, loop, mixChannelHandle);
+     ```haxe
+     Aura.createHandle(Play, mySound, loop, mixChannelHandle);
+     // becomes
+     Aura.createUncompBufferChannel(mySound, loop, mixChannelHandle);
 
-    // and
+     // and
 
-    Aura.createHandle(Stream, mySound, loop, mixChannelHandle);
-    // becomes
-    Aura.createCompBufferChannel(mySound, loop, mixChannelHandle);
-    ```
+     Aura.createHandle(Stream, mySound, loop, mixChannelHandle);
+     // becomes
+     Aura.createCompBufferChannel(mySound, loop, mixChannelHandle);
+     ```
 
-    This change is more or less reverting [`0576c1f`](https://github.com/MoritzBrueckner/aura/commit/0576c1f657c5ff11d72f1916ae1b3f81ee0e2be7) and is introduced as part of adding more handle types to distinguish different channel features.
-    Now, `Aura.createUncompBufferChannel()` returns `Null<UncompBufferChannelHandle>` (`UncompBufferChannelHandle` is a new type introduced by this commit) and `Aura.createCompBufferChannel()` returns the unspecialized `Null<BaseChannelHandle>`.
-    This type-safe compile-time handling of handle types prevents the user from having to cast a returned handle to a specific handle type to get access to the complete functionality of a handle, which would have been required if `Aura.createHandle()` was still used to create handles (thus, [abstraction leaking](https://en.wikipedia.org/wiki/Leaky_abstraction) is minimized).
+     This change is more or less reverting [`0576c1f`](https://github.com/MoritzBrueckner/aura/commit/0576c1f657c5ff11d72f1916ae1b3f81ee0e2be7) and is introduced as part of adding more handle types to distinguish different channel features.
+     Now, `Aura.createUncompBufferChannel()` returns `Null<UncompBufferChannelHandle>` (`UncompBufferChannelHandle` is a new type introduced by this commit) and `Aura.createCompBufferChannel()` returns the unspecialized `Null<BaseChannelHandle>`.
+     This type-safe compile-time handling of handle types prevents the user from having to cast a returned handle to a specific handle type to get access to the complete functionality of a handle, which would have been required if `Aura.createHandle()` was still used to create handles (thus, [abstraction leaking](https://en.wikipedia.org/wiki/Leaky_abstraction) is minimized).
 
 - **2022.11.21** ([`db8902c`](https://github.com/MoritzBrueckner/aura/commit/db8902c2816cdb7acbe221c97e3f454175df79c5)):
 
