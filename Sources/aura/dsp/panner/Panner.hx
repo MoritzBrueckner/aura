@@ -74,14 +74,14 @@ abstract class Panner extends DSP {
 	**/
 	public inline function setLocation(location: Vec3) {
 		this.lastLocation.setFrom(this.location);
-		this.location = location;
+		this.location.setFrom(location);
 
 		if (!initializedLocation) {
 			initializedLocation = true;
 		} else {
 			// Prevent jumps in the doppler effect caused by initial distance
 			// too far away from the origin
-			this.velocity = this.location.sub(this.lastLocation);
+			this.velocity.setFrom(this.location.sub(this.lastLocation));
 		}
 	}
 
