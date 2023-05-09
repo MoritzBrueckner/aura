@@ -28,14 +28,14 @@ class UncompBufferResamplingChannel extends UncompBufferChannel {
 	override function nextSamples(requestedSamples: AudioBuffer, sampleRate: Hertz): Void {
 		Profiler.event();
 
-		assert(Critical, requestedSamples.numChannels == data.numChannels);
+		assert(Critical, requestedSamples.numChannels == playbackData.numChannels);
 
 		final stepDopplerRatio = pDopplerRatio.getLerpStepSize(requestedSamples.channelLength);
 		final stepDstAttenuation = pDstAttenuation.getLerpStepSize(requestedSamples.channelLength);
 		final stepPitch = pPitch.getLerpStepSize(requestedSamples.channelLength);
 		final stepVol = pVolume.getLerpStepSize(requestedSamples.channelLength);
 
-		final resampleLength = Resampler.getResampleLength(data.channelLength, this.sampleRate, sampleRate);
+		final resampleLength = Resampler.getResampleLength(playbackData.channelLength, this.sampleRate, sampleRate);
 
 		var samplesWritten = 0;
 		var reachedEndOfData = false;
@@ -58,7 +58,7 @@ class UncompBufferResamplingChannel extends UncompBufferChannel {
 				floatPosition = initialFloatPosition;
 
 				for (i in 0...samplesToWrite) {
-					var sampledVal: Float = Resampler.sampleAtTargetPositionLerp(data.getChannelView(c), floatPosition, this.sampleRate, sampleRate);
+					var sampledVal: Float = Resampler.sampleAtTargetPositionLerp(playbackData.getChannelView(c), floatPosition, this.sampleRate, sampleRate);
 
 					outChannelView[samplesWritten + i] = sampledVal * pVolume.currentValue * pDstAttenuation.currentValue;
 
@@ -74,6 +74,9 @@ class UncompBufferResamplingChannel extends UncompBufferChannel {
 							while (floatPosition >= resampleLength) {
 								playbackPosition -= resampleLength;
 								floatPosition -= resampleLength; // Keep fraction
+							}
+							if (c == 0) {
+								optionallyApplySourceEffects();
 							}
 						}
 						else {

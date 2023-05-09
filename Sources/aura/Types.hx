@@ -65,3 +65,37 @@ enum Angle {
 #else
 	typedef AtomicInt = Int;
 #end
+
+#if (haxe_ver > 4.3 && !js)
+	typedef AtomicBool = haxe.atomic.AtomicBool;
+#else
+	@:forward
+	@:forwardStatics
+	abstract AtomicBool({val: Bool}) { // We need indirection via struct here to not run into compile issues with `this`
+		public inline function new(value: Bool) {
+			this = {val: value};
+		}
+
+		public inline function compareExchange(expected: Bool, replacement: Bool): Bool {
+			final orig = this.val;
+			if (orig == expected) {
+				this.val = replacement;
+			}
+			return orig;
+		}
+
+		public inline function exchange(value: Bool): Bool {
+			final orig = this.val;
+			this.val = value;
+			return orig;
+		}
+
+		public inline function load(): Bool {
+			return this.val;
+		}
+
+		public inline function store(value: Bool): Bool {
+			return this.val = value;
+		}
+	}
+#end

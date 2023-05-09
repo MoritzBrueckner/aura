@@ -3,12 +3,17 @@
 **/
 package aura.utils;
 
+import kha.FastFloat;
+
 import aura.math.Vec3;
 
 /** 1.0 / ln(10) in double precision **/
-inline var LN10_INV_DOUBLE = 0.43429448190325181666793241674895398318767547607421875;
+inline var LN10_INV_DOUBLE: Float = 0.43429448190325181666793241674895398318767547607421875;
 /** 1.0 / ln(10) in single precision **/
-inline var LN10_INV_SINGLE = 0.4342944920063018798828125;
+inline var LN10_INV_SINGLE: kha.FastFloat = 0.4342944920063018798828125;
+
+/** 1.0 / e (Euler's number) **/
+inline var E_INV: kha.FastFloat = 0.367879441171442321595523770161460867;
 
 @:pure inline function maxI(a: Int, b: Int): Int {
 	return a > b ? a : b;

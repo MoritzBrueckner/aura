@@ -6,6 +6,7 @@ import kha.arrays.Float32Array;
 
 import aura.Types.Balance;
 import aura.channels.UncompBufferResamplingChannel;
+import aura.dsp.sourcefx.SourceEffect;
 import aura.types.AudioBuffer;
 
 @:access(aura.channels.UncompBufferResamplingChannel)
@@ -90,5 +91,36 @@ class TestUncompBufferResamplingChannel extends utest.Test {
 		}
 
 		// TODO: check sample precise looping without gaps with unusual sample rates?
+	}
+
+	function test_nextSamples_onLoop_ApplySourceEffectsOnce() {
+		audioChannel.looping = true;
+
+		final sourceFX = new SourceFXDummy();
+
+		audioChannel.addSourceEffect(sourceFX);
+
+		Assert.equals(0, sourceFX.numProcessCalled);
+
+		final outBuffer = new AudioBuffer(2, channelLength + 1);
+		audioChannel.nextSamples(outBuffer, 1000);
+
+		// Make sure process is only called once for _all_ channels
+		Assert.equals(1, sourceFX.numProcessCalled);
+	}
+}
+
+private class SourceFXDummy extends SourceEffect {
+	public var numProcessCalled = 0;
+
+	public function new() {}
+
+	function calculateRequiredChannelLength(srcChannelLength: Int): Int {
+		return srcChannelLength;
+	}
+
+	function process(srcBuffer: AudioBuffer, srcChannelLength: Int, dstBuffer: AudioBuffer): Int {
+		numProcessCalled++;
+		return srcChannelLength;
 	}
 }

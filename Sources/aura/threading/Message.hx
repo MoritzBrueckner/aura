@@ -5,6 +5,10 @@ package aura.threading;
 class Message {
 	public final id: Int;
 	public final data: Null<Any>;
+
+	public final inline function dataAsArrayUnsafe(): Null<Array<Any>> {
+		return data;
+	}
 }
 
 @:autoBuild(aura.utils.macro.ExtensibleEnumBuilder.build())

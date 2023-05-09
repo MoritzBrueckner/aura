@@ -4,6 +4,6 @@ repos:
   hooks:
   - id: trailing-whitespace
 - repo: https://github.com/fsfe/reuse-tool
-  rev: latest
+  rev: v1.1.2
   hooks:
   - id: reuse

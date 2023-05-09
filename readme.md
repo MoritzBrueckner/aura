@@ -18,6 +18,7 @@
 - Built-in [DSP](https://en.wikipedia.org/wiki/Digital_signal_processing) filters:
   - High-/band-/lowpass filter
   - Haas effect
+  - Per-channel source effects, e.g. to generate variations using Velvet noise ([original paper](http://research.spa.aalto.fi/publications/papers/dafx21-one2many/))
 - Extendable DSP system – easily write your own filters
 - *[Experimental]* Support for [HRTFs (head-related transfer functions)](https://en.wikipedia.org/wiki/Head-related_transfer_function)
 

@@ -1,7 +1,7 @@
 # Changes
 
-This list contains notable changes that may break compatibility with older
-versions. Non-breaking changes (e.g. new features) are _not_ listed here.
+This list contains notable changes that may break compatibility with previous versions (public API only).
+Non-breaking changes (e.g. new features) are _not_ listed here.
 
 _The dates below are given as **YYYY.MM.DD**._
 
