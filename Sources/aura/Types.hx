@@ -22,6 +22,10 @@ enum abstract Channels(Int) {
 		return (this & mask.asInt()) != 0;
 	}
 
+	public inline function matchesIndex(index: Int): Bool {
+		return ((1 << index) & this) != 0;
+	}
+
 	inline function asInt(): Int {
 		return this;
 	}

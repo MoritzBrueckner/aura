@@ -2,9 +2,9 @@ package aura.types;
 
 import haxe.ds.Vector;
 
+import kha.FastFloat;
 import kha.arrays.Float32Array;
 
-import aura.math.Vec3;
 import aura.utils.BufferUtils;
 import aura.utils.MathUtils;
 import aura.utils.Pointer;
@@ -59,7 +59,7 @@ using aura.utils.ReverseIterator;
 	**/
 	public function getInterpolatedHRIR(
 		elevation: Float, azimuth: Float,
-		outputBuf: Float32Array, outImpulseLength: Pointer<Int>, outDelay: Pointer<Int>
+		outputBuf: Float32Array, outImpulseLength: Pointer<Int>, outDelay: Pointer<FastFloat>
 	) {
 		/**
 			Used terms in this function:
@@ -132,7 +132,7 @@ using aura.utils.ReverseIterator;
 		// Delay is stored in samples relative to the HRTF sample rate, convert
 		// to current sample rate
 		final sampleRateFactor = this.sampleRate / Aura.sampleRate;
-		outDelay.set(Math.round(delay * sampleRateFactor));
+		outDelay.set(delay * sampleRateFactor);
 
 		outImpulseLength.set(hrirLength);
 	}
@@ -199,4 +199,3 @@ class HRIR {
 
 	public function new() {}
 }
-

@@ -1,7 +1,9 @@
 package aura.dsp.panner;
 
+import kha.FastFloat;
 import kha.arrays.Float32Array;
 
+import aura.Types.Channels;
 import aura.channels.BaseChannel.BaseChannelHandle;
 import aura.threading.Message;
 import aura.types.AudioBuffer;
@@ -13,8 +15,8 @@ class HRTFPanner extends Panner {
 	public var hrtf: HRTF;
 
 	final hrtfConvolver: FFTConvolver;
-	final hrtfDelayLine: DelayLine;
-	final hrirPtrDelay: Pointer<Int>;
+	final hrtfDelayLine: FractionalDelayLine;
+	final hrirPtrDelay: Pointer<FastFloat>;
 	final hrirPtrImpulseLength: Pointer<Int>;
 	final hrir: Float32Array;
 	final hrirOpp: Float32Array;
@@ -25,11 +27,11 @@ class HRTFPanner extends Panner {
 		this.hrtf = hrtf;
 
 		hrtfConvolver = new FFTConvolver();
-		hrtfDelayLine = new DelayLine(Math.ceil(hrtf.maxDelayLength));
+		hrtfDelayLine = new FractionalDelayLine(2, Math.ceil(hrtf.maxDelayLength));
 		hrtfConvolver.bypass = true;
 		hrtfDelayLine.bypass = true;
 
-		hrirPtrDelay = new Pointer<Int>();
+		hrirPtrDelay = new Pointer<FastFloat>();
 		hrirPtrImpulseLength = new Pointer<Int>();
 
 		hrir = new Float32Array(FFTConvolver.CHUNK_SIZE);
@@ -84,7 +86,8 @@ class HRTFPanner extends Panner {
 			hrtfConvolver.bypass = false;
 			hrtfDelayLine.bypass = false;
 			hrtfConvolver.sendMessage({id: DSPMessageID.SwapBufferReady, data: [hrirLength, hrirOppLength]});
-			hrtfDelayLine.sendMessage({id: DSPMessageID.SetDelays, data: [hrirDelay, hrirOppDelay]});
+			hrtfDelayLine.setDelayLength(Channels.Left, hrirDelay);
+			hrtfDelayLine.setDelayLength(Channels.Right, hrirOppDelay);
 		}
 		else {
 			for (c in 0...hrtf.numChannels) {
