@@ -26,6 +26,7 @@ abstract class Panner extends DSP {
 	**/
 	var location: Vec3 = new Vec3(0, 0, 0);
 	var lastLocation: Vec3 = new Vec3(0, 0, 0);
+	var lastLocationUpdateTime: Float = 0.0;
 	var initializedLocation = false;
 
 	/**
@@ -72,17 +73,22 @@ abstract class Panner extends DSP {
 	/**
 		Set the location of this panner in world space.
 	**/
-	public inline function setLocation(location: Vec3) {
+	public function setLocation(location: Vec3) {
+		final time = Time.getTime();
+
 		this.lastLocation.setFrom(this.location);
-		this.location.setFrom(location);
 
 		if (!initializedLocation) {
-			initializedLocation = true;
-		} else {
 			// Prevent jumps in the doppler effect caused by initial distance
 			// too far away from the origin
-			this.velocity.setFrom(this.location.sub(this.lastLocation));
+			initializedLocation = true;
+		} else {
+			final timeDelta = time - lastLocationUpdateTime;
+			this.velocity.setFrom(location.sub(this.lastLocation).mult(1 / timeDelta));
 		}
+
+		this.location.setFrom(location);
+		this.lastLocationUpdateTime = time;
 	}
 
 	function calculateAttenuation(dirToChannel: FastVector3) {
@@ -100,11 +106,9 @@ abstract class Panner extends DSP {
 
 	function calculateDoppler() {
 		final listener = Aura.listener;
+
 		var dopplerRatio: FastFloat = 1.0;
 		if (dopplerFactor != 0.0 && (listener.velocity.length != 0 || this.velocity.length != 0)) {
-			final soundSpeed = SPEED_OF_SOUND * Time.delta; // meters per frame
-			final speedBound = soundSpeed - 0.0001; // epsilon to prevent division by zero
-
 			final displacementToSource = this.location.sub(listener.location);
 			final dist = displacementToSource.length;
 
@@ -114,12 +118,18 @@ abstract class Panner extends DSP {
 				return;
 			}
 
-			// Calculate radial velocity, clamp at speed of sound to prevent
-			// negative frequencies
-			final vr = clampF(listener.velocity.dot(displacementToSource) / dist, -speedBound, speedBound);
-			final vs = clampF(this.velocity.dot(displacementToSource) / dist, -speedBound, speedBound);
+			// Calculate radial velocity
+			final vr = listener.velocity.dot(displacementToSource) / dist;
+			final vs = this.velocity.dot(displacementToSource) / dist;
 
-			dopplerRatio = (soundSpeed + vr) / (soundSpeed + vs);
+			// Sound source comes closer exactly at speed of sound,
+			// make silent and prevent division by zero below
+			if (vs == -SPEED_OF_SOUND) {
+				handle.channel.sendMessage({ id: ChannelMessageID.PDopplerRatio, data: 0.0 });
+				return;
+			}
+
+			dopplerRatio = (SPEED_OF_SOUND + vr) / (SPEED_OF_SOUND + vs);
 			dopplerRatio = Math.pow(dopplerRatio, dopplerFactor);
 		}
 

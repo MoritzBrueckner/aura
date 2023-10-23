@@ -60,9 +60,17 @@ class UncompBufferResamplingChannel extends UncompBufferChannel {
 				for (i in 0...samplesToWrite) {
 					var sampledVal: Float = Resampler.sampleAtTargetPositionLerp(playbackData.getChannelView(c), floatPosition, this.sampleRate, sampleRate);
 
-					outChannelView[samplesWritten + i] = sampledVal * pVolume.currentValue * pDstAttenuation.currentValue;
-
-					floatPosition += pPitch.currentValue * pDopplerRatio.currentValue;
+					if (pDopplerRatio.currentValue <= 0) {
+						// In this case, the audio is inaudible at the time of emission at its source,
+						// although technically the sound would eventually arrive at the listener in reverse.
+						// We don't simulate the latter, but still make the sound silent for some added realism
+						outChannelView[samplesWritten + i] = 0.0;
+						floatPosition += pPitch.currentValue;
+					}
+					else {
+						outChannelView[samplesWritten + i] = sampledVal * pVolume.currentValue * pDstAttenuation.currentValue;
+						floatPosition += pPitch.currentValue * pDopplerRatio.currentValue;
+					}
 
 					pDopplerRatio.currentValue += stepDopplerRatio;
 					pDstAttenuation.currentValue += stepDstAttenuation;
@@ -93,7 +101,7 @@ class UncompBufferResamplingChannel extends UncompBufferChannel {
 			samplesWritten += samplesToWrite;
 		}
 
-		// Fill further requested samples with zeroes
+		// We're out of data, but more samples are requested
 		for (c in 0...requestedSamples.numChannels) {
 			final channelView = requestedSamples.getChannelView(c);
 			for (i in samplesWritten...requestedSamples.channelLength) {

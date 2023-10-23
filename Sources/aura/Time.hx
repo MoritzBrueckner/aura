@@ -8,6 +8,10 @@ class Time {
 	public static var lastTime(default, null): Float = 0.0;
 	public static var delta(default, null): Float = 0.0;
 
+	#if AURA_UNIT_TESTS
+		public static var overrideTime: Null<Float> = null;
+	#end
+
 	#if AURA_BENCHMARK
 		public static var times: Array<Float>;
 		static var benchmarkStarted = false;
@@ -16,9 +20,18 @@ class Time {
 		static var onBenchmarkDone: Array<Float>->Void;
 	#end
 
+	public static inline function getTime():Float {
+		#if AURA_UNIT_TESTS
+			if (overrideTime != null) {
+				return overrideTime;
+			}
+		#end
+		return Scheduler.realTime();
+	}
+
 	public static inline function update() {
-		delta = Scheduler.realTime() - lastTime;
-		lastTime = Scheduler.realTime();
+		delta = getTime() - lastTime;
+		lastTime = getTime();
 
 		BufferCache.updateTimer();
 	}
