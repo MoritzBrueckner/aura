@@ -4,9 +4,9 @@ package aura.threading;
 @:structInit
 class Message {
 	public final id: Int;
-	public final data: Null<Any>;
+	public final data: Null<Dynamic>;
 
-	public final inline function dataAsArrayUnsafe(): Null<Array<Any>> {
+	public final inline function dataAsArrayUnsafe(): Null<Array<Dynamic>> {
 		return data;
 	}
 }
