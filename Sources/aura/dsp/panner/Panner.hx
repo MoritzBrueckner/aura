@@ -95,7 +95,7 @@ abstract class Panner extends DSP {
 		final dst = maxF(REFERENCE_DST, dirToChannel.length);
 		final dstAttenuation = switch (attenuationMode) {
 			case Linear:
-				1 - attenuationFactor * (dst - REFERENCE_DST) / (maxDistance - REFERENCE_DST);
+				maxF(0.0, 1 - attenuationFactor * (dst - REFERENCE_DST) / (maxDistance - REFERENCE_DST));
 			case Inverse:
 				REFERENCE_DST / (REFERENCE_DST + attenuationFactor * (dst - REFERENCE_DST));
 			case Exponential:
