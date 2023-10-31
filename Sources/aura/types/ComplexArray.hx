@@ -103,6 +103,18 @@ abstract ComplexArray(ComplexArrayImpl) {
 		}
 		return ret;
 	}
+
+	/**
+		Copy the contents of `other` into this array.
+		Both arrays must have the same length.
+	**/
+	public inline function copyFrom(other: ComplexArray) {
+		assert(Error, this.length == other.length);
+
+		for (i in 0...this.length) {
+			set(i, other[i]);
+		}
+	}
 }
 
 #if AURA_BACKEND_HL
