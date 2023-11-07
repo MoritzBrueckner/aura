@@ -31,7 +31,11 @@ inline var E_INV: kha.FastFloat = 0.367879441171442321595523770161460867;
 	return a < b ? a : b;
 }
 
-@:pure inline function lerp(valA: Float, valB: Float, fac: Float) {
+@:pure inline function lerp(valA: Float, valB: Float, fac: Float): Float {
+	return valA * (1 - fac) + valB * fac;
+}
+
+@:pure inline function lerpF32(valA: FastFloat, valB: FastFloat, fac: FastFloat): FastFloat {
 	return valA * (1 - fac) + valB * fac;
 }
 

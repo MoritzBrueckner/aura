@@ -89,26 +89,6 @@ class FFTConvolver extends DSP {
 		prevOverlapLength = createEmptyVecI(NUM_CHANNELS);
 	}
 
-	public function setImpulse(impulse: Float32Array) {
-		assert(Debug, impulse.length <= CHUNK_SIZE, 'Impulse must not be longer than $CHUNK_SIZE');
-
-		// TODO: Resample impulse if necessary
-
-		// TODO: Support stereo impulse buffers
-
-		final impulseTimeDomain = impulseFFT.getInput(0);
-
-		// Pad impulse response to FFT size
-		for (i in 0...impulse.length) {
-			impulseTimeDomain[i] = impulse[i];
-		}
-		for (i in impulse.length...FFT_SIZE) {
-			impulseTimeDomain[i] = 0.0;
-		}
-
-		calculateImpulseFFT(impulseTimeDomain, impulse.length, 0);
-	}
-
 	// TODO: move this into main thread and use swapbuffer for impulse freqs
 	// instead? Moving the impulse FFT computation into the main thread will
 	// also remove the fft computation while the swap buffer lock is active,
@@ -119,13 +99,13 @@ class FFTConvolver extends DSP {
 		impulseSwapBuffer.beginRead();
 		for (c in 0...impulseLengths.length) {
 			impulseSwapBuffer.read(impulseTimeDomain, 0, CHUNK_SIZE * c, CHUNK_SIZE);
-			inline calculateImpulseFFT(impulseTimeDomain, impulseLengths[c], c);
+			inline calculateImpulseFFT(impulseLengths[c], c);
 		}
 		impulseSwapBuffer.endRead();
 		currentImpulseAlternationIndex = 1 - currentImpulseAlternationIndex;
 	}
 
-	inline function calculateImpulseFFT(impulseArray: Float32Array, impulseLength: Int, channelIndex: Int) {
+	inline function calculateImpulseFFT(impulseLength: Int, channelIndex: Int) {
 		impulseFFT.forwardFFT(0, NUM_CHANNELS * channelIndex + currentImpulseAlternationIndex);
 
 		overlapLength[channelIndex] = maxI(prevImpulseLengths[channelIndex], impulseLength - 1);
@@ -139,7 +119,7 @@ class FFTConvolver extends DSP {
 		assert(Critical, buffer.numChannels == NUM_CHANNELS);
 
 		for (c in 0...buffer.numChannels) {
-			if (overlapLength[c] <= 0) return;
+			if (overlapLength[c] < 0) return;
 		}
 
 		// Ensure correct boundaries
@@ -170,8 +150,8 @@ class FFTConvolver extends DSP {
 		for (c in 0...buffer.numChannels) {
 			final channelView = buffer.getChannelView(c);
 
-			final impulseFreqDomainCurrent = impulseFFT.getOutput(NUM_CHANNELS * c + currentImpulseAlternationIndex);
-			final impulseFreqDomainPrev = impulseFFT.getOutput(NUM_CHANNELS * c + (1 - currentImpulseAlternationIndex));
+			final impulseFreqDomainCurrent = impulseFFT.getOutput(NUM_CHANNELS * c + (1 - currentImpulseAlternationIndex));
+			final impulseFreqDomainPrev = impulseFFT.getOutput(NUM_CHANNELS * c + currentImpulseAlternationIndex);
 
 			for (s in 0...numSegments) {
 				final segmentOffset = s * segmentSize;
@@ -201,13 +181,14 @@ class FFTConvolver extends DSP {
 				signalFFT.inverseFFT(0, 0);
 				signalFFT.inverseFFT(1, 1);
 
-				// Interpolate and copy to output
-				var t = 1.0;
-				for (i in 0...numInterpolationSteps) {
+				// Interpolate (only for first segment) and copy to output
+				final actualNumInterpolationSteps = (s == 0) ? numInterpolationSteps : 0;
+				var t = 0.0;
+				for (i in 0...actualNumInterpolationSteps) {
 					channelView[segmentOffset + i] = lerpF32(signalTimeDomainPrevImpulse[i], signalTimeDomainCurrentImpulse[i], t);
-					t -= interpolationStepSize;
+					t += interpolationStepSize;
 				}
-				for (i in numInterpolationSteps...CHUNK_SIZE) {
+				for (i in actualNumInterpolationSteps...CHUNK_SIZE) {
 					channelView[segmentOffset + i] = signalTimeDomainCurrentImpulse[i];
 				}
 
