@@ -11,6 +11,12 @@ using StringTools;
 class Debug {
 	static var id = 0;
 
+	public static inline function startDebugger() {
+		#if js
+			js.Syntax.code("debugger");
+		#end
+	}
+
 	/**
 		Generates GraphViz/dot code to draw the channel tree for debugging. On
 		html5 this code is copied to the clipboard, on other targets it is

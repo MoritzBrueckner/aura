@@ -34,6 +34,7 @@ class Assert {
 		return macro {
 			if (!$condition) {
 				#if AURA_ASSERT_QUIT kha.System.stop(); #end
+				#if AURA_ASSERT_START_DEBUGGER aura.utils.Debug.startDebugger(); #end
 
 				@:pos(condition.pos)
 				@:privateAccess aura.utils.Assert.throwAssertionError($v{condition.toString()}, ${message});
