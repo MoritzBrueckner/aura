@@ -54,6 +54,50 @@ class AudioBuffer {
 			rawData[i] = 0;
 		}
 	}
+
+	/**
+		Copy the samples from `other` into this buffer.
+		Both buffers must have the same amount of channels
+		and the same amount of samples per channel.
+	**/
+	public inline function copyFromEquallySized(other: AudioBuffer) {
+		assert(Error, this.numChannels == other.numChannels);
+		assert(Error, this.channelLength == other.channelLength);
+
+		for (i in 0...rawData.length) {
+			this.rawData[i] = other.rawData[i];
+		}
+	}
+
+	/**
+		Copy the samples from `other` into this buffer.
+		Both buffers must have the same amount of channels, `other` must have
+		fewer or equal the amount of samples per channel than this buffer.
+
+		If `other` has fewer samples per channel than this buffer,
+		`padWithZeroes` specifies whether the remaining samples in this buffer
+		should be padded with zeroes (`padWithZeroes` is `true`) or should be
+		remain unmodified (`padWithZeroes` is `false`).
+	**/
+	public inline function copyFromShorterBuffer(other: AudioBuffer, padWithZeroes: Bool) {
+		assert(Error, this.numChannels == other.numChannels);
+		assert(Error, this.channelLength >= other.channelLength);
+
+		for (c in 0...this.numChannels) {
+			final thisView = this.getChannelView(c);
+			final otherView = other.getChannelView(c);
+
+			for (i in 0...other.channelLength) {
+				thisView[i] = otherView[i];
+			}
+
+			if (padWithZeroes) {
+				for (i in other.channelLength...this.channelLength) {
+					thisView[i] = 0.0;
+				}
+			}
+		}
+	}
 }
 
 abstract AudioBufferChannelView(Float32Array) from Float32Array to Float32Array {
