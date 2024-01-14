@@ -70,7 +70,7 @@ enum Angle {
 	typedef AtomicInt = Int;
 #end
 
-#if (haxe_ver > 4.3 && !js)
+#if (haxe_ver >= 4.3 && hl_ver >= version("1.13.0") && !js)
 	typedef AtomicBool = haxe.atomic.AtomicBool;
 #else
 	@:forward
