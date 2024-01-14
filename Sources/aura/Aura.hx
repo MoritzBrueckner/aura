@@ -151,10 +151,9 @@ class Aura {
 				break;
 			}
 			Assets.loadBlob(hrtfName, (blob: kha.Blob) -> {
-				final reader = new MHRReader(blob.toBytes());
 				var hrtf: HRTF;
 				try {
-					hrtf = reader.read();
+					hrtf = MHRReader.read(blob.toBytes());
 				}
 				catch (e: Exception) {
 					trace('Could not load hrtf $hrtfName: ${e.details()}');

@@ -5,6 +5,19 @@ Non-breaking changes (e.g. new features) are _not_ listed here.
 
 _The dates below are given as **YYYY.MM.DD**._
 
+- **2024.01.14**
+
+  The `aura.format.mhr.MHRReader` class is no longer meant to be instantiated, instead it is used statically now:
+
+  ```haxe
+  final mhrReader = new aura.format.mhr.MHRReader(mhrBlobBytes);
+  final hrtf = mhrReader.read();
+
+  // becomes
+
+  final hrtf = aura.format.mhr.MHRReader.read(mhrBlobBytes);
+  ```
+
 - **2023.04.29** ([`8c1da0b`](https://github.com/MoritzBrueckner/aura/commit/8c1da0b039c55f56400f6270ca109b58c4a48526))
 
   This commit introduced multiple compatibility-breaking changes:

@@ -19,17 +19,14 @@ import aura.types.HRTF;
 using aura.format.InputExtension;
 
 /**
-	Loads MHR HRTF Version 3 files into an `HRTF` object.
+	Load MHR HRTF files (format versions 1–3 are supported) into `HRTF` objects.
 **/
 class MHRReader {
-	var inp: BytesInput;
 
-	public function new(bytes: Bytes) {
-		this.inp = new BytesInput(bytes);
+	public static function read(bytes: Bytes): HRTF {
+		final inp = new BytesInput(bytes);
 		inp.bigEndian = false;
-	}
 
-	public function read(): HRTF {
 		final magic = inp.readString(8, UTF8);
 		final version = versionFromMagic(magic);
 
@@ -146,28 +143,28 @@ class MHRReader {
 		};
 	}
 
-	inline function isBitSet(byte: Int, position: Int): Int {
+	static inline function isBitSet(byte: Int, position: Int): Int {
 		return (byte & (1 << position) == 0) ? 0 : 1;
 	}
-}
 
-inline function versionFromMagic(magic: String): MHRVersion {
-	return switch (magic) {
-		case "MinPHR01": V1;
-		case "MinPHR02": V2;
-		case "MinPHR03": V3;
-		default:
-			throw 'File is not an MHR HRTF file! Unknown magic string "$magic".';
+	static inline function versionFromMagic(magic: String): MHRVersion {
+		return switch (magic) {
+			case "MinPHR01": V1;
+			case "MinPHR02": V2;
+			case "MinPHR03": V3;
+			default:
+				throw 'File is not an MHR HRTF file! Unknown magic string "$magic".';
+		}
 	}
 }
 
 private enum abstract SampleType(Int) from Int {
-	var SampleType16Bit = 0;
-	var SampleType24Bit = 1;
+	var SampleType16Bit;
+	var SampleType24Bit;
 }
 
 private enum abstract MHRVersion(Int) {
-	var V1 = 1;
-	var V2 = 2;
-	var V3 = 3;
+	var V1;
+	var V2;
+	var V3;
 }
