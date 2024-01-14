@@ -60,10 +60,10 @@ class AuraAssertionException extends PosException {
 
 	/**
 		@param exprString The string representation of the failed assert condition.
-		@param message Custom error message, use `null` to omit this.
+		@param message Custom error message, use `null` to omit printing the message.
 	**/
 	public function new(exprString: String, message: Null<String>, ?previous: Exception, ?pos: Null<PosInfos>) {
-		final optMsg = message != "" ? '\n\tMessage: $message' : "";
+		final optMsg = message != null ? '\n\tMessage: $message' : "";
 
 		super('\n[Aura] Failed assertion:$optMsg\n\tExpression: ($exprString)', previous, pos);
 	}
