@@ -349,7 +349,8 @@ class Aura {
 		if (master != null) {
 			var samplesWritten = 0;
 
-			// The last block still has some values to read from
+			// The blockBuffer still has some values from the last audioCallback
+			// invocation that haven't been written to the sampleCache yet
 			if (blockBufPos != 0) {
 				final samplesToWrite = minI(samplesRequested, BLOCK_SIZE - blockBufPos);
 				blockBuffer.interleaveToFloat32Array(sampleCache, Std.int(blockBufPos / NUM_OUTPUT_CHANNELS), 0, Std.int(samplesToWrite / NUM_OUTPUT_CHANNELS));
