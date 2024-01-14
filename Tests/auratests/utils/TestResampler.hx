@@ -6,6 +6,8 @@ import kha.arrays.Float32Array;
 
 import aura.utils.Resampler;
 
+import Utils;
+
 class TestResampler extends utest.Test {
 	final sourceData = new Float32Array(4);
 	final sourceSampleRate = 100;
@@ -43,13 +45,9 @@ class TestResampler extends utest.Test {
 	}
 
 	function test_sampleAtTargetPositionLerp_AssertsSamplePositionNotNegative() {
-		#if (AURA_ASSERT_LEVEL!="NoAssertions")
-		Assert.raises(() -> {
+		assertRaisesAssertion(() -> {
 			Resampler.sampleAtTargetPositionLerp(sourceData, -1.0, sourceSampleRate, 100);
 		});
-		#else
-		Assert.pass();
-		#end
 	}
 
 	function test_sampleAtTargetPositionLerp_ClampsValuesOutOfUpperDataBounds() {

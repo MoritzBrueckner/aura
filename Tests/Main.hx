@@ -14,6 +14,10 @@ class Main {
 
 			replaceConsoleFunctions();
 
+			#if (AURA_ASSERT_LEVEL!="Debug")
+				trace("Warning: Running tests below highest assertion level, some tests might erroneously succeed");
+			#end
+
 			kha.Assets.loadEverything(() -> {
 				kha.audio2.Audio.samplesPerSecond = 44100;
 				aura.Aura.init();
