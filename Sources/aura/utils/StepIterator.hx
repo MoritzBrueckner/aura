@@ -9,7 +9,7 @@ package aura.utils;
 	Use this as a static extension:
 
 	```haxe
-	using StepIterator;
+	using aura.utils.StepIterator;
 
 	for (i in (0...10).step(2)) {
 		// Do something...
