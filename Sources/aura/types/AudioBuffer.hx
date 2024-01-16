@@ -107,9 +107,14 @@ class AudioBuffer {
 		Fill each audio channel in this buffer with zeroes.
 	**/
 	public inline function clear() {
-		for (i in 0...rawData.length) {
-			rawData[i] = 0;
-		}
+		#if hl
+			final r = rawData; // Looks stupid, but it prevents a second redundant null check in the HL/C code. TODO report this to Haxe repo
+			(r.buffer: hl.Bytes).fill(0, r.byteLength, 0);
+		#else
+			for (i in 0...rawData.length) {
+				rawData[i] = 0;
+			}
+		#end
 	}
 
 	/**
