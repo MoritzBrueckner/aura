@@ -83,7 +83,7 @@ class FFTConvolver extends DSP {
 		overlapPrev = new Vector(NUM_CHANNELS);
 		for (i in 0...NUM_CHANNELS) {
 			// Max. impulse size is CHUNK_SIZE
-			overlapPrev[i] = new Vector<FastFloat>(CHUNK_SIZE - 1);
+			overlapPrev[i] = createEmptyVecF32(CHUNK_SIZE - 1);
 		}
 		overlapLength = createEmptyVecI(NUM_CHANNELS);
 		prevOverlapLength = createEmptyVecI(NUM_CHANNELS);

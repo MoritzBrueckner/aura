@@ -1,6 +1,7 @@
 package aura.utils;
 
 import haxe.ds.Vector;
+
 import kha.FastFloat;
 import kha.arrays.Float32Array;
 
@@ -10,26 +11,42 @@ inline function fillBuffer(buffer: Float32Array, value: FastFloat, length: Int =
 	}
 }
 
-inline function clearBuffer(buffer: Float32Array, length: Int = -1) {
-	fillBuffer(buffer, 0, length);
+inline function clearBuffer(buffer: Float32Array) {
+	#if hl
+		hl_fillByteArray(buffer, 0);
+	#else
+		fillBuffer(buffer, 0);
+	#end
 }
 
-inline function initZeroesI(vector: Vector<Int>) {
-	for (i in 0...vector.length) {
-		vector[i] = 0;
-	}
+inline function initZeroesVecI(vector: Vector<Int>) {
+	#if (haxe_ver >= "4.300")
+		vector.fill(0);
+	#else
+		for (i in 0...vector.length) {
+			vector[i] = 0;
+		}
+	#end
 }
 
 inline function initZeroesF64(vector: Vector<Float>) {
-	for (i in 0...vector.length) {
-		vector[i] = 0.0;
-	}
+	#if (haxe_ver >= "4.300")
+		vector.fill(0);
+	#else
+		for (i in 0...vector.length) {
+			vector[i] = 0;
+		}
+	#end
 }
 
 inline function initZeroesF32(vector: Vector<FastFloat>) {
-	for (i in 0...vector.length) {
-		vector[i] = 0.0;
-	}
+	#if (haxe_ver >= "4.300")
+		vector.fill(0);
+	#else
+		for (i in 0...vector.length) {
+			vector[i] = 0;
+		}
+	#end
 }
 
 /**
@@ -42,7 +59,7 @@ inline function createEmptyVecI(length: Int): Vector<Int> {
 	#else
 		// On dynamic targets, vectors hold `null` after creation instead of 0
 		final vec = new Vector<Int>(length);
-		inline initZeroesI(vec);
+		inline initZeroesVecI(vec);
 		return vec;
 	#end
 }
@@ -73,6 +90,14 @@ inline function createEmptyVecF32(length: Int): Vector<FastFloat> {
 
 inline function createEmptyF32Array(length: Int): Float32Array {
 	final out = new Float32Array(length);
-	clearBuffer(out);
+	#if !js
+		clearBuffer(out);
+	#end
 	return out;
 }
+
+#if hl
+inline function hl_fillByteArray(a: kha.arrays.ByteArray, byteValue: Int) {
+	(a.buffer: hl.Bytes).fill(0, a.byteLength, byteValue);
+}
+#end

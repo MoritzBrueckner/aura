@@ -343,7 +343,7 @@ class Aura {
 		var master: MixChannel = masterChannel.getMixChannel();
 		master.synchronize();
 
-		clearBuffer(sampleCache, samplesRequested);
+		clearBuffer(sampleCache);
 
 		if (master != null) {
 			var samplesWritten = 0;
