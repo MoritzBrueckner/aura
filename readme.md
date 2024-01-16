@@ -158,7 +158,6 @@
 
   ...
 
-  var cam = getCurrentCamera(); // <-- dummy function
   var mySoundHandle = Aura.createUncompBufferChannel(mySound);
 
   // Create a panner for the sound handle (choose one)
@@ -166,6 +165,7 @@
   new HRTFPanner(channel, Aura.getHRTF("myHRTF_mhr"));  // More realistic panning using head-related transfer functions, but slower to calculate
 
   // Set the 3D location and view direction of the listener
+  var cam = getCurrentCamera(); // <-- dummy function
   Aura.listener.set(cam.worldPosition, cam.look, cam.right);
 
   // Set the 3D location of the sound independent of the math API used
