@@ -3,6 +3,8 @@ package aura.utils;
 import kha.FastFloat;
 import kha.arrays.Float32Array;
 
+import aura.utils.BufferUtils;
+
 class CircularBuffer {
 	final data: Float32Array;
 	var readHead: Int;
@@ -11,9 +13,9 @@ class CircularBuffer {
 	public var delay = 0;
 
 	public inline function new(size: Int) {
-		assert(Warning, size != 0);
+		assert(Warning, size > 0);
 
-		this.data = new Float32Array(size);
+		this.data = createEmptyF32Array(size);
 		this.length = size;
 		this.writeHead = 0;
 		this.readHead = 1;
