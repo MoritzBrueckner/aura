@@ -324,11 +324,8 @@ class Aura {
 		final samplesRequested = samplesBox.value;
 		Aura.lastBufferSize = samplesRequested;
 
-		BufferCache.getBuffer(TFloat32Array, p_samplesBuffer, 1, samplesRequested);
-		final sampleCache = p_samplesBuffer.get();
-
-		if (sampleCache == null) {
-			for (i in 0...samplesRequested) {
+		if (!BufferCache.getBuffer(TFloat32Array, p_samplesBuffer, 1, samplesRequested)) {
+			for (_ in 0...samplesRequested) {
 				buffer.data.set(buffer.writeLocation, 0);
 				buffer.writeLocation += 1;
 				if (buffer.writeLocation >= buffer.size) {
@@ -337,6 +334,9 @@ class Aura {
 			}
 			return;
 		}
+
+		// At this point we can be sure that sampleCache is not null
+		final sampleCache = p_samplesBuffer.get();
 
 		// Copy reference to masterChannel for some more thread safety.
 		// TODO: Investigate if other solutions are required here
@@ -361,7 +361,6 @@ class Aura {
 		}
 
 		while (samplesWritten < samplesRequested) {
-
 			master.nextSamples(blockBuffer, buffer.samplesPerSecond);
 
 			final samplesStillWritable = minI(samplesRequested - samplesWritten, BLOCK_SIZE);
