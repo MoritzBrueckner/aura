@@ -87,11 +87,13 @@ class BufferCache {
 			// not take effect before the next audio callback invocation, so
 			// we skip this "frame" instead (see [1] for reference).
 
-			trace("Unexpected allocation request in audio thread.");
-			final haveMsgNumC = (buffer == null) ? 'no buffer' : '${currentNumChannels}';
-			final haveMsgen = (buffer == null) ? 'no buffer' : '${currentChannelLength}';
-			trace('  wanted amount of channels: $numChannels (have: $haveMsgNumC)');
-			trace('  wanted channel length: $channelLength (have: $haveMsgen)');
+			#if !AURA_UNIT_TESTS
+				trace("Unexpected allocation request in audio thread.");
+				final haveMsgNumC = (buffer == null) ? 'no buffer' : '${currentNumChannels}';
+				final haveMsgen = (buffer == null) ? 'no buffer' : '${currentChannelLength}';
+				trace('  wanted amount of channels: $numChannels (have: $haveMsgNumC)');
+				trace('  wanted channel length: $channelLength (have: $haveMsgen)');
+			#end
 
 			lastAllocationTimer = 0;
 			kha.audio2.Audio.disableGcInteractions = false;
