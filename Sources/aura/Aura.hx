@@ -345,33 +345,32 @@ class Aura {
 
 		clearBuffer(sampleCache);
 
-		if (master != null) {
-			var samplesWritten = 0;
+		var samplesWritten = 0;
 
-			// The blockBuffer still has some values from the last audioCallback
-			// invocation that haven't been written to the sampleCache yet
-			if (blockBufPos != 0) {
-				final samplesToWrite = minI(samplesRequested, BLOCK_SIZE - blockBufPos);
-				blockBuffer.interleaveToFloat32Array(sampleCache, Std.int(blockBufPos / NUM_OUTPUT_CHANNELS), 0, Std.int(samplesToWrite / NUM_OUTPUT_CHANNELS));
-				samplesWritten += samplesToWrite;
-				blockBufPos += samplesToWrite;
+		// The blockBuffer still has some values from the last audioCallback
+		// invocation that haven't been written to the sampleCache yet
+		if (blockBufPos != 0) {
+			final samplesToWrite = minI(samplesRequested, BLOCK_SIZE - blockBufPos);
+			blockBuffer.interleaveToFloat32Array(sampleCache, Std.int(blockBufPos / NUM_OUTPUT_CHANNELS), 0, Std.int(samplesToWrite / NUM_OUTPUT_CHANNELS));
+			samplesWritten += samplesToWrite;
+			blockBufPos += samplesToWrite;
 
-				if (blockBufPos >= BLOCK_SIZE) {
-					blockBufPos = 0;
-				}
+			if (blockBufPos >= BLOCK_SIZE) {
+				blockBufPos = 0;
 			}
+		}
 
-			while (samplesWritten < samplesRequested) {
-				master.nextSamples(blockBuffer, buffer.samplesPerSecond);
+		while (samplesWritten < samplesRequested) {
 
-				final samplesStillWritable = minI(samplesRequested - samplesWritten, BLOCK_SIZE);
-				blockBuffer.interleaveToFloat32Array(sampleCache, 0, samplesWritten, Std.int(samplesStillWritable / NUM_OUTPUT_CHANNELS));
-				samplesWritten += samplesStillWritable;
-				blockBufPos += samplesStillWritable;
+			master.nextSamples(blockBuffer, buffer.samplesPerSecond);
 
-				if (blockBufPos >= BLOCK_SIZE) {
-					blockBufPos = 0;
-				}
+			final samplesStillWritable = minI(samplesRequested - samplesWritten, BLOCK_SIZE);
+			blockBuffer.interleaveToFloat32Array(sampleCache, 0, samplesWritten, Std.int(samplesStillWritable / NUM_OUTPUT_CHANNELS));
+			samplesWritten += samplesStillWritable;
+			blockBufPos += samplesStillWritable;
+
+			if (blockBufPos >= BLOCK_SIZE) {
+				blockBufPos = 0;
 			}
 		}
 
