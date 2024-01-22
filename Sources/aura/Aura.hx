@@ -99,23 +99,43 @@ class Aura {
 		});
 	}
 
-	public static function loadAssets(loadConfig: AuraLoadConfig, done: Void->Void, ?failed: Void->Void) {
+	/**
+		Load all assets listed in the given `loadConfig`.
+
+		If all assets are loaded successfully, `done` is called.
+
+		For each asset that fails to be loaded, `failed` is called if it
+		is passed to this function.
+
+		If `onProgress` is passed to this function, it is called for each
+		successfully loaded asset with the number of successfully loaded assets
+		so far including the current asset (first parameter), the number
+		of assets in the `loadConfig` (second parameter), as well as the name
+		of the current asset (third parameter).
+	**/
+	public static function loadAssets(loadConfig: AuraLoadConfig, done: Void->Void, ?failed: Void->Void, ?onProgress:Int->Int->String->Void) {
 		final length = loadConfig.getEntryCount();
 		var count = 0;
 
 		for (soundName in loadConfig.compressed) {
 			if (!doesSoundExist(soundName)) {
 				onLoadingError(null, failed, soundName);
-				break;
+				continue;
 			}
 			Assets.loadSound(soundName, (sound: kha.Sound) -> {
 				#if !kha_krom // Krom only uses uncompressedData
-				if (sound.compressedData == null) {
-					throw 'Cannot compress already uncompressed sound ${soundName}!';
-				}
+					if (sound.compressedData == null) {
+						throw 'Cannot compress already uncompressed sound ${soundName}!';
+					}
 				#end
 
-				if (++count == length) {
+				count++;
+
+				if (onProgress != null) {
+					onProgress(count, length, soundName);
+				}
+
+				if (count == length) {
 					done();
 					return;
 				}
@@ -125,19 +145,31 @@ class Aura {
 		for (soundName in loadConfig.uncompressed) {
 			if (!doesSoundExist(soundName)) {
 				onLoadingError(null, failed, soundName);
-				break;
+				continue;
 			}
 			Assets.loadSound(soundName, (sound: kha.Sound) -> {
 				if (sound.uncompressedData == null) {
 					sound.uncompress(() -> {
-						if (++count == length) {
+						count++;
+
+						if (onProgress != null) {
+							onProgress(count, length, soundName);
+						}
+
+						if (count == length) {
 							done();
 							return;
 						}
 					});
 				}
 				else {
-					if (++count == length) {
+					count++;
+
+					if (onProgress != null) {
+						onProgress(count, length, soundName);
+					}
+
+					if (count == length) {
 						done();
 						return;
 					}
@@ -148,7 +180,7 @@ class Aura {
 		for (hrtfName in loadConfig.hrtf) {
 			if (!doesBlobExist(hrtfName)) {
 				onLoadingError(null, failed, hrtfName);
-				break;
+				continue;
 			}
 			Assets.loadBlob(hrtfName, (blob: kha.Blob) -> {
 				var hrtf: HRTF;
@@ -163,7 +195,14 @@ class Aura {
 					return;
 				}
 				hrtfs[hrtfName] = hrtf;
-				if (++count == length) {
+
+				count++;
+
+				if (onProgress != null) {
+					onProgress(count, length, hrtfName);
+				}
+
+				if (count == length) {
 					done();
 					return;
 				}

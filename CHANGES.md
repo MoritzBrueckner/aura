@@ -5,6 +5,11 @@ Non-breaking changes (e.g. new features) are _not_ listed here.
 
 _The dates below are given as **YYYY.MM.DD**._
 
+- **2024.01.22**:
+
+  Previously, if loading an asset with `aura.Aura.loadAssets()` failed, Aura would sometimes continue loading other assets and in other cases stop loading assets of the same type after the first failure, which was rather unintuitive.
+  Now, Aura always continues to load other assets even if an asset could not be loaded.
+
 - **2024.01.14** ([`47d4426`](https://github.com/MoritzBrueckner/aura/commit/47d4426ffd93a5efb24eb5dc4c2d2a985e1010f5)):
 
   The `aura.format.mhr.MHRReader` class is no longer meant to be instantiated, instead it is used statically now:
