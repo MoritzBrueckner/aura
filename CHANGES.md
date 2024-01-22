@@ -5,7 +5,7 @@ Non-breaking changes (e.g. new features) are _not_ listed here.
 
 _The dates below are given as **YYYY.MM.DD**._
 
-- **2024.01.22**:
+- **2024.01.22** ([f7dff6e](https://github.com/MoritzBrueckner/aura/commit/f7dff6ea3840ed7c42c8994a735cc534525d0b63)):
 
   Previously, if loading an asset with `aura.Aura.loadAssets()` failed, Aura would sometimes continue loading other assets and in other cases stop loading assets of the same type after the first failure, which was rather unintuitive.
   Now, Aura always continues to load other assets even if an asset could not be loaded.
