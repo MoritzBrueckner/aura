@@ -2,17 +2,10 @@ package auratests.channels;
 
 import utest.Assert;
 
-import kha.arrays.Float32Array;
-
-import aura.Types.Balance;
 import aura.channels.MixChannel;
-import aura.dsp.sourcefx.SourceEffect;
-import aura.types.AudioBuffer;
 
 @:access(aura.channels.MixChannel)
 class TestMixChannel extends utest.Test {
-	static inline var channelLength = 16;
-
 	var mixChannel: MixChannel;
 	var mixChannelHandle: MixChannelHandle;
 
