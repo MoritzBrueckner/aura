@@ -133,7 +133,11 @@ abstract class Panner extends DSP {
 			dopplerRatio = Math.pow(dopplerRatio, dopplerFactor);
 		}
 
-		handle.channel.sendMessage({ id: ChannelMessageID.PDopplerRatio, data: dopplerRatio });
+		if (dopplerRatio != null) {
+			if (dopplerRatio >= 0.0) {
+				handle.channel.sendMessage({ id: ChannelMessageID.PDopplerRatio, data: dopplerRatio });
+			}
+		}
 	}
 }
 
