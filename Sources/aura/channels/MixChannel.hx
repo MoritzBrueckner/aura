@@ -91,6 +91,10 @@ class MixChannel extends BaseChannel {
 
 	public function new() {
 		inputChannels = new Vector<BaseChannel>(channelSize);
+
+		// Make sure super.isPlayable() is true until we find better semantics
+		// for MixChannel.play()/pause()/stop()
+		this.finished = false;
 	}
 
 	/**
@@ -164,6 +168,7 @@ class MixChannel extends BaseChannel {
 	}
 
 	override function isPlayable(): Bool {
+		// TODO: be more intelligent here and actually check inputs?
 		return super.isPlayable() && numUsedInputs != 0;
 	}
 
@@ -188,8 +193,7 @@ class MixChannel extends BaseChannel {
 	function nextSamples(requestedSamples: AudioBuffer, sampleRate: Hertz): Void {
 		Profiler.event();
 
-		// No input channel added yet, skip useless computations
-		if (inputChannelsCopy == null) {
+		if (numUsedInputs == 0) {
 			requestedSamples.clear();
 			return;
 		}
