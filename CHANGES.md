@@ -5,7 +5,7 @@ Non-breaking changes (e.g. new features) are _not_ listed here.
 
 _The dates below are given as **YYYY.MM.DD**._
 
-- **2024.06.25**:
+- **2024.06.25** ([a8a66f6](https://github.com/MoritzBrueckner/aura/commit/a8a66f6d86fc812512dca2e7d5ba07ef0d804cd4)):
 
   `aura.dsp.panner.Panner.dopplerFactor` was renamed to `aura.dsp.panner.Panner.dopplerStrength`.
 
