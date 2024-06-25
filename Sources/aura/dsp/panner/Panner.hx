@@ -51,9 +51,9 @@ abstract class Panner extends DSP {
 		or the listener's position or rotation.
 	**/
 	public function update3D() {
-		final dirToChannel = this.location.sub(Aura.listener.location);
-		calculateAttenuation(dirToChannel);
-		calculateDoppler();
+		final displacementToSource = location.sub(Aura.listener.location);
+		calculateAttenuation(displacementToSource);
+		calculateDoppler(displacementToSource);
 	};
 
 	/**
@@ -118,14 +118,13 @@ abstract class Panner extends DSP {
 		handle.channel.sendMessage({ id: ChannelMessageID.PDstAttenuation, data: dstAttenuation });
 	}
 
-	function calculateDoppler() {
+	function calculateDoppler(displacementToSource: FastVector3) {
 		final listener = Aura.listener;
 
 		var dopplerRatio: FastFloat = 1.0;
 		if (dopplerFactor != 0.0 && (listener.velocity.length != 0 || this.velocity.length != 0)) {
-			final displacementToSource = this.location.sub(listener.location);
-			final dist = displacementToSource.length;
 
+			final dist = displacementToSource.length;
 			if (dist == 0) {
 				// We don't have any radial velocity here...
 				handle.channel.sendMessage({ id: ChannelMessageID.PDopplerRatio, data: 1.0 });
