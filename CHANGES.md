@@ -1,9 +1,13 @@
-# Changes
+# Breaking Changes
 
 This list contains notable changes that may break compatibility with previous versions (public API only).
 Non-breaking changes (e.g. new features) are _not_ listed here.
 
 _The dates below are given as **YYYY.MM.DD**._
+
+- **2024.06.25**:
+
+  `aura.dsp.panner.Panner.dopplerFactor` was renamed to `aura.dsp.panner.Panner.dopplerStrength`.
 
 - **2024.01.22** ([f7dff6e](https://github.com/MoritzBrueckner/aura/commit/f7dff6ea3840ed7c42c8994a735cc534525d0b63)):
 

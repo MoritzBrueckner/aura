@@ -12,7 +12,16 @@ abstract class Panner extends DSP {
 	static inline var REFERENCE_DST = 1.0;
 	static inline var SPEED_OF_SOUND = 343.4; // Air, m/s
 
-	public var dopplerFactor = 1.0;
+	/**
+		The strength of the doppler effect.
+
+		This value is multiplied to the calculated doppler effect, thus:
+		- A value of `0.0` results in no doppler effect.
+		- A value between `0.0` and `1.0` attenuates the effect (smaller values: more attenuation).
+		- A value of `1.0` does not attenuate or amplify the doppler effect.
+		- A value larger than `1.0` amplifies the doppler effect (larger values: more amplification).
+	**/
+	public var dopplerStrength = 1.0;
 
 	public var attenuationMode = AttenuationMode.Inverse;
 	public var attenuationFactor = 1.0;
@@ -122,7 +131,7 @@ abstract class Panner extends DSP {
 		final listener = Aura.listener;
 
 		var dopplerRatio: FastFloat = 1.0;
-		if (dopplerFactor != 0.0 && (listener.velocity.length != 0 || this.velocity.length != 0)) {
+		if (dopplerStrength != 0.0 && (listener.velocity.length != 0 || this.velocity.length != 0)) {
 
 			final dist = displacementToSource.length;
 			if (dist == 0) {
@@ -143,7 +152,7 @@ abstract class Panner extends DSP {
 			}
 
 			dopplerRatio = (SPEED_OF_SOUND + vr) / (SPEED_OF_SOUND + vs);
-			dopplerRatio = Math.pow(dopplerRatio, dopplerFactor);
+			dopplerRatio = Math.pow(dopplerRatio, dopplerStrength);
 		}
 
 		handle.channel.sendMessage({ id: ChannelMessageID.PDopplerRatio, data: dopplerRatio });
