@@ -57,6 +57,7 @@ class SparseConvolver extends DSP {
 
 				var convolutionSum: FastFloat = 0.0;
 				for (impulseIndex in 0...impulseBuffer.length) {
+
 					// Move read pointer to impulse position, probably not the
 					// most cache efficient operation but it looks pretty unavoidable
 					delayBuf.setDelay(impulseBuffer.getImpulsePos(impulseIndex));
@@ -95,7 +96,7 @@ abstract SparseImpulseBuffer(ByteArray) {
 	}
 
 	public inline function setImpulsePos(index: Int, position: Int) {
-		return this.setUint32(index * 8, position);
+		this.setUint32(index * 8, position);
 	}
 
 	public inline function getImpulseMagnitude(index: Int): FastFloat {
@@ -103,6 +104,6 @@ abstract SparseImpulseBuffer(ByteArray) {
 	}
 
 	public inline function setImpulseMagnitude(index: Int, magnitude: FastFloat) {
-		return this.setFloat32(index * 8 + 4, magnitude);
+		this.setFloat32(index * 8 + 4, magnitude);
 	}
 }

@@ -60,3 +60,43 @@ class TestSparseConvolver extends utest.Test {
 		}
 	}
 }
+
+@:access(aura.dsp.SparseConvolver.SparseImpulseBuffer)
+class TestSparseImpulseBuffer extends utest.Test {
+	var buffer: SparseImpulseBuffer;
+
+	function setup() {
+		buffer = new SparseImpulseBuffer(4);
+	}
+
+	function test_length() {
+		Assert.equals(1, new SparseImpulseBuffer(1).length);
+		Assert.equals(2, new SparseImpulseBuffer(2).length);
+		Assert.equals(3, new SparseImpulseBuffer(3).length);
+		Assert.equals(1024, new SparseImpulseBuffer(1024).length);
+	}
+
+	function test_impulsePos_notOverwrittenByOtherImpulses() {
+		buffer.setImpulsePos(0, 3);
+		buffer.setImpulsePos(1, 9);
+		buffer.setImpulsePos(2, 17);
+		buffer.setImpulsePos(3, 42);
+
+		Assert.equals(3, buffer.getImpulsePos(0));
+		Assert.equals(9, buffer.getImpulsePos(1));
+		Assert.equals(17, buffer.getImpulsePos(2));
+		Assert.equals(42, buffer.getImpulsePos(3));
+	}
+
+	function test_impulseMagnitude_notOverwrittenByOtherImpulses() {
+		buffer.setImpulseMagnitude(0, 0.3);
+		buffer.setImpulseMagnitude(1, 0.9);
+		buffer.setImpulseMagnitude(2, 0.17);
+		buffer.setImpulseMagnitude(3, 0.42);
+
+		Assert.floatEquals(0.3, buffer.getImpulseMagnitude(0));
+		Assert.floatEquals(0.9, buffer.getImpulseMagnitude(1));
+		Assert.floatEquals(0.17, buffer.getImpulseMagnitude(2));
+		Assert.floatEquals(0.42, buffer.getImpulseMagnitude(3));
+	}
+}

@@ -25,6 +25,10 @@ class Main {
 				var runner = new Runner();
 				runner.addCases(auratests, true);
 
+				// addCases() only allows one class per file (https://github.com/haxe-utest/utest/blob/f759c0aa257aa723b3dd607cf7cb53d16194d13f/src/utest/Runner.hx#L171),
+				// so we manually add classes here where this is not the case
+				runner.addCase(new auratests.dsp.TestSparseConvolver.TestSparseImpulseBuffer());
+
 				runner.onComplete.add((_) -> {
 					#if instrument
 						Instrumentation.endInstrumentation(Coverage);
