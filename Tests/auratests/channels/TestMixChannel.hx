@@ -19,6 +19,8 @@ class TestMixChannel extends utest.Test {
 	function teardown() {}
 
 	function test_startUnpausedAndUnfinished() {
+		// Regression test for https://github.com/MoritzBrueckner/aura/issues/7
+
 		final inputHandle = new MixChannelHandle(new MixChannel());
 
 		Assert.isFalse(mixChannel.paused);
