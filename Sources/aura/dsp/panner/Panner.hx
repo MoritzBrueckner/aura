@@ -25,9 +25,6 @@ abstract class Panner extends DSP {
 		The location of this audio source in world space.
 	**/
 	var location: Vec3 = new Vec3(0, 0, 0);
-	var lastLocation: Vec3 = new Vec3(0, 0, 0);
-	var lastLocationUpdateTime: Float = 0.0;
-	var initializedLocation = false;
 
 	/**
 		The velocity of this audio source in world space.
@@ -72,24 +69,41 @@ abstract class Panner extends DSP {
 
 	/**
 		Set the location of this panner in world space.
+
+		Calling this function also sets the panner's velocity if the call
+		to this function is not the first call for this panner. This behavior
+		avoids audible "jumps" in the doppler effect for initial placement
+		of objects if they are far away from the origin.
 	**/
 	public function setLocation(location: Vec3) {
 		final time = Time.getTime();
+		final timeDeltaLastCall = time - _setLocation_lastCallTime;
 
-		this.lastLocation.setFrom(this.location);
-
-		if (!initializedLocation) {
-			// Prevent jumps in the doppler effect caused by initial distance
-			// too far away from the origin
-			initializedLocation = true;
-		} else {
-			final timeDelta = time - lastLocationUpdateTime;
-			this.velocity.setFrom(location.sub(this.lastLocation).mult(1 / timeDelta));
+		// If the last time setLocation() was called was at an earlier time step
+		if (timeDeltaLastCall > 0) {
+			_setLocation_lastLocation.setFrom(this.location);
+			_setLocation_lastVelocityUpdateTime = _setLocation_lastCallTime;
 		}
 
+		final timeDeltaVelocityUpdate = time - _setLocation_lastVelocityUpdateTime;
+
 		this.location.setFrom(location);
-		this.lastLocationUpdateTime = time;
+
+		if (!_setLocation_initializedLocation) {
+			// Prevent jumps in the doppler effect caused by initial distance
+			// too far away from the origin
+			_setLocation_initializedLocation = true;
+		}
+		else if (timeDeltaVelocityUpdate > 0) {
+			velocity.setFrom(location.sub(_setLocation_lastLocation).mult(1 / timeDeltaVelocityUpdate));
+		}
+
+		_setLocation_lastCallTime = time;
 	}
+	var _setLocation_initializedLocation = false;
+	var _setLocation_lastLocation: Vec3 = new Vec3(0, 0, 0);
+	var _setLocation_lastCallTime: Float = 0.0;
+	var _setLocation_lastVelocityUpdateTime: Float = 0.0;
 
 	function calculateAttenuation(dirToChannel: FastVector3) {
 		final dst = maxF(REFERENCE_DST, dirToChannel.length);

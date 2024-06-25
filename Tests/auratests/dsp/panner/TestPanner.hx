@@ -2,11 +2,8 @@ package auratests.dsp.panner;
 
 import utest.Assert;
 
-import kha.arrays.Float32Array;
-
 import aura.Aura;
 import aura.Time;
-import aura.Types.Balance;
 import aura.dsp.panner.Panner;
 import aura.math.Vec3;
 import aura.types.AudioBuffer;
@@ -27,31 +24,94 @@ class TestPanner extends utest.Test {
 	function setup() {
 		handle = Utils.createDummyHandle();
 		panner = new NonAbstractPanner(handle);
-
-		@:privateAccess panner.initializedLocation = false;
-		@:privateAccess aura.Aura.listener.initializedLocation = false;
 	}
 
 	function teardown() {
 		Time.overrideTime = null;
 	}
 
-	function test_noDopplerEffect_ifNoMovement() {
+	function test_setLocation_multipleCallsOnFirstTimestep() {
 		Time.overrideTime = 0.0;
-		aura.Aura.listener.setLocation(new Vec3(0.0, 0.0, 0.0));
+		panner.setLocation(new Vec3(0.5, 0.6, 0.7));
+
+		Assert.floatEquals(0.5, panner.location.x);
+		Assert.floatEquals(0.6, panner.location.y);
+		Assert.floatEquals(0.7, panner.location.z);
+
+		Assert.floatEquals(0.0, panner.velocity.x);
+		Assert.floatEquals(0.0, panner.velocity.y);
+		Assert.floatEquals(0.0, panner.velocity.z);
+
+		Time.overrideTime = 0.0;
+		panner.setLocation(new Vec3(1.0, 2.0, 3.0));
+
+		Assert.floatEquals(1.0, panner.location.x);
+		Assert.floatEquals(2.0, panner.location.y);
+		Assert.floatEquals(3.0, panner.location.z);
+
+		Assert.floatEquals(0.0, panner.velocity.x);
+		Assert.floatEquals(0.0, panner.velocity.y);
+		Assert.floatEquals(0.0, panner.velocity.z);
+	}
+
+	function test_setLocation_firstCall_timeDeltaZero() {
+		Time.overrideTime = 0.0;
+		panner.setLocation(new Vec3(0.5, 0.6, 0.7));
+
+		Assert.floatEquals(0.5, panner.location.x);
+		Assert.floatEquals(0.6, panner.location.y);
+		Assert.floatEquals(0.7, panner.location.z);
+
+		Assert.floatEquals(0.0, panner.velocity.x);
+		Assert.floatEquals(0.0, panner.velocity.y);
+		Assert.floatEquals(0.0, panner.velocity.z);
+	}
+
+	function test_setLocation_firstCall_timeDeltaPositive() {
+		Time.overrideTime = 2.0;
+		panner.setLocation(new Vec3(0.5, 0.6, 0.7));
+
+		Assert.floatEquals(0.5, panner.location.x);
+		Assert.floatEquals(0.6, panner.location.y);
+		Assert.floatEquals(0.7, panner.location.z);
+
+		Assert.floatEquals(0.0, panner.velocity.x);
+		Assert.floatEquals(0.0, panner.velocity.y);
+		Assert.floatEquals(0.0, panner.velocity.z);
+	}
+
+	function test_setLocation_subsequentCalls_timeDeltaZero() {
+		// Regression test for https://github.com/MoritzBrueckner/aura/pull/8
+
+		Time.overrideTime = 1.0;
 		panner.setLocation(new Vec3(0.0, 0.0, 0.0));
 
-		Time.overrideTime = 0.5;
-		aura.Aura.listener.setLocation(new Vec3(0.0, 0.0, 0.0));
-		panner.setLocation(new Vec3(0.0, 0.0, 0.0));
+		Time.overrideTime = 3.0;
+		panner.setLocation(new Vec3(1.0, 2.0, 3.0));
 
-		panner.calculateDoppler();
+		Time.overrideTime = 3.0;
+		panner.setLocation(new Vec3(2.0, 4.0, 6.0));
+
+		Assert.floatEquals(2.0, panner.location.x);
+		Assert.floatEquals(4.0, panner.location.y);
+		Assert.floatEquals(6.0, panner.location.z);
+
+		// Compute velocity based on timestep 1.0
+		Assert.floatEquals(1.0, panner.velocity.x);
+		Assert.floatEquals(2.0, panner.velocity.y);
+		Assert.floatEquals(3.0, panner.velocity.z);
+	}
+
+	function test_update3D_noDopplerJumpIfLocationWasUninitialized() {
+		Time.overrideTime = 0.0;
+		panner.setLocation(new Vec3(20.0, 0.0, 0.0));
+		panner.update3D();
+
 		handle.channel.synchronize();
 		Assert.floatEquals(1.0, handle.channel.pDopplerRatio.targetValue);
+	}
 
-		@:privateAccess panner.initializedLocation = false;
-		@:privateAccess aura.Aura.listener.initializedLocation = false;
-
+	function test_noDopplerEffect_ifNoMovement() {
 		Time.overrideTime = 0.0;
 		aura.Aura.listener.setLocation(new Vec3(0.0, 0.0, 0.0));
 		panner.setLocation(new Vec3(5.0, 4.0, 3.0));
