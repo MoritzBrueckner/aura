@@ -34,10 +34,19 @@ class Assert {
 		return macro {
 			if (!$condition) {
 				#if AURA_ASSERT_QUIT kha.System.stop(); #end
-				#if AURA_ASSERT_START_DEBUGGER aura.utils.Debug.startDebugger(); #end
 
 				@:pos(condition.pos)
-				@:privateAccess aura.utils.Assert.throwAssertionError($v{condition.toString()}, ${message});
+				final exception = new aura.utils.Assert.AuraAssertionException($v{condition.toString()}, ${message});
+
+				#if AURA_ASSERT_START_DEBUGGER
+					@:privateAccess aura.utils.Assert.logError(exception.details());
+					@:privateAccess aura.utils.Assert.logError("An assertion error was triggered, starting debugger...");
+
+					aura.utils.Debug.startDebugger();
+				#else
+					@:pos(condition.pos)
+					@:privateAccess aura.utils.Assert.throwAssertionError(exception);
+				#end
 			}
 		};
 	}
@@ -46,8 +55,20 @@ class Assert {
 		Helper function to prevent Haxe "bug" that actually throws an error
 		even when using `macro throw` (inlining this method also does not work).
 	**/
-	static function throwAssertionError(exprString: String, message: Null<String>, ?pos: PosInfos) {
-		throw new AuraAssertionException(exprString, message, pos);
+	static function throwAssertionError(exp: AuraAssertionException, ?pos: PosInfos) {
+		throw exp;
+	}
+
+	static function logError(str: String, ?infos: PosInfos) {
+		#if sys
+			Sys.stderr().writeString(str + "\n");
+		#elseif kha_krom
+			Krom.log(str + "\n");
+		#elseif kha_js
+			js.html.Console.error(str);
+		#else
+			haxe.Log.trace(str, infos);
+		#end
 	}
 }
 
