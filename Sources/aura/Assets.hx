@@ -113,7 +113,6 @@ abstract class Asset {
 /**
 	Asset representing a sound file.
 
-	@see `aura.Assets.SoundBlockBehavior`
 	@see `aura.Assets.CompressionBehavior`
 **/
 @:access(aura.Assets)
