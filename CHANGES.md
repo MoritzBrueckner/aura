@@ -5,7 +5,7 @@ Non-breaking changes (e.g. new features) are _not_ listed here.
 
 _The dates below are given as **YYYY.MM.DD**._
 
-- **2024.11.20** ([]()):
+- **2024.11.20** ([6e3392f](https://github.com/MoritzBrueckner/aura/commit/6e3392fcff8e7e34945752814cbe1dc33e4b0135)):
 
   This commit is part of a bigger rework of asset and audio channel handling.
 
