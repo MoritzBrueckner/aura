@@ -3,6 +3,7 @@ package aura.dsp.panner;
 import kha.FastFloat;
 import kha.arrays.Float32Array;
 
+import aura.Assets.HRTF;
 import aura.Types.Channels;
 import aura.channels.BaseChannel.BaseChannelHandle;
 import aura.threading.Message;
@@ -12,7 +13,7 @@ import aura.utils.MathUtils;
 import aura.utils.Pointer;
 
 class HRTFPanner extends Panner {
-	public var hrtf: HRTF;
+	public var hrtf: HRTFData;
 
 	final hrtfConvolver: FFTConvolver;
 	final hrtfDelayLine: FractionalDelayLine;
@@ -24,10 +25,10 @@ class HRTFPanner extends Panner {
 	public function new(handle: BaseChannelHandle, hrtf: HRTF) {
 		super(handle);
 
-		this.hrtf = hrtf;
+		@:privateAccess this.hrtf = hrtf.hrtf;
 
 		hrtfConvolver = new FFTConvolver();
-		hrtfDelayLine = new FractionalDelayLine(2, Math.ceil(hrtf.maxDelayLength));
+		hrtfDelayLine = new FractionalDelayLine(2, Math.ceil(this.hrtf.maxDelayLength));
 		hrtfConvolver.bypass = true;
 		hrtfDelayLine.bypass = true;
 

@@ -8,7 +8,6 @@ package aura;
 import haxe.Exception;
 import haxe.ds.Vector;
 
-import kha.Assets;
 import kha.SystemImpl;
 import kha.arrays.Float32Array;
 
@@ -51,7 +50,7 @@ class Aura {
 	static var blockBuffer = new AudioBuffer(NUM_OUTPUT_CHANNELS, BLOCK_CHANNEL_SIZE);
 	static var blockBufPos = 0;
 
-	static final hrtfs = new Map<String, HRTF>();
+	static final hrtfs = new Map<String, HRTFData>();
 
 	public static function init(?options: AuraOptions) {
 		sampleRate = kha.audio2.Audio.samplesPerSecond;
@@ -100,131 +99,6 @@ class Aura {
 	}
 
 	/**
-		Load all assets listed in the given `loadConfig`.
-
-		If all assets are loaded successfully, `done` is called.
-
-		For each asset that fails to be loaded, `failed` is called if it
-		is passed to this function.
-
-		If `onProgress` is passed to this function, it is called for each
-		successfully loaded asset with the number of successfully loaded assets
-		so far including the current asset (first parameter), the number
-		of assets in the `loadConfig` (second parameter), as well as the name
-		of the current asset (third parameter).
-	**/
-	public static function loadAssets(loadConfig: AuraLoadConfig, done: Void->Void, ?failed: Void->Void, ?onProgress:Int->Int->String->Void) {
-		final length = loadConfig.getEntryCount();
-		var count = 0;
-
-		for (soundName in loadConfig.compressed) {
-			if (!doesSoundExist(soundName)) {
-				onLoadingError(null, failed, soundName);
-				continue;
-			}
-			Assets.loadSound(soundName, (sound: kha.Sound) -> {
-				#if !kha_krom // Krom only uses uncompressedData
-					if (sound.compressedData == null) {
-						throw 'Cannot compress already uncompressed sound ${soundName}!';
-					}
-				#end
-
-				count++;
-
-				if (onProgress != null) {
-					onProgress(count, length, soundName);
-				}
-
-				if (count == length) {
-					done();
-					return;
-				}
-			}, (error: kha.AssetError) -> { onLoadingError(error, failed, soundName); });
-		}
-
-		for (soundName in loadConfig.uncompressed) {
-			if (!doesSoundExist(soundName)) {
-				onLoadingError(null, failed, soundName);
-				continue;
-			}
-			Assets.loadSound(soundName, (sound: kha.Sound) -> {
-				if (sound.uncompressedData == null) {
-					sound.uncompress(() -> {
-						count++;
-
-						if (onProgress != null) {
-							onProgress(count, length, soundName);
-						}
-
-						if (count == length) {
-							done();
-							return;
-						}
-					});
-				}
-				else {
-					count++;
-
-					if (onProgress != null) {
-						onProgress(count, length, soundName);
-					}
-
-					if (count == length) {
-						done();
-						return;
-					}
-				}
-			}, (error: kha.AssetError) -> { onLoadingError(error, failed, soundName); });
-		}
-
-		for (hrtfName in loadConfig.hrtf) {
-			if (!doesBlobExist(hrtfName)) {
-				onLoadingError(null, failed, hrtfName);
-				continue;
-			}
-			Assets.loadBlob(hrtfName, (blob: kha.Blob) -> {
-				var hrtf: HRTF;
-				try {
-					hrtf = MHRReader.read(blob.toBytes());
-				}
-				catch (e: Exception) {
-					trace('Could not load hrtf $hrtfName: ${e.details()}');
-					if (failed != null) {
-						failed();
-					}
-					return;
-				}
-				hrtfs[hrtfName] = hrtf;
-
-				count++;
-
-				if (onProgress != null) {
-					onProgress(count, length, hrtfName);
-				}
-
-				if (count == length) {
-					done();
-					return;
-				}
-			}, (error: kha.AssetError) -> { onLoadingError(error, failed, hrtfName); });
-		}
-	}
-
-	static function onLoadingError(error: Null<kha.AssetError>, failed: Null<Void->Void>, assetName: String) {
-		final errorInfo = error == null ? "" : "\nOriginal error: " + error.url + "..." + error.error;
-
-		trace(
-			'Could not load asset "$assetName", make sure that all assets are named\n'
-			+ "  correctly and that they are included in the khafile.js."
-			+ errorInfo
-		);
-
-		if (failed != null) {
-			failed();
-		}
-	}
-
-	/**
 		Returns whether a sound exists and can be loaded.
 	**/
 	public static inline function doesSoundExist(soundName: String): Bool {
@@ -235,22 +109,22 @@ class Aura {
 
 		// Relying on Kha internals ("Description" as name) is bad, but there is
 		// no good alternative...
-		return Reflect.field(Assets.sounds, soundName + "Description") != null;
+		return Reflect.field(kha.Assets.sounds, soundName + "Description") != null;
 	}
 
 	/**
 		Returns whether a blob exists and can be loaded.
 	**/
 	public static inline function doesBlobExist(blobName: String): Bool {
-		return Reflect.field(Assets.blobs, blobName + "Description") != null;
+		return Reflect.field(kha.Assets.blobs, blobName + "Description") != null;
 	}
 
-	public static inline function getSound(soundName: String): Null<kha.Sound> {
-		return Assets.sounds.get(soundName);
+	public static inline function getSound(soundName: String): Null<aura.Assets.Sound> {
+		@:privateAccess return aura.Assets.loadedSounds.get(soundName);
 	}
 
-	public static inline function getHRTF(hrtfName: String): Null<HRTF> {
-		return hrtfs.get(hrtfName);
+	public static inline function getHRTF(hrtfName: String): Null<aura.Assets.HRTF> {
+		return @:privateAccess Assets.loadedHRTFs.get(hrtfName);
 	}
 
 	/**
@@ -268,9 +142,9 @@ class Aura {
 			if the created channel could not be assigned to the given mix channel
 			(e.g. in case of circular dependencies)
 	**/
-	public static function createUncompBufferChannel(sound: kha.Sound, loop: Bool = false, mixChannelHandle: Null<MixChannelHandle> = null): Null<UncompBufferChannelHandle> {
-		assert(Critical, sound.uncompressedData != null,
-			"Cannot play a sound with no uncompressed data. Make sure to load it as 'uncompressed' in the AuraLoadConfig."
+	public static function createUncompBufferChannel(sound: aura.Assets.Sound, loop: Bool = false, mixChannelHandle: Null<MixChannelHandle> = null): Null<UncompBufferChannelHandle> {
+		assert(Critical, sound.khaSound.uncompressedData != null,
+			"Cannot play a sound with no uncompressed data. Make sure to set the sound's 'compressionBehavior' parameter to 'Uncompress'."
 		);
 
 		if (mixChannelHandle == null) {
@@ -278,7 +152,7 @@ class Aura {
 		}
 
 		// TODO: Like Kha, only use resampling channel if pitch is used or if samplerate of sound and system differs
-		final newChannel = new UncompBufferResamplingChannel(sound.uncompressedData, loop, sound.sampleRate);
+		final newChannel = new UncompBufferResamplingChannel(sound.khaSound.uncompressedData, loop, sound.khaSound.sampleRate);
 
 		final handle = new UncompBufferChannelHandle(newChannel);
 		final foundChannel = handle.setMixChannel(mixChannelHandle);
@@ -300,14 +174,14 @@ class Aura {
 			if the created channel could not be assigned to the given mix channel
 			(e.g. in case of circular dependencies)
 	**/
-	public static function createCompBufferChannel(sound: kha.Sound, loop: Bool = false, mixChannelHandle: Null<MixChannelHandle> = null): Null<BaseChannelHandle> {
+	public static function createCompBufferChannel(sound: aura.Assets.Sound, loop: Bool = false, mixChannelHandle: Null<MixChannelHandle> = null): Null<BaseChannelHandle> {
 		#if kha_krom
 			// Krom only uses uncompressedData -> no streaming
 			return createUncompBufferChannel(sound, loop, mixChannelHandle);
 		#end
 
-		assert(Critical, sound.compressedData != null,
-			"Cannot stream a sound with no compressed data. Make sure to load it as 'compressed' in the AuraLoadConfig."
+		assert(Critical, sound.khaSound.compressedData != null,
+			"Cannot stream a sound with no compressed data. Make sure to set the sound's 'compressionBehavior' parameter to 'KeepCompressed'."
 		);
 
 		if (mixChannelHandle == null) {
@@ -315,9 +189,9 @@ class Aura {
 		}
 
 		#if (kha_html5 || kha_debug_html5)
-			final newChannel = kha.SystemImpl.mobile ? new Html5MobileStreamChannel(sound, loop) : new Html5StreamChannel(sound, loop);
+			final newChannel = kha.SystemImpl.mobile ? new Html5MobileStreamChannel(sound.khaSound, loop) : new Html5StreamChannel(sound.khaSound, loop);
 		#else
-			final khaChannel: Null<kha.audio1.AudioChannel> = kha.audio2.Audio1.stream(sound, loop);
+			final khaChannel: Null<kha.audio1.AudioChannel> = kha.audio2.Audio1.stream(sound.khaSound, loop);
 			if (khaChannel == null) {
 				return null;
 			}
@@ -424,18 +298,6 @@ class Aura {
 		#if AURA_BENCHMARK
 			Time.endOfFrame();
 		#end
-	}
-}
-
-@:allow(aura.Aura)
-@:structInit
-class AuraLoadConfig {
-	public final compressed: Array<String> = [];
-	public final uncompressed: Array<String> = [];
-	public final hrtf: Array<String> = [];
-
-	inline function getEntryCount(): Int {
-		return compressed.length + uncompressed.length + hrtf.length;
 	}
 }
 

@@ -23,7 +23,7 @@ using aura.format.InputExtension;
 **/
 class MHRReader {
 
-	public static function read(bytes: Bytes): HRTF {
+	public static function read(bytes: Bytes): HRTFData {
 		final inp = new BytesInput(bytes);
 		inp.bigEndian = false;
 

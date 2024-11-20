@@ -15,7 +15,7 @@ using aura.utils.ReverseIterator;
 	The entirety of all fields with their respective HRIRs (head related impulse
 	responses).
 **/
-@:structInit class HRTF {
+@:structInit class HRTFData {
 	/**
 		The sample rate of the HRIRs.
 	**/

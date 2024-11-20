@@ -54,21 +54,32 @@
 
   Aura.init(); // <-- Don't forget this!
 
-  var loadConfig: AuraLoadConfig = {
-      // List of sounds to uncompress
-      uncompressed: ["MySoundFile"],
+  var mySound = aura.Assets.Sound("MySoundFile", Uncompress);
+  var anotherSound = aura.Assets.Sound("AnotherSoundFile", KeepCompressed);
 
-      // List of sounds to remain compressed
-      compressed: ["AnotherSoundFile"],
+  var assetList = [
+    mySound,
+    anotherSound
+  ];
 
-      // List of .mhr HRTF files for the HRTFPanner, if used (empty lists can be omitted)
-      hrtf: ["myHRTF_mhr"],
-  };
+  aura.Assets.startLoading(assetList, (status: aura.Assets.ProgressStatus) -> {
+    switch (status) {
+      case FailedAsset(asset, error):
+        trace('Failed to load asset ${asset.name}. Reason: $error');
+        return AbortLoading;
 
-  Aura.loadSounds(loadConfig, () -> {
-      // Access a loaded sound
-      var mySound: kha.Sound = Aura.getSound("MySoundFile");
-  });
+      case LoadedAsset(asset, numLoaded, totalNumAssets):
+        trace('Loaded $numLoadedAssets of $totalNumAssets: ${asset.name}');
+
+        // Failed assets are not included in totalNumAssets, so the below is safe to use in all cases
+        if (numLoaded == totalNumAssets) {
+          trace("Loaded all assets");
+        }
+
+        return ContinueLoading; // Note that the return value is only effective in the FailedAsset case, please consult the in-code documentation.
+    }
+  }
+
   ```
   > **Note**<br>
   > Instead of referencing sounds by hard-coded names (like it is done in the above example), you can also rely on Kha's asset system and use the IDE's autocompletion for assistance:
@@ -160,9 +171,12 @@
 
   var mySoundHandle = Aura.createUncompBufferChannel(mySound);
 
+  var hrtf = aura.Assets.HRTF("myHRTF_mhr");
+  // Omitted in this example: Load the hrtf via aura.Assets.startLoading()
+
   // Create a panner for the sound handle (choose one)
-  new StereoPanner(channel); // Simple left-right panner
-  new HRTFPanner(channel, Aura.getHRTF("myHRTF_mhr"));  // More realistic panning using head-related transfer functions, but slower to calculate
+  new StereoPanner(mySoundHandle); // Simple left-right panner
+  new HRTFPanner(mySoundHandle, hrtf); // More realistic panning using head-related transfer functions, but slower to calculate
 
   // Set the 3D location and view direction of the listener
   var cam = getCurrentCamera(); // <-- dummy function

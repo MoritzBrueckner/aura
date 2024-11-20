@@ -5,6 +5,68 @@ Non-breaking changes (e.g. new features) are _not_ listed here.
 
 _The dates below are given as **YYYY.MM.DD**._
 
+- **2024.11.20** ([]()):
+
+  This commit is part of a bigger rework of asset and audio channel handling.
+
+  `Aura.loadAssets()` was replaced by `aura.Assets.startLoading()` with a slightly different API.
+  Instead of specifying which assets to load with an `AuraLoadConfig`, Aura now has its own asset objects that need to be used instead.
+
+  **Before:**
+  ```haxe
+  var loadConfig: AuraLoadConfig = {
+    uncompressed: ["MySoundFile"],
+    compressed: ["AnotherSoundFile"],
+    hrtf: ["myHRTF_mhr"],
+  };
+
+  Aura.loadSounds(loadConfig, () -> {
+    trace("Loaded all assets");
+  }, () -> {
+    trace("Failed to load an asset");
+  }, (numLoadedAssets: Int, totalNumAssets: Int) -> {
+    trace('Loaded $numLoadedAssets of $totalNumAssets');
+  });
+  ```
+
+  **Now:**
+  ```haxe
+  var mySound = aura.Assets.Sound("MySoundFile", Uncompress);
+  var anotherSound = aura.Assets.Sound("AnotherSoundFile", KeepCompressed);
+  var hrtf = aura.Assets.HRTF("myHRTF_mhr");
+
+  var assetList = [
+    mySound,
+    anotherSound,
+    hrtf,
+  ];
+
+  aura.Assets.startLoading(assetList,
+    // Callback for successfully loaded assets
+    (asset: aura.Assets.Asset, numLoaded: Int, numTotalAssets: Int) -> {
+      trace('Loaded $numLoadedAssets of $totalNumAssets: ${asset.name}');
+
+      // Failed assets are not included in totalNumAssets, so the below is safe to use in all cases
+      if (numLoaded == totalNumAssets) {
+        trace("Loaded all assets");
+      }
+    },
+
+    // Callback for assets that failed to load
+    (asset: aura.Assets.Asset, error: kha.AssetError) -> {
+      trace('Failed to load asset ${asset.name}. Reason: $error');
+      return AbortLoading;
+    }
+  );
+  ```
+
+  In addition to the above change:
+  - `aura.types.HRTF` was renamed to `aura.types.HRTFData`
+  - `aura.dsp.panner.HRTFPanner.new()` now expects an `aura.Assets.HRTF` object instead of an `aura.types.HRTFData` object as its second parameter
+  - `Aura.getSound()` now returns `Null<aura.Assets.Sound>` instead of `Null<kha.Sound>`
+  - `Aura.getHRTF()` now returns `Null<aura.Assets.HRTF>` instead of `Null<aura.types.HRTFData>`
+  - `Aura.createUncompBufferChannel()` and `Aura.createCompBufferChannel()` now take an `aura.Assets.Sound` as their first parameter instead of a `kha.Sound`
+
 - **2024.06.25** ([a8a66f6](https://github.com/MoritzBrueckner/aura/commit/a8a66f6d86fc812512dca2e7d5ba07ef0d804cd4)):
 
   `aura.dsp.panner.Panner.dopplerFactor` was renamed to `aura.dsp.panner.Panner.dopplerStrength`.
