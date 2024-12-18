@@ -49,37 +49,40 @@
 
   ```haxe
   import aura.Aura;
+  import aura.Assets.Asset;
 
   ...
 
   Aura.init(); // <-- Don't forget this!
 
-  var mySound = aura.Assets.Sound("MySoundFile", Uncompress);
-  var anotherSound = aura.Assets.Sound("AnotherSoundFile", KeepCompressed);
+  var mySound = new aura.Assets.Sound("MySoundFile", Uncompress);
+  var anotherSound = new aura.Assets.Sound("AnotherSoundFile", KeepCompressed);
 
-  var assetList = [
+  var assetList: Array<Asset> = [
     mySound,
     anotherSound
   ];
 
-  aura.Assets.startLoading(assetList, (status: aura.Assets.ProgressStatus) -> {
-    switch (status) {
-      case FailedAsset(asset, error):
-        trace('Failed to load asset ${asset.name}. Reason: $error');
-        return AbortLoading;
+  // Called for each successfully loaded asset when it is loaded
+  function onAssetLoaded(asset: Asset, numLoaded: Int, numTotalAssets: Int) {
+    trace('Loaded $numLoaded of $totalNumAssets: ${asset.name}');
 
-      case LoadedAsset(asset, numLoaded, totalNumAssets):
-        trace('Loaded $numLoadedAssets of $totalNumAssets: ${asset.name}');
+    // Failed assets are not included in totalNumAssets, so the below is safe to use in all cases
+    if (numLoaded == totalNumAssets) {
+      trace("Loaded all assets");
 
-        // Failed assets are not included in totalNumAssets, so the below is safe to use in all cases
-        if (numLoaded == totalNumAssets) {
-          trace("Loaded all assets");
-        }
-
-        return ContinueLoading; // Note that the return value is only effective in the FailedAsset case, please consult the in-code documentation.
+      // Here you can call your code that requires the assets
     }
   }
 
+  // Called for each asset that fails loading
+  function onAssetFailed(asset: Asset, error: kha.AssetError): aura.Assets.ProgressInstruction {
+    trace("Failed to load asset", asset.name, error);
+    return AbortLoading;
+  }
+
+  // Begin with loading the assets
+  aura.Assets.startLoading(assetList, onAssetLoaded, onAssetFailed);
   ```
   > **Note**<br>
   > Instead of referencing sounds by hard-coded names (like it is done in the above example), you can also rely on Kha's asset system and use the IDE's autocompletion for assistance:
