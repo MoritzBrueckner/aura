@@ -33,6 +33,16 @@ typedef AssetLoadedCallback = (asset: Asset, numLoaded: Int, numTotalAssets: Int
 **/
 typedef AssetFailedCallback = (asset: Asset, error: kha.AssetError)->ProgressInstruction;
 
+/*
+	Workaround to make `Assets.startLoading()` also work with `assetList`
+	arguments of type `Array<Sound>` or `Array<HRTF>`, for example.
+
+	Just typing the function parameter as `Array<Asset>` would not work due to
+	generic invariance.
+*/
+typedef AssetList = Iterable<Asset> & {
+	public var length(default, null):Int;
+}
 
 class Assets {
 	static final loadedSounds = new Map<String, Sound>();
@@ -62,7 +72,7 @@ class Assets {
 		@see `aura.Assets.ProgressStatus`
 		@see `aura.Assets.ProgressInstruction`
 	**/
-	public static function startLoading(assetList: Array<Asset>, onAssetLoaded: AssetLoadedCallback, onAssetFailed: AssetFailedCallback) {
+	public static function startLoading<T: AssetList>(assetList: T, onAssetLoaded: AssetLoadedCallback, onAssetFailed: AssetFailedCallback) {
 		final loadingState: LoadingState = {
 			numLoaded: 0,
 			totalAssets: assetList.length,
