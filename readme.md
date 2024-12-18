@@ -59,26 +59,26 @@
   var anotherSound = new aura.Assets.Sound("AnotherSoundFile", KeepCompressed);
 
   var assetList: Array<Asset> = [
-    mySound,
-    anotherSound
+      mySound,
+      anotherSound
   ];
 
   // Called for each successfully loaded asset when it is loaded
   function onAssetLoaded(asset: Asset, numLoaded: Int, numTotalAssets: Int) {
-    trace('Loaded $numLoaded of $totalNumAssets: ${asset.name}');
+      trace('Loaded $numLoaded of $totalNumAssets: ${asset.name}');
 
-    // Failed assets are not included in totalNumAssets, so the below is safe to use in all cases
-    if (numLoaded == totalNumAssets) {
-      trace("Loaded all assets");
+      // Failed assets are not included in totalNumAssets, so the below is safe to use in all cases
+      if (numLoaded == totalNumAssets) {
+          trace("Loaded all assets");
 
-      // Here you can call your code that requires the assets
-    }
+          // Here you can call your code that requires the assets
+      }
   }
 
   // Called for each asset that fails loading
   function onAssetFailed(asset: Asset, error: kha.AssetError): aura.Assets.ProgressInstruction {
-    trace("Failed to load asset", asset.name, error);
-    return AbortLoading;
+      trace("Failed to load asset", asset.name, error);
+      return AbortLoading;
   }
 
   // Begin with loading the assets
