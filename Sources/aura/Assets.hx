@@ -72,7 +72,7 @@ class Assets {
 		@see `aura.Assets.ProgressStatus`
 		@see `aura.Assets.ProgressInstruction`
 	**/
-	public static function startLoading<T: AssetList>(assetList: T, onAssetLoaded: AssetLoadedCallback, onAssetFailed: AssetFailedCallback) {
+	public static function startLoading(assetList: AssetList, onAssetLoaded: AssetLoadedCallback, onAssetFailed: AssetFailedCallback) {
 		final loadingState: LoadingState = {
 			numLoaded: 0,
 			totalAssets: assetList.length,
