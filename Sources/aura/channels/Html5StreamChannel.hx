@@ -44,6 +44,7 @@ class Html5StreamChannel extends BaseChannel {
 		// 	see https://developer.mozilla.org/en-US/docs/Web/API/URL/createObjectURL
 		audioElement.src = URL.createObjectURL(blob);
 		audioElement.loop = loop;
+		untyped audioElement.preservesPitch = false;
 
 		if (isVirtual()) {
 			virtualChannels.push(this);
@@ -131,7 +132,7 @@ class Html5StreamChannel extends BaseChannel {
 			// Because we're using a HTML implementation here, we cannot use the
 			// LinearInterpolator parameters
 			case ChannelMessageID.PVolume: audioElement.volume = cast message.data;
-			case ChannelMessageID.PPitch:
+			case ChannelMessageID.PPitch: audioElement.playbackRate = cast message.data;
 			case ChannelMessageID.PDopplerRatio:
 			case ChannelMessageID.PDstAttenuation:
 
@@ -180,7 +181,7 @@ class Html5MobileStreamChannel extends BaseChannel {
 			// Because we're using a HTML implementation here, we cannot use the
 			// LinearInterpolator parameters
 			case ChannelMessageID.PVolume: khaChannel.volume = cast message.data;
-			case ChannelMessageID.PPitch:
+			case ChannelMessageID.PPitch: @:privateAccess khaChannel.source.playbackRate.value = cast message.data;
 			case ChannelMessageID.PDopplerRatio:
 			case ChannelMessageID.PDstAttenuation:
 
