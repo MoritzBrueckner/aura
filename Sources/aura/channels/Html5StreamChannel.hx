@@ -164,8 +164,8 @@ class Html5StreamChannel extends BaseChannel {
 			// LinearInterpolator parameters
 			case ChannelMessageID.PVolume: gain.gain.value = cast message.data;
 			case ChannelMessageID.PPitch: audioElement.playbackRate = cast message.data;
-			case ChannelMessageID.PDopplerRatio: audioElement.playbackRate *= cast message.data;
-			case ChannelMessageID.PDstAttenuation: gain.gain.value *= cast message.data;
+			case ChannelMessageID.PDopplerRatio: audioElement.playbackRate = cast message.data;
+			case ChannelMessageID.PDstAttenuation: gain.gain.value = cast message.data;
 			case ChannelMessageID.PVolumeLeft: leftGain.gain.value = cast message.data;
 			case ChannelMessageID.PVolumeRight: rightGain.gain.value = cast message.data;
 
@@ -215,8 +215,8 @@ class Html5MobileStreamChannel extends BaseChannel {
 			// LinearInterpolator parameters
 			case ChannelMessageID.PVolume: khaChannel.volume = cast message.data;
 			case ChannelMessageID.PPitch: @:privateAccess khaChannel.source.playbackRate.value = cast message.data;
-			case ChannelMessageID.PDopplerRatio: @:privateAccess khaChannel.source.playbackRate.value *= cast message.data;
-			case ChannelMessageID.PDstAttenuation: khaChannel.volume *= message.data;
+			case ChannelMessageID.PDopplerRatio: @:privateAccess khaChannel.source.playbackRate.value = cast message.data;
+			case ChannelMessageID.PDstAttenuation: khaChannel.volume = message.data;
 			case ChannelMessageID.PVolumeLeft: @:privateAccess khaChannel.leftGain.gain.value = cast message.data;
 			case ChannelMessageID.PVolumeRight: @:privateAccess khaChannel.rightGain.gain.value = cast message.data;
 
