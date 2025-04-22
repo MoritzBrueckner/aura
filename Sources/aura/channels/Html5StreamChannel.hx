@@ -42,6 +42,7 @@ class Html5StreamChannel extends BaseChannel {
 	final gain: GainNode;
 	final leftGain: GainNode;
 	final rightGain: GainNode;
+	final stereoGain: GainNode;
 	final splitter: ChannelSplitterNode;
 	final merger: ChannelMergerNode;
 
@@ -67,6 +68,7 @@ class Html5StreamChannel extends BaseChannel {
 		splitter = audioContext.createChannelSplitter(2);
 		leftGain = audioContext.createGain();
 		rightGain = audioContext.createGain();
+		stereoGain = audioContext.createGain();
 		merger = audioContext.createChannelMerger(2);
 		gain = audioContext.createGain();
 
@@ -75,7 +77,8 @@ class Html5StreamChannel extends BaseChannel {
 		splitter.connect(rightGain, 1);
 		leftGain.connect(merger, 0, 0);
 		rightGain.connect(merger, 0, 1);
-		merger.connect(gain);
+		merger.connect(stereoGain);
+		stereoGain.connect(gain);
 		
 		gain.connect(audioContext.destination);
 
@@ -164,7 +167,7 @@ class Html5StreamChannel extends BaseChannel {
 		switch (message.id) {
 			// Because we're using a HTML implementation here, we cannot use the
 			// LinearInterpolator parameters
-			case ChannelMessageID.PVolume: audioElement.volume = cast message.data;
+			case ChannelMessageID.PVolume: stereoGain.gain.value = cast message.data;
 			case ChannelMessageID.PPitch: audioElement.playbackRate = dopplerRatio * cast message.data;
 			case ChannelMessageID.PDopplerRatio: dopplerRatio = cast message.data;
 			case ChannelMessageID.PDstAttenuation: gain.gain.value = cast message.data;
