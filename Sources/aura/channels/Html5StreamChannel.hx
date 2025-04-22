@@ -4,6 +4,11 @@ package aura.channels;
 
 import js.Browser;
 import js.html.AudioElement;
+import js.html.audio.AudioContext;
+import js.html.audio.ChannelSplitterNode;
+import js.html.audio.ChannelMergerNode;
+import js.html.audio.GainNode;
+import js.html.audio.MediaElementAudioSourceNode;
 import js.html.URL;
 
 import kha.SystemImpl;
@@ -30,13 +35,24 @@ import aura.types.AudioBuffer;
 class Html5StreamChannel extends BaseChannel {
 	static final virtualChannels: Array<Html5StreamChannel> = [];
 
+	final audioContext: AudioContext;
 	final audioElement: AudioElement;
+	final source: MediaElementAudioSourceNode;
+
+	final gain: GainNode;
+	final leftGain: GainNode;
+	final rightGain: GainNode;
+	final splitter: ChannelSplitterNode;
+	final merger: ChannelMergerNode;
 
 	var virtualPosition: Float;
 	var lastUpdateTime: Float;
 
 	public function new(sound: kha.Sound, loop: Bool) {
+		audioContext = new AudioContext();
 		audioElement = Browser.document.createAudioElement();
+		source = audioContext.createMediaElementSource(audioElement);
+
 		final mimeType = #if kha_debug_html5 "audio/ogg" #else "audio/mp4" #end;
 		final blob = new js.html.Blob([sound.compressedData.getData()], {type: mimeType});
 
@@ -44,6 +60,22 @@ class Html5StreamChannel extends BaseChannel {
 		// 	see https://developer.mozilla.org/en-US/docs/Web/API/URL/createObjectURL
 		audioElement.src = URL.createObjectURL(blob);
 		audioElement.loop = loop;
+		untyped audioElement.preservesPitch = false;
+
+		splitter = audioContext.createChannelSplitter(2);
+		leftGain = audioContext.createGain();
+		rightGain = audioContext.createGain();
+		merger = audioContext.createChannelMerger(2);
+		gain = audioContext.createGain();
+
+		source.connect(splitter);
+		splitter.connect(leftGain, 0);
+		splitter.connect(rightGain, 1);
+		leftGain.connect(merger, 0, 0);
+		rightGain.connect(merger, 0, 1);
+		merger.connect(gain);
+		
+		gain.connect(audioContext.destination);
 
 		if (isVirtual()) {
 			virtualChannels.push(this);
@@ -130,10 +162,12 @@ class Html5StreamChannel extends BaseChannel {
 		switch (message.id) {
 			// Because we're using a HTML implementation here, we cannot use the
 			// LinearInterpolator parameters
-			case ChannelMessageID.PVolume: audioElement.volume = cast message.data;
-			case ChannelMessageID.PPitch:
-			case ChannelMessageID.PDopplerRatio:
-			case ChannelMessageID.PDstAttenuation:
+			case ChannelMessageID.PVolume: gain.gain.value = cast message.data;
+			case ChannelMessageID.PPitch: audioElement.playbackRate = cast message.data;
+			case ChannelMessageID.PDopplerRatio: audioElement.playbackRate *= cast message.data;
+			case ChannelMessageID.PDstAttenuation: gain.gain.value *= cast message.data;
+			case ChannelMessageID.PVolumeLeft: leftGain.gain.value = cast message.data;
+			case ChannelMessageID.PVolumeRight: rightGain.gain.value = cast message.data;
 
 			default:
 				super.parseMessage(message);
@@ -180,9 +214,11 @@ class Html5MobileStreamChannel extends BaseChannel {
 			// Because we're using a HTML implementation here, we cannot use the
 			// LinearInterpolator parameters
 			case ChannelMessageID.PVolume: khaChannel.volume = cast message.data;
-			case ChannelMessageID.PPitch:
-			case ChannelMessageID.PDopplerRatio:
-			case ChannelMessageID.PDstAttenuation:
+			case ChannelMessageID.PPitch: @:privateAccess khaChannel.source.playbackRate.value = cast message.data;
+			case ChannelMessageID.PDopplerRatio: @:privateAccess khaChannel.source.playbackRate.value *= cast message.data;
+			case ChannelMessageID.PDstAttenuation: khaChannel.volume *= message.data;
+			case ChannelMessageID.PVolumeLeft: @:privateAccess khaChannel.leftGain.gain.value = cast message.data;
+			case ChannelMessageID.PVolumeRight: @:privateAccess khaChannel.rightGain.gain.value = cast message.data;
 
 			default:
 				super.parseMessage(message);
