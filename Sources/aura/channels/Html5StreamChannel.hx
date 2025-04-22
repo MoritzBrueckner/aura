@@ -48,6 +48,9 @@ class Html5StreamChannel extends BaseChannel {
 	var virtualPosition: Float;
 	var lastUpdateTime: Float;
 
+	var volume:Float = 1.0;
+	var pitch:Float = 1.0;
+
 	public function new(sound: kha.Sound, loop: Bool) {
 		audioContext = new AudioContext();
 		audioElement = Browser.document.createAudioElement();
@@ -162,10 +165,10 @@ class Html5StreamChannel extends BaseChannel {
 		switch (message.id) {
 			// Because we're using a HTML implementation here, we cannot use the
 			// LinearInterpolator parameters
-			case ChannelMessageID.PVolume: gain.gain.value = cast message.data;
-			case ChannelMessageID.PPitch: audioElement.playbackRate = cast message.data;
-			case ChannelMessageID.PDopplerRatio: audioElement.playbackRate = cast message.data;
-			case ChannelMessageID.PDstAttenuation: gain.gain.value = cast message.data;
+			case ChannelMessageID.PVolume: volume = cast message.data;
+			case ChannelMessageID.PPitch: pitch = cast message.data;
+			case ChannelMessageID.PDopplerRatio: audioElement.playbackRate = pitch * cast message.data;
+			case ChannelMessageID.PDstAttenuation: gain.gain.value = volume * cast message.data;
 			case ChannelMessageID.PVolumeLeft: leftGain.gain.value = cast message.data;
 			case ChannelMessageID.PVolumeRight: rightGain.gain.value = cast message.data;
 
@@ -182,6 +185,9 @@ class Html5StreamChannel extends BaseChannel {
 **/
 class Html5MobileStreamChannel extends BaseChannel {
 	final khaChannel: kha.js.MobileWebAudioChannel;
+
+	var volume: Float = 1.0;
+	var pitch: Float = 1.0;
 
 	public function new(sound: kha.Sound, loop: Bool) {
 		khaChannel = new kha.js.MobileWebAudioChannel(cast sound, loop);
@@ -213,10 +219,10 @@ class Html5MobileStreamChannel extends BaseChannel {
 		switch (message.id) {
 			// Because we're using a HTML implementation here, we cannot use the
 			// LinearInterpolator parameters
-			case ChannelMessageID.PVolume: khaChannel.volume = cast message.data;
-			case ChannelMessageID.PPitch: @:privateAccess khaChannel.source.playbackRate.value = cast message.data;
-			case ChannelMessageID.PDopplerRatio: @:privateAccess khaChannel.source.playbackRate.value = cast message.data;
-			case ChannelMessageID.PDstAttenuation: khaChannel.volume = message.data;
+			case ChannelMessageID.PVolume: volume = cast message.data;
+			case ChannelMessageID.PPitch: pitch = cast message.data;
+			case ChannelMessageID.PDopplerRatio: @:privateAccess khaChannel.source.playbackRate.value = pitch * cast message.data;
+			case ChannelMessageID.PDstAttenuation: khaChannel.volume = volume * cast message.data;
 			case ChannelMessageID.PVolumeLeft: @:privateAccess khaChannel.leftGain.gain.value = cast message.data;
 			case ChannelMessageID.PVolumeRight: @:privateAccess khaChannel.rightGain.gain.value = cast message.data;
 
