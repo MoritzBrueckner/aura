@@ -12,6 +12,7 @@ import js.html.audio.MediaElementAudioSourceNode;
 import js.html.URL;
 
 import kha.SystemImpl;
+import kha.js.MobileWebAudio;
 import kha.js.MobileWebAudioChannel;
 
 import aura.threading.Message;
@@ -188,10 +189,35 @@ class Html5StreamChannel extends BaseChannel {
 class Html5MobileStreamChannel extends BaseChannel {
 	final khaChannel: kha.js.MobileWebAudioChannel;
 
+	final leftGain: GainNode;
+	final rightGain: GainNode;
+	final attenuationGain: GainNode;
+	final splitter: ChannelSplitterNode;
+	final merger: ChannelMergerNode;
 	var dopplerRatio: Float = 1.0;
 
 	public function new(sound: kha.Sound, loop: Bool) {
 		khaChannel = new kha.js.MobileWebAudioChannel(cast sound, loop);
+
+		@:privateAccess khaChannel.gain.disconnect(MobileWebAudio._context.destination);
+		@:privateAccess khaChannel.source.disconnect(@:privateAccess khaChannel.gain);
+		
+		splitter = MobileWebAudio._context.createChannelSplitter(2);
+		leftGain = MobileWebAudio._context.createGain();
+		rightGain = MobileWebAudio._context.createGain();
+		merger = MobileWebAudio._context.createChannelMerger(2);
+		attenuationGain = MobileWebAudio._context.createGain();
+		
+		@:privateAccess khaChannel.source.connect(splitter);
+		splitter.connect(leftGain, 0);
+		splitter.connect(rightGain, 1);
+		leftGain.connect(merger, 0, 0);
+		rightGain.connect(merger, 0, 1);
+		merger.connect(attenuationGain);
+		attenuationGain.connect(@:privateAccess khaChannel.gain);
+		
+		@:privateAccess khaChannel.gain.connect(MobileWebAudio._context.destination);
+		
 	}
 
 	public function play(retrigger: Bool) {
@@ -223,9 +249,9 @@ class Html5MobileStreamChannel extends BaseChannel {
 			case ChannelMessageID.PVolume: khaChannel.volume = cast message.data;
 			case ChannelMessageID.PPitch: @:privateAccess khaChannel.source.playbackRate.value = dopplerRatio * cast message.data;
 			case ChannelMessageID.PDopplerRatio: dopplerRatio = cast message.data;
-			case ChannelMessageID.PDstAttenuation: @:privateAccess khaChannel.attenuationGain.gain.value = cast message.data;
-			case ChannelMessageID.PVolumeLeft: @:privateAccess khaChannel.leftGain.gain.value = cast message.data;
-			case ChannelMessageID.PVolumeRight: @:privateAccess khaChannel.rightGain.gain.value = cast message.data;
+			case ChannelMessageID.PDstAttenuation: attenuationGain.gain.value = cast message.data;
+			case ChannelMessageID.PVolumeLeft: leftGain.gain.value = cast message.data;
+			case ChannelMessageID.PVolumeRight: rightGain.gain.value = cast message.data;
 
 			default:
 				super.parseMessage(message);
