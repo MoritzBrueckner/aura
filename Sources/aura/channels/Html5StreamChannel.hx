@@ -42,7 +42,7 @@ class Html5StreamChannel extends BaseChannel {
 	final gain: GainNode;
 	final leftGain: GainNode;
 	final rightGain: GainNode;
-	final stereoGain: GainNode;
+	final attenuationGain: GainNode;
 	final splitter: ChannelSplitterNode;
 	final merger: ChannelMergerNode;
 
@@ -68,7 +68,7 @@ class Html5StreamChannel extends BaseChannel {
 		splitter = audioContext.createChannelSplitter(2);
 		leftGain = audioContext.createGain();
 		rightGain = audioContext.createGain();
-		stereoGain = audioContext.createGain();
+		attenuationGain = audioContext.createGain();
 		merger = audioContext.createChannelMerger(2);
 		gain = audioContext.createGain();
 
@@ -77,8 +77,8 @@ class Html5StreamChannel extends BaseChannel {
 		splitter.connect(rightGain, 1);
 		leftGain.connect(merger, 0, 0);
 		rightGain.connect(merger, 0, 1);
-		merger.connect(stereoGain);
-		stereoGain.connect(gain);
+		merger.connect(attenuationGain);
+		attenuationGain.connect(gain);
 		
 		gain.connect(audioContext.destination);
 
@@ -167,7 +167,7 @@ class Html5StreamChannel extends BaseChannel {
 		switch (message.id) {
 			// Because we're using a HTML implementation here, we cannot use the
 			// LinearInterpolator parameters
-			case ChannelMessageID.PVolume: stereoGain.gain.value = cast message.data;
+			case ChannelMessageID.PVolume: attenuationGain.gain.value = cast message.data;
 			case ChannelMessageID.PPitch: audioElement.playbackRate = dopplerRatio * cast message.data;
 			case ChannelMessageID.PDopplerRatio: dopplerRatio = cast message.data;
 			case ChannelMessageID.PDstAttenuation: gain.gain.value = cast message.data;
@@ -223,7 +223,7 @@ class Html5MobileStreamChannel extends BaseChannel {
 			case ChannelMessageID.PVolume: khaChannel.volume = cast message.data;
 			case ChannelMessageID.PPitch: @:privateAccess khaChannel.source.playbackRate.value = dopplerRatio * cast message.data;
 			case ChannelMessageID.PDopplerRatio: dopplerRatio = cast message.data;
-			case ChannelMessageID.PDstAttenuation: @:privateAccess khaChannel.stereoGain.gain.value = cast message.data;
+			case ChannelMessageID.PDstAttenuation: @:privateAccess khaChannel.attenuationGain.gain.value = cast message.data;
 			case ChannelMessageID.PVolumeLeft: @:privateAccess khaChannel.leftGain.gain.value = cast message.data;
 			case ChannelMessageID.PVolumeRight: @:privateAccess khaChannel.rightGain.gain.value = cast message.data;
 
