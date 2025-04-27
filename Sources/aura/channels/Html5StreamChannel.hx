@@ -194,6 +194,7 @@ class Html5MobileStreamChannel extends BaseChannel {
 	final attenuationGain: GainNode;
 	final splitter: ChannelSplitterNode;
 	final merger: ChannelMergerNode;
+	
 	var dopplerRatio: Float = 1.0;
 
 	public function new(sound: kha.Sound, loop: Bool) {
