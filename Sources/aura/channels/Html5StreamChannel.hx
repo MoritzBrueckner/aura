@@ -15,6 +15,7 @@ import kha.SystemImpl;
 import kha.js.MobileWebAudio;
 import kha.js.MobileWebAudioChannel;
 
+import aura.dsp.panner.StereoPanner;
 import aura.threading.Message;
 import aura.types.AudioBuffer;
 
@@ -172,8 +173,8 @@ class Html5StreamChannel extends BaseChannel {
 			case ChannelMessageID.PPitch: audioElement.playbackRate = dopplerRatio * cast message.data;
 			case ChannelMessageID.PDopplerRatio: dopplerRatio = cast message.data;
 			case ChannelMessageID.PDstAttenuation: gain.gain.value = cast message.data;
-			case ChannelMessageID.PVolumeLeft: leftGain.gain.value = cast message.data;
-			case ChannelMessageID.PVolumeRight: rightGain.gain.value = cast message.data;
+			case StereoPannerMessageID.PVolumeLeft: leftGain.gain.value = cast message.data;
+			case StereoPannerMessageID.PVolumeRight: rightGain.gain.value = cast message.data;
 
 			default:
 				super.parseMessage(message);
@@ -250,8 +251,8 @@ class Html5MobileStreamChannel extends BaseChannel {
 			case ChannelMessageID.PPitch: @:privateAccess khaChannel.source.playbackRate.value = dopplerRatio * cast message.data;
 			case ChannelMessageID.PDopplerRatio: dopplerRatio = cast message.data;
 			case ChannelMessageID.PDstAttenuation: attenuationGain.gain.value = cast message.data;
-			case ChannelMessageID.PVolumeLeft: leftGain.gain.value = cast message.data;
-			case ChannelMessageID.PVolumeRight: rightGain.gain.value = cast message.data;
+			case StereoPannerMessageID.PVolumeLeft: leftGain.gain.value = cast message.data;
+			case StereoPannerMessageID.PVolumeRight: rightGain.gain.value = cast message.data;
 
 			default:
 				super.parseMessage(message);

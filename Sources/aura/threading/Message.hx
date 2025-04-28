@@ -25,9 +25,6 @@ class ChannelMessageID extends MessageID {
 	final PPitch;
 	final PDopplerRatio;
 	final PDstAttenuation;
-
-	final PVolumeLeft;
-	final PVolumeRight;
 }
 
 class DSPMessageID extends MessageID {
