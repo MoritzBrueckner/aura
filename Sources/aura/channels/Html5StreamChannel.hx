@@ -58,8 +58,9 @@ class Html5StreamChannel extends BaseChannel {
 		source = audioContext.createMediaElementSource(audioElement);
 
 		final mimeType = #if kha_debug_html5 "audio/ogg" #else "audio/mp4" #end;
-		final blob = new js.html.Blob([sound.compressedData.getData()], {type: mimeType});
-
+		final soundData: js.lib.ArrayBuffer = sound.compressedData.getData();
+		final blob = new js.html.Blob([soundData], {type: mimeType});
+		
 		// TODO: if removing channels, use revokeObjectUrl() ?
 		// 	see https://developer.mozilla.org/en-US/docs/Web/API/URL/createObjectURL
 		audioElement.src = URL.createObjectURL(blob);
@@ -74,8 +75,21 @@ class Html5StreamChannel extends BaseChannel {
 		gain = audioContext.createGain();
 
 		source.connect(splitter);
-		splitter.connect(leftGain, 0);
-		splitter.connect(rightGain, 1);
+
+		// The sound data needs to be decoded because `sounds.channels` returns `0`.
+		audioContext.decodeAudioData(soundData, function (buffer) {
+			// TODO: add more cases for Quad and 5.1 ? - https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Basic_concepts_behind_Web_Audio_API#audio_channels
+			switch (buffer.numberOfChannels) {
+				case 1:
+					splitter.connect(leftGain, 0);
+					splitter.connect(rightGain, 0);
+				case 2:
+					splitter.connect(leftGain, 0);
+					splitter.connect(rightGain, 1);
+				default:
+			}
+		});
+
 		leftGain.connect(merger, 0, 0);
 		rightGain.connect(merger, 0, 1);
 		merger.connect(attenuationGain);
@@ -187,6 +201,7 @@ class Html5StreamChannel extends BaseChannel {
 	https://github.com/Kode/Kha/commit/12494b1112b64e4286b6a2fafc0f08462c1e7971
 **/
 class Html5MobileStreamChannel extends BaseChannel {
+	final audioContext: AudioContext;
 	final khaChannel: kha.js.MobileWebAudioChannel;
 
 	final leftGain: GainNode;
@@ -198,26 +213,37 @@ class Html5MobileStreamChannel extends BaseChannel {
 	var dopplerRatio: Float = 1.0;
 
 	public function new(sound: kha.Sound, loop: Bool) {
+		audioContext = MobileWebAudio._context;
 		khaChannel = new kha.js.MobileWebAudioChannel(cast sound, loop);
 
-		@:privateAccess khaChannel.gain.disconnect(MobileWebAudio._context.destination);
+		@:privateAccess khaChannel.gain.disconnect(audioContext.destination);
 		@:privateAccess khaChannel.source.disconnect(@:privateAccess khaChannel.gain);
 		
-		splitter = MobileWebAudio._context.createChannelSplitter(2);
-		leftGain = MobileWebAudio._context.createGain();
-		rightGain = MobileWebAudio._context.createGain();
-		merger = MobileWebAudio._context.createChannelMerger(2);
-		attenuationGain = MobileWebAudio._context.createGain();
+		splitter = audioContext.createChannelSplitter(2);
+		leftGain = audioContext.createGain();
+		rightGain = audioContext.createGain();
+		merger = audioContext.createChannelMerger(2);
+		attenuationGain = audioContext.createGain();
 		
 		@:privateAccess khaChannel.source.connect(splitter);
-		splitter.connect(leftGain, 0);
-		splitter.connect(rightGain, 1);
+
+		// TODO: add more cases for Quad and 5.1 ? - https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Basic_concepts_behind_Web_Audio_API#audio_channels
+		switch (sound.channels) {
+			case 1:
+				splitter.connect(leftGain, 0);
+				splitter.connect(rightGain, 0);
+			case 2:
+				splitter.connect(leftGain, 0);
+				splitter.connect(rightGain, 1);
+			default:
+		}
+
 		leftGain.connect(merger, 0, 0);
 		rightGain.connect(merger, 0, 1);
 		merger.connect(attenuationGain);
 		attenuationGain.connect(@:privateAccess khaChannel.gain);
 		
-		@:privateAccess khaChannel.gain.connect(MobileWebAudio._context.destination);
+		@:privateAccess khaChannel.gain.connect(audioContext.destination);
 	}
 
 	public function play(retrigger: Bool) {
