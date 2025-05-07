@@ -25,6 +25,11 @@ class ChannelMessageID extends MessageID {
 	final PPitch;
 	final PDopplerRatio;
 	final PDstAttenuation;
+
+	#if (kha_html5 || kha_debug_html5)
+	final PVolumeLeft;
+	final PVolumeRight;
+	#end
 }
 
 class DSPMessageID extends MessageID {

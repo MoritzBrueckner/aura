@@ -62,8 +62,16 @@ class StereoPanner extends Panner {
 	public inline function setBalance(balance: Balance) {
 		this._balance = balance;
 
-		sendMessage({ id: StereoPannerMessageID.PVolumeLeft, data: Math.sqrt(~balance) });
-		sendMessage({ id: StereoPannerMessageID.PVolumeRight, data: Math.sqrt(balance) });
+		final volumeLeft = Math.sqrt(~balance);
+		final volumeRight = Math.sqrt(balance);
+
+		sendMessage({ id: StereoPannerMessageID.PVolumeLeft, data: volumeLeft });
+		sendMessage({ id: StereoPannerMessageID.PVolumeRight, data: volumeRight });
+
+		#if (kha_html5 || kha_debug_html5)
+			handle.channel.sendMessage({ id: ChannelMessageID.PVolumeLeft, data: volumeLeft });
+			handle.channel.sendMessage({ id: ChannelMessageID.PVolumeRight, data: volumeRight });
+		#end
 	}
 
 	public inline function getBalance(): Balance {
