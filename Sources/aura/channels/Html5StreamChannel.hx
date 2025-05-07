@@ -51,6 +51,7 @@ class Html5StreamChannel extends BaseChannel {
 	var lastUpdateTime: Float;
 
 	var dopplerRatio: Float = 1.0;
+	var pitch: Float = 1.0;
 
 	public function new(sound: kha.Sound, loop: Bool) {
 		audioContext = new AudioContext();
@@ -183,14 +184,29 @@ class Html5StreamChannel extends BaseChannel {
 			// Because we're using a HTML implementation here, we cannot use the
 			// LinearInterpolator parameters
 			case ChannelMessageID.PVolume: attenuationGain.gain.value = cast message.data;
-			case ChannelMessageID.PPitch: audioElement.playbackRate = dopplerRatio * cast message.data;
-			case ChannelMessageID.PDopplerRatio: dopplerRatio = cast message.data;
+			case ChannelMessageID.PPitch:
+				pitch = cast message.data;
+				updatePlaybackRate();
+			case ChannelMessageID.PDopplerRatio:
+				dopplerRatio = cast message.data;
+				updatePlaybackRate();
 			case ChannelMessageID.PDstAttenuation: gain.gain.value = cast message.data;
 			case ChannelMessageID.PVolumeLeft: leftGain.gain.value = cast message.data;
 			case ChannelMessageID.PVolumeRight: rightGain.gain.value = cast message.data;
 
 			default:
 				super.parseMessage(message);
+		}
+	}
+
+	function updatePlaybackRate() {
+		try {
+			audioElement.playbackRate = pitch * dopplerRatio;
+		}
+		catch (e) {
+			// Ignore. Unfortunately some browsers only support a certain range
+			// of playback rates, but this is not explicitly specified, so there's
+			// not much we can do here.
 		}
 	}
 }
@@ -211,6 +227,7 @@ class Html5MobileStreamChannel extends BaseChannel {
 	final merger: ChannelMergerNode;
 
 	var dopplerRatio: Float = 1.0;
+	var pitch: Float = 1.0;
 
 	public function new(sound: kha.Sound, loop: Bool) {
 		audioContext = MobileWebAudio._context;
@@ -273,8 +290,12 @@ class Html5MobileStreamChannel extends BaseChannel {
 			// Because we're using a HTML implementation here, we cannot use the
 			// LinearInterpolator parameters
 			case ChannelMessageID.PVolume: khaChannel.volume = cast message.data;
-			case ChannelMessageID.PPitch: @:privateAccess khaChannel.source.playbackRate.value = dopplerRatio * cast message.data;
-			case ChannelMessageID.PDopplerRatio: dopplerRatio = cast message.data;
+			case ChannelMessageID.PPitch:
+				pitch = cast message.data;
+				updatePlaybackRate();
+			case ChannelMessageID.PDopplerRatio:
+				dopplerRatio = cast message.data;
+				updatePlaybackRate();
 			case ChannelMessageID.PDstAttenuation: attenuationGain.gain.value = cast message.data;
 			case ChannelMessageID.PVolumeLeft: leftGain.gain.value = cast message.data;
 			case ChannelMessageID.PVolumeRight: rightGain.gain.value = cast message.data;
@@ -283,5 +304,13 @@ class Html5MobileStreamChannel extends BaseChannel {
 				super.parseMessage(message);
 		}
 	}
+
+	function updatePlaybackRate() {
+		try {
+			@:privateAccess khaChannel.source.playbackRate.value = pitch * dopplerRatio;
+		}
+		catch (e) {}
+	}
 }
+
 #end
