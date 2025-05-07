@@ -61,7 +61,7 @@ class Html5StreamChannel extends BaseChannel {
 		final mimeType = #if kha_debug_html5 "audio/ogg" #else "audio/mp4" #end;
 		final soundData: js.lib.ArrayBuffer = sound.compressedData.getData();
 		final blob = new js.html.Blob([soundData], {type: mimeType});
-		
+
 		// TODO: if removing channels, use revokeObjectUrl() ?
 		// 	see https://developer.mozilla.org/en-US/docs/Web/API/URL/createObjectURL
 		audioElement.src = URL.createObjectURL(blob);
@@ -95,7 +95,7 @@ class Html5StreamChannel extends BaseChannel {
 		rightGain.connect(merger, 0, 1);
 		merger.connect(attenuationGain);
 		attenuationGain.connect(gain);
-		
+
 		gain.connect(audioContext.destination);
 
 		if (isVirtual()) {
@@ -235,13 +235,13 @@ class Html5MobileStreamChannel extends BaseChannel {
 
 		@:privateAccess khaChannel.gain.disconnect(audioContext.destination);
 		@:privateAccess khaChannel.source.disconnect(@:privateAccess khaChannel.gain);
-		
+
 		splitter = audioContext.createChannelSplitter(2);
 		leftGain = audioContext.createGain();
 		rightGain = audioContext.createGain();
 		merger = audioContext.createChannelMerger(2);
 		attenuationGain = audioContext.createGain();
-		
+
 		@:privateAccess khaChannel.source.connect(splitter);
 
 		// TODO: add more cases for Quad and 5.1 ? - https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Basic_concepts_behind_Web_Audio_API#audio_channels
@@ -259,7 +259,7 @@ class Html5MobileStreamChannel extends BaseChannel {
 		rightGain.connect(merger, 0, 1);
 		merger.connect(attenuationGain);
 		attenuationGain.connect(@:privateAccess khaChannel.gain);
-		
+
 		@:privateAccess khaChannel.gain.connect(audioContext.destination);
 	}
 
