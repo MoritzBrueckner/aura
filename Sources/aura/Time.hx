@@ -26,7 +26,7 @@ class Time {
 				return overrideTime;
 			}
 		#end
-		return Scheduler.realTime();
+		return Scheduler.time();
 	}
 
 	public static inline function update() {
@@ -39,7 +39,7 @@ class Time {
 	#if AURA_BENCHMARK
 		public static inline function endOfFrame() {
 			if (benchmarkStarted) {
-				times[currentIteration] = Scheduler.realTime() - lastTime;
+				times[currentIteration] = Scheduler.time() - lastTime;
 				currentIteration++;
 				if (currentIteration == numIterations) {
 					onBenchmarkDone(times);
