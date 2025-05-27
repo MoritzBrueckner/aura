@@ -26,7 +26,7 @@ class Time {
 				return overrideTime;
 			}
 		#end
-		return Scheduler.realTime();
+		return Scheduler.time();
 	}
 
 	public static inline function update() {
