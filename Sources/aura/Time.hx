@@ -39,7 +39,7 @@ class Time {
 	#if AURA_BENCHMARK
 		public static inline function endOfFrame() {
 			if (benchmarkStarted) {
-				times[currentIteration] = Scheduler.time() - lastTime;
+				times[currentIteration] = Scheduler.realTime() - lastTime;
 				currentIteration++;
 				if (currentIteration == numIterations) {
 					onBenchmarkDone(times);
