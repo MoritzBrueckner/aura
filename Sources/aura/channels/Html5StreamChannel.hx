@@ -10,6 +10,7 @@ import js.html.audio.ChannelMergerNode;
 import js.html.audio.GainNode;
 import js.html.audio.MediaElementAudioSourceNode;
 import js.html.URL;
+import js.lib.ArrayBuffer;
 
 import kha.SystemImpl;
 import kha.js.MobileWebAudio;
@@ -59,7 +60,7 @@ class Html5StreamChannel extends BaseChannel {
 		source = audioContext.createMediaElementSource(audioElement);
 
 		final mimeType = #if kha_debug_html5 "audio/ogg" #else "audio/mp4" #end;
-		final soundData: js.lib.ArrayBuffer = sound.compressedData.getData();
+		final soundData: ArrayBuffer = sound.compressedData.getData();
 		final blob = new js.html.Blob([soundData], {type: mimeType});
 
 		// TODO: if removing channels, use revokeObjectUrl() ?
@@ -77,8 +78,8 @@ class Html5StreamChannel extends BaseChannel {
 
 		source.connect(splitter);
 
-		// The sound data needs to be decoded because `sounds.channels` returns `0`.
-		audioContext.decodeAudioData(soundData, function (buffer) {
+		final soundDataClone: ArrayBuffer = soundData.slice(0); // HACK: the sound data needs to be cloned to prevent errors when a scene is reloaded.
+		audioContext.decodeAudioData(soundDataClone, function (buffer) { // HACK: the sound data needs to be decoded because `sound.channels` returns `0`.
 			// TODO: add more cases for Quad and 5.1 ? - https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Basic_concepts_behind_Web_Audio_API#audio_channels
 			switch (buffer.numberOfChannels) {
 				case 1:
