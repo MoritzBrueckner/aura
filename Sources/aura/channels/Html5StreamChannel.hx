@@ -10,6 +10,7 @@ import js.html.audio.ChannelMergerNode;
 import js.html.audio.GainNode;
 import js.html.audio.MediaElementAudioSourceNode;
 import js.html.URL;
+import js.lib.ArrayBuffer;
 
 import kha.SystemImpl;
 import kha.js.MobileWebAudio;
@@ -36,16 +37,16 @@ import aura.types.AudioBuffer;
 class Html5StreamChannel extends BaseChannel {
 	static final virtualChannels: Array<Html5StreamChannel> = [];
 
-	final audioContext: AudioContext;
-	final audioElement: AudioElement;
-	final source: MediaElementAudioSourceNode;
+	var audioContext: AudioContext;
+	var audioElement: AudioElement;
+	var source: MediaElementAudioSourceNode;
 
-	final gain: GainNode;
-	final leftGain: GainNode;
-	final rightGain: GainNode;
-	final attenuationGain: GainNode;
-	final splitter: ChannelSplitterNode;
-	final merger: ChannelMergerNode;
+	var gain: GainNode;
+	var leftGain: GainNode;
+	var rightGain: GainNode;
+	var attenuationGain: GainNode;
+	var splitter: ChannelSplitterNode;
+	var merger: ChannelMergerNode;
 
 	var virtualPosition: Float;
 	var lastUpdateTime: Float;
@@ -59,7 +60,7 @@ class Html5StreamChannel extends BaseChannel {
 		source = audioContext.createMediaElementSource(audioElement);
 
 		final mimeType = #if kha_debug_html5 "audio/ogg" #else "audio/mp4" #end;
-		final soundData: js.lib.ArrayBuffer = sound.compressedData.getData();
+		final soundData: ArrayBuffer = sound.compressedData.getData();
 		final blob = new js.html.Blob([soundData], {type: mimeType});
 
 		// TODO: if removing channels, use revokeObjectUrl() ?
@@ -77,8 +78,20 @@ class Html5StreamChannel extends BaseChannel {
 
 		source.connect(splitter);
 
-		// The sound data needs to be decoded because `sounds.channels` returns `0`.
-		audioContext.decodeAudioData(soundData, function (buffer) {
+		/*
+			HACK: `sound.channels` always returns 0, so decode the sound data...
+
+			HACK: decodeAudioData() detaches the array buffer but requires a
+			non-detached buffer, so for each call make a clone to ensure that
+			soundData is never detached and can still be used by other channels
+			or other code.
+
+			TODO: we could probably just read into the file header ourselves
+			to get the channel count, this should be much faster and there's no
+			need to clone the buffer then.
+		*/
+		final soundDataClone: ArrayBuffer = soundData.slice(0);
+		audioContext.decodeAudioData(soundDataClone, function (buffer) {
 			// TODO: add more cases for Quad and 5.1 ? - https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Basic_concepts_behind_Web_Audio_API#audio_channels
 			switch (buffer.numberOfChannels) {
 				case 1:
@@ -177,6 +190,35 @@ class Html5StreamChannel extends BaseChannel {
 		finished = true;
 	}
 
+	/**
+		For manual clean up when `BaseChannelHandle.setMixChannel(null)` is used.
+		Useful e.g. when changing scenes in Armory.
+
+		Usage: `#if (kha_html5 || kha_debug_html5) untyped cast(@:privateAccess BaseChannelHandle.channel).cleanUp(); #end`.
+	**/
+	public function cleanUp() {
+		source.disconnect();
+		splitter.disconnect();
+		leftGain.disconnect();
+		rightGain.disconnect();
+		merger.disconnect();
+		attenuationGain.disconnect();
+		gain.disconnect();
+		audioElement.pause();
+		audioElement.src = "";
+		URL.revokeObjectURL(audioElement.src);
+
+		source = null;
+		splitter = null;
+		leftGain = null;
+		rightGain = null;
+		merger = null;
+		attenuationGain = null;
+		gain = null;
+		audioElement = null;
+		audioContext = null;
+	}
+
 	function nextSamples(requestedSamples: AudioBuffer, sampleRate: Hertz) {}
 
 	override function parseMessage(message: Message) {
@@ -217,14 +259,14 @@ class Html5StreamChannel extends BaseChannel {
 	https://github.com/Kode/Kha/commit/12494b1112b64e4286b6a2fafc0f08462c1e7971
 **/
 class Html5MobileStreamChannel extends BaseChannel {
-	final audioContext: AudioContext;
-	final khaChannel: kha.js.MobileWebAudioChannel;
+	var audioContext: AudioContext;
+	var khaChannel: kha.js.MobileWebAudioChannel;
 
-	final leftGain: GainNode;
-	final rightGain: GainNode;
-	final attenuationGain: GainNode;
-	final splitter: ChannelSplitterNode;
-	final merger: ChannelMergerNode;
+	var leftGain: GainNode;
+	var rightGain: GainNode;
+	var attenuationGain: GainNode;
+	var splitter: ChannelSplitterNode;
+	var merger: ChannelMergerNode;
 
 	var dopplerRatio: Float = 1.0;
 	var pitch: Float = 1.0;
@@ -281,6 +323,33 @@ class Html5MobileStreamChannel extends BaseChannel {
 	public function stop() {
 		khaChannel.stop();
 		finished = true;
+	}
+
+	/**
+		For manual clean up when `BaseChannelHandle.setMixChannel(null)` is used.
+		Useful e.g. when changing scenes in Armory.
+
+		Usage: `#if (kha_html5 || kha_debug_html5) untyped cast(@:privateAccess BaseChannelHandle.channel).cleanUp(); #end`.
+	**/
+	public function cleanUp() {
+		@:privateAccess khaChannel.gain.disconnect();
+		@:privateAccess khaChannel.source.disconnect();
+		splitter.disconnect();
+		leftGain.disconnect();
+		rightGain.disconnect();
+		merger.disconnect();
+		attenuationGain.disconnect();
+		khaChannel.stop();
+
+		@:privateAccess khaChannel.gain = null;
+		@:privateAccess khaChannel.source = null;
+		splitter = null;
+		leftGain = null;
+		rightGain = null;
+		merger = null;
+		attenuationGain = null;
+		audioContext = null;
+		khaChannel = null;
 	}
 
 	function nextSamples(requestedSamples: AudioBuffer, sampleRate: Hertz) {}
