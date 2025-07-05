@@ -78,8 +78,20 @@ class Html5StreamChannel extends BaseChannel {
 
 		source.connect(splitter);
 
-		final soundDataClone: ArrayBuffer = soundData.slice(0); // HACK: the sound data needs to be cloned to prevent errors when a scene is reloaded.
-		audioContext.decodeAudioData(soundDataClone, function (buffer) { // HACK: the sound data needs to be decoded because `sound.channels` returns `0`.
+		/*
+			HACK: `sound.channels` always returns 0, so decode the sound data...
+
+			HACK: decodeAudioData() detaches the array buffer but requires a
+			non-detached buffer, so for each call make a clone to ensure that
+			soundData is never detached and can still be used by other channels
+			or other code.
+
+			TODO: we could probably just read into the file header ourselves
+			to get the channel count, this should be much faster and there's no
+			need to clone the buffer then.
+		*/
+		final soundDataClone: ArrayBuffer = soundData.slice(0);
+		audioContext.decodeAudioData(soundDataClone, function (buffer) {
 			// TODO: add more cases for Quad and 5.1 ? - https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Basic_concepts_behind_Web_Audio_API#audio_channels
 			switch (buffer.numberOfChannels) {
 				case 1:
@@ -179,8 +191,10 @@ class Html5StreamChannel extends BaseChannel {
 	}
 
 	/**
-	 * For manual clean up when `BaseChannelHandle.setMixChannel(null)` is used. Useful when changing scenes.
-	 * Usage: `#if (kha_html5 || kha_debug_html5) untyped cast(@:privateAccess BaseChannelHandle.channel).cleanUp(); #end`.
+		For manual clean up when `BaseChannelHandle.setMixChannel(null)` is used.
+		Useful e.g. when changing scenes in Armory.
+
+		Usage: `#if (kha_html5 || kha_debug_html5) untyped cast(@:privateAccess BaseChannelHandle.channel).cleanUp(); #end`.
 	**/
 	public function cleanUp() {
 		source.disconnect();
@@ -312,8 +326,10 @@ class Html5MobileStreamChannel extends BaseChannel {
 	}
 
 	/**
-	 * For manual clean up when `BaseChannelHandle.setMixChannel(null)` is used. Useful when changing scenes.
-	 * Usage: `#if (kha_html5 || kha_debug_html5) untyped cast(@:privateAccess BaseChannelHandle.channel).cleanUp(); #end`.
+		For manual clean up when `BaseChannelHandle.setMixChannel(null)` is used.
+		Useful e.g. when changing scenes in Armory.
+
+		Usage: `#if (kha_html5 || kha_debug_html5) untyped cast(@:privateAccess BaseChannelHandle.channel).cleanUp(); #end`.
 	**/
 	public function cleanUp() {
 		@:privateAccess khaChannel.gain.disconnect();
