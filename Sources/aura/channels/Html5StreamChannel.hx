@@ -16,8 +16,11 @@ import kha.SystemImpl;
 import kha.js.MobileWebAudio;
 import kha.js.MobileWebAudioChannel;
 
+import aura.format.audio.OggVorbisReader;
 import aura.threading.Message;
 import aura.types.AudioBuffer;
+
+using StringTools;
 
 /**
 	Channel dedicated for streaming playback on html5.
@@ -78,31 +81,17 @@ class Html5StreamChannel extends BaseChannel {
 
 		source.connect(splitter);
 
-		/*
-			HACK: `sound.channels` always returns 0, so decode the sound data...
-
-			HACK: decodeAudioData() detaches the array buffer but requires a
-			non-detached buffer, so for each call make a clone to ensure that
-			soundData is never detached and can still be used by other channels
-			or other code.
-
-			TODO: we could probably just read into the file header ourselves
-			to get the channel count, this should be much faster and there's no
-			need to clone the buffer then.
-		*/
-		final soundDataClone: ArrayBuffer = soundData.slice(0);
-		audioContext.decodeAudioData(soundDataClone, function (buffer) {
-			// TODO: add more cases for Quad and 5.1 ? - https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Basic_concepts_behind_Web_Audio_API#audio_channels
-			switch (buffer.numberOfChannels) {
-				case 1:
-					splitter.connect(leftGain, 0);
-					splitter.connect(rightGain, 0);
-				case 2:
-					splitter.connect(leftGain, 0);
-					splitter.connect(rightGain, 1);
-				default:
-			}
-		});
+		// TODO: add more cases for Quad and 5.1 ? - https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Basic_concepts_behind_Web_Audio_API#audio_channels
+		switch (sound.channels) {
+			case 1:
+				splitter.connect(leftGain, 0);
+				splitter.connect(rightGain, 0);
+			case 2:
+				splitter.connect(leftGain, 0);
+				splitter.connect(rightGain, 1);
+			default:
+				throw "Unsupported channel count";
+		}
 
 		leftGain.connect(merger, 0, 0);
 		rightGain.connect(merger, 0, 1);
@@ -379,6 +368,32 @@ class Html5MobileStreamChannel extends BaseChannel {
 			@:privateAccess khaChannel.source.playbackRate.value = pitch * dopplerRatio;
 		}
 		catch (e) {}
+	}
+}
+
+function initializeChannelCount(soundName: String, sound: kha.Sound, done: Void->Void) {
+	final filename: String = Reflect.field(kha.Assets.sounds, soundName + "Description").files[0];
+
+	if (filename.endsWith(".ogg")) {
+		final oggReader = new OggVorbisReader(sound.compressedData);
+		sound.channels = oggReader.getNumChannels();
+		done();
+	}
+	else {
+		/*
+			In case of other formats, try to let the JS runtime decode the
+			entire sound data.
+
+			HACK: decodeAudioData() detaches the array buffer but requires a
+			non-detached buffer, so a clone is made to ensure that the array
+			buffer of sound.compressedData is never detached and can still be
+			used by other code.
+		*/
+		final soundDataClone: ArrayBuffer = sound.compressedData.getData().slice(0);
+		kha.audio2.Audio._context.decodeAudioData(soundDataClone, function (buffer) {
+			sound.channels = buffer.numberOfChannels;
+			done();
+		});
 	}
 }
 
