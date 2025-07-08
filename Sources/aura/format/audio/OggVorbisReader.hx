@@ -28,8 +28,7 @@ class OggVorbisReader {
 		this.inp = new BytesInput(bytes);
 		inp.bigEndian = false;
 
-		final magic = inp.readString(4, haxe.io.Encoding.UTF8);
-		if (magic != "OggS") {
+		if (!inp.isByteMagic("OggS")) {
 			throw "Cannot read .ogg file, file does not start with 'OggS' magic";
 		}
 
@@ -65,8 +64,7 @@ class OggVorbisReader {
 			throw "Cannot read .ogg file, Vorbis identification header expected";
 		}
 
-		final vorbisIdentifier = inp.readString(6, haxe.io.Encoding.UTF8);
-		if (vorbisIdentifier != "vorbis") {
+		if (!inp.isByteMagic("vorbis")) {
 			throw "Cannot read .ogg file, only Ogg Vorbis files are supported";
 		}
 
