@@ -187,7 +187,7 @@ class Html5StreamChannel extends BaseChannel {
 
 		Usage: `#if (kha_html5 || kha_debug_html5) untyped cast(@:privateAccess BaseChannelHandle.channel).cleanUp(); #end`.
 	**/
-	public function cleanUp() {
+	@:keep public function cleanUp() {
 		source.disconnect();
 		splitter.disconnect();
 		leftGain.disconnect();
@@ -323,7 +323,7 @@ class Html5MobileStreamChannel extends BaseChannel {
 
 		Usage: `#if (kha_html5 || kha_debug_html5) untyped cast(@:privateAccess BaseChannelHandle.channel).cleanUp(); #end`.
 	**/
-	public function cleanUp() {
+	@:keep public function cleanUp() {
 		@:privateAccess khaChannel.gain.disconnect();
 		@:privateAccess khaChannel.source.disconnect();
 		splitter.disconnect();

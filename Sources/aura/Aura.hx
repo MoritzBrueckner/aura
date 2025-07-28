@@ -129,9 +129,8 @@ class Aura {
 					}
 				#end
 
-				count++;
-
 				function onChannelCountInitialized() {
+					count++;
 					if (onProgress != null) {
 						onProgress(count, length, soundName);
 					}
