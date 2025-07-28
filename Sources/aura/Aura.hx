@@ -142,17 +142,17 @@ class Aura {
 
 				#if (kha_html5 || kha_debug_html5)
 					if (kha.SystemImpl.mobile) {
-				#end
 						// Mobile web audio channels are always decoded and
 						// the channel count is set by Kha afterwards
 						onChannelCountInitialized();
-				#if (kha_html5 || kha_debug_html5)
 					}
 					else {
 						// HACK: Kha does not set sound.channel for compressed
 						// sounds on non-mobile html5 targets, so do it manually
 						aura.channels.Html5StreamChannel.initializeChannelCount(sound, onChannelCountInitialized);
 					}
+				#else
+					onChannelCountInitialized();
 				#end
 			}, (error: kha.AssetError) -> { onLoadingError(error, failed, soundName); });
 		}
