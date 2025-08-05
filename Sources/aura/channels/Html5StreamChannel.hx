@@ -73,6 +73,9 @@ class Html5StreamChannel extends BaseChannel {
 		audioElement.src = URL.createObjectURL(blob);
 		audioElement.loop = loop;
 		untyped audioElement.preservesPitch = false;
+		audioElement.addEventListener("ended", () -> {
+			stop();
+		});
 
 		splitter = audioContext.createChannelSplitter(2);
 		leftGain = audioContext.createGain();
@@ -304,7 +307,6 @@ class Html5MobileStreamChannel extends BaseChannel {
 		khaChannel.play();
 
 		paused = false;
-		finished = false;
 	}
 
 	public function pause() {
@@ -314,8 +316,9 @@ class Html5MobileStreamChannel extends BaseChannel {
 
 	public function stop() {
 		khaChannel.stop();
-		finished = true;
 	}
+
+	inline function get_finished(): Bool { return khaChannel.finished; }
 
 	/**
 		For manual clean up when `BaseChannelHandle.setMixChannel(null)` is used.
