@@ -219,14 +219,14 @@ class Html5StreamChannel extends BaseChannel {
 		switch (message.id) {
 			// Because we're using a HTML implementation here, we cannot use the
 			// LinearInterpolator parameters
-			case ChannelMessageID.PVolume: attenuationGain.gain.value = cast message.data;
+			case ChannelMessageID.PVolume: gain.gain.value = cast message.data;
 			case ChannelMessageID.PPitch:
 				pitch = cast message.data;
 				updatePlaybackRate();
 			case ChannelMessageID.PDopplerRatio:
 				dopplerRatio = cast message.data;
 				updatePlaybackRate();
-			case ChannelMessageID.PDstAttenuation: gain.gain.value = cast message.data;
+			case ChannelMessageID.PDstAttenuation: attenuationGain.gain.value = cast message.data;
 			case ChannelMessageID.PVolumeLeft: leftGain.gain.value = cast message.data;
 			case ChannelMessageID.PVolumeRight: rightGain.gain.value = cast message.data;
 

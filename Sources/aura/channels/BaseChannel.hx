@@ -115,14 +115,7 @@ class BaseChannelHandle {
 	public inline function setVolume(volume: Float) {
 		assert(Critical, volume >= 0, "Volume value must not be a negative number!");
 
-		channel.sendMessage({
-			id: ChannelMessageID.PVolume,
-			#if (kha_html5 || kha_debug_html5)
-			data: maxF(0.0, volume * @:privateAccess parentHandle.getVolume())
-			#else
-			data: maxF(0.0, volume)
-			#end
-		});
+		channel.sendMessage({ id: ChannelMessageID.PVolume, data: maxF(0.0, volume) });
 		this._volume = volume;
 	}
 
