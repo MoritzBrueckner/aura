@@ -6,7 +6,6 @@ import haxe.ds.Vector;
 import sys.thread.Mutex;
 #end
 
-// TODO: separate in `Html5MixChannel` class?
 #if (kha_html5 || kha_debug_html5)
 import aura.Aura;
 import js.html.audio.AudioContext;
@@ -316,20 +315,12 @@ class MixChannel extends BaseChannel {
 	}
 
 	#if (kha_html5 || kha_debug_html5)
+	//TODO: add the rest of the messages for effects or create a separate `Html5MixChannel` class?
 	override function parseMessage(message: Message) {
 		switch (message.id) {
 			// Because we're using a HTML implementation here, we cannot use the
 			// LinearInterpolator parameters
 			case ChannelMessageID.PVolume: gain.gain.value = cast message.data;
-			// case ChannelMessageID.PPitch:
-			// 	pitch = cast message.data;
-			// 	updatePlaybackRate();
-			// case ChannelMessageID.PDopplerRatio:
-			// 	dopplerRatio = cast message.data;
-			// 	updatePlaybackRate();
-			// case ChannelMessageID.PDstAttenuation: attenuationGain.gain.value = cast message.data;
-			// case ChannelMessageID.PVolumeLeft: leftGain.gain.value = cast message.data;
-			// case ChannelMessageID.PVolumeRight: rightGain.gain.value = cast message.data;
 
 			default:
 				super.parseMessage(message);
