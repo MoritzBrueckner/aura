@@ -16,6 +16,7 @@ import kha.SystemImpl;
 import kha.js.MobileWebAudio;
 import kha.js.MobileWebAudioChannel;
 
+import aura.Aura;
 import aura.format.audio.OggVorbisReader;
 import aura.threading.Message;
 import aura.types.AudioBuffer;
@@ -59,8 +60,8 @@ class Html5StreamChannel extends BaseChannel {
 	var dopplerRatio: Float = 1.0;
 	var pitch: Float = 1.0;
 
-	public function new(sound: kha.Sound, loop: Bool) {
-		audioContext = new AudioContext();
+	public function new(sound: kha.Sound, loop: Bool, parentChannel: MixChannel) {
+		audioContext = Aura.audioContext;
 		audioElement = Browser.document.createAudioElement();
 		source = audioContext.createMediaElementSource(audioElement);
 
@@ -103,7 +104,7 @@ class Html5StreamChannel extends BaseChannel {
 		merger.connect(attenuationGain);
 		attenuationGain.connect(gain);
 
-		gain.connect(audioContext.destination);
+		gain.connect(parentChannel.gain);
 
 		if (isVirtual()) {
 			virtualChannels.push(this);
@@ -210,7 +211,6 @@ class Html5StreamChannel extends BaseChannel {
 		attenuationGain = null;
 		gain = null;
 		audioElement = null;
-		audioContext = null;
 	}
 
 	function nextSamples(requestedSamples: AudioBuffer, sampleRate: Hertz) {}
@@ -265,8 +265,8 @@ class Html5MobileStreamChannel extends BaseChannel {
 	var dopplerRatio: Float = 1.0;
 	var pitch: Float = 1.0;
 
-	public function new(sound: kha.Sound, loop: Bool) {
-		audioContext = MobileWebAudio._context;
+	public function new(sound: kha.Sound, loop: Bool, parentChannel: MixChannel) {
+		audioContext = Aura.audioContext;
 		khaChannel = new kha.js.MobileWebAudioChannel(cast sound, loop);
 
 		@:privateAccess khaChannel.gain.disconnect(audioContext.destination);
@@ -297,7 +297,7 @@ class Html5MobileStreamChannel extends BaseChannel {
 		merger.connect(attenuationGain);
 		attenuationGain.connect(@:privateAccess khaChannel.gain);
 
-		@:privateAccess khaChannel.gain.connect(audioContext.destination);
+		@:privateAccess khaChannel.gain.connect(parentChannel.gain);
 	}
 
 	public function play(retrigger: Bool) {
@@ -343,7 +343,6 @@ class Html5MobileStreamChannel extends BaseChannel {
 		rightGain = null;
 		merger = null;
 		attenuationGain = null;
-		audioContext = null;
 		khaChannel = null;
 	}
 

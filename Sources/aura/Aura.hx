@@ -53,6 +53,10 @@ class Aura {
 
 	static final hrtfs = new Map<String, HRTF>();
 
+	#if (kha_html5 || kha_debug_html5)
+	public static var audioContext: js.html.audio.AudioContext;
+	#end
+
 	public static function init(?options: AuraOptions) {
 		sampleRate = kha.audio2.Audio.samplesPerSecond;
 		assert(Critical, sampleRate != 0, "sampleRate must not be 0!");
@@ -63,6 +67,15 @@ class Aura {
 		listener = new Listener();
 
 		BufferCache.init();
+
+		#if (kha_html5 || kha_debug_html5)
+		if (kha.SystemImpl.mobile) {
+			audioContext = kha.js.MobileWebAudio._context;
+		}
+		else {
+			audioContext = new js.html.audio.AudioContext();
+		}
+		#end
 
 		// Create a few preconfigured mix channels
 		masterChannel = createMixChannel("master");
@@ -142,17 +155,17 @@ class Aura {
 
 				#if (kha_html5 || kha_debug_html5)
 					if (kha.SystemImpl.mobile) {
+				#end
 						// Mobile web audio channels are always decoded and
 						// the channel count is set by Kha afterwards
 						onChannelCountInitialized();
+				#if (kha_html5 || kha_debug_html5)
 					}
 					else {
 						// HACK: Kha does not set sound.channel for compressed
 						// sounds on non-mobile html5 targets, so do it manually
 						aura.channels.Html5StreamChannel.initializeChannelCount(sound, onChannelCountInitialized);
 					}
-				#else
-					onChannelCountInitialized();
 				#end
 			}, (error: kha.AssetError) -> { onLoadingError(error, failed, soundName); });
 		}
@@ -330,7 +343,7 @@ class Aura {
 		}
 
 		#if (kha_html5 || kha_debug_html5)
-			final newChannel = kha.SystemImpl.mobile ? new Html5MobileStreamChannel(sound, loop) : new Html5StreamChannel(sound, loop);
+			final newChannel = kha.SystemImpl.mobile ? new Html5MobileStreamChannel(sound, loop, cast(mixChannelHandle.channel, MixChannel)) : new Html5StreamChannel(sound, loop, cast(mixChannelHandle.channel, MixChannel));
 		#else
 			final khaChannel: Null<kha.audio1.AudioChannel> = kha.audio2.Audio1.stream(sound, loop);
 			if (khaChannel == null) {
