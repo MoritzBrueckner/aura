@@ -327,13 +327,13 @@ class Html5MobileStreamChannel extends BaseChannel {
 		Usage: `#if (kha_html5 || kha_debug_html5) untyped cast(@:privateAccess BaseChannelHandle.channel).cleanUp(); #end`.
 	**/
 	@:keep public function cleanUp() {
-		@:privateAccess khaChannel.gain.disconnect();
 		@:privateAccess khaChannel.source.disconnect();
 		splitter.disconnect();
 		leftGain.disconnect();
 		rightGain.disconnect();
 		merger.disconnect();
 		attenuationGain.disconnect();
+		@:privateAccess khaChannel.gain.disconnect();
 		khaChannel.stop();
 
 		@:privateAccess khaChannel.gain = null;
