@@ -297,7 +297,6 @@ class Html5MobileStreamChannel extends BaseChannel {
 		rightGain.connect(merger, 0, 1);
 		merger.connect(attenuationGain);
 		attenuationGain.connect(@:privateAccess khaChannel.gain);
-
 		@:privateAccess khaChannel.gain.connect(parentChannel.gain);
 	}
 
@@ -305,6 +304,7 @@ class Html5MobileStreamChannel extends BaseChannel {
 		if (retrigger) {
 			khaChannel.position = 0;
 		}
+		@:privateAccess khaChannel.source.onended = null;
 		khaChannel.play();
 		@:privateAccess khaChannel.source.onended = stop; // `MobileWebAudioChannel` recreates `khaChannel.source` when `khaChannel.play()` is called
 
@@ -329,6 +329,7 @@ class Html5MobileStreamChannel extends BaseChannel {
 		Usage: `#if (kha_html5 || kha_debug_html5) untyped cast(@:privateAccess BaseChannelHandle.channel).cleanUp(); #end`.
 	**/
 	@:keep public function cleanUp() {
+		@:privateAccess khaChannel.source.onended = null;
 		@:privateAccess khaChannel.source.disconnect();
 		splitter.disconnect();
 		leftGain.disconnect();
@@ -340,7 +341,6 @@ class Html5MobileStreamChannel extends BaseChannel {
 
 		@:privateAccess khaChannel.gain = null;
 		@:privateAccess khaChannel.source = null;
-		@:privateAccess khaChannel.buffer = null;
 		splitter = null;
 		leftGain = null;
 		rightGain = null;
