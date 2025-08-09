@@ -255,6 +255,7 @@ class Html5StreamChannel extends BaseChannel {
 class Html5MobileStreamChannel extends BaseChannel {
 	var audioContext: AudioContext;
 	var khaChannel: kha.js.MobileWebAudioChannel;
+	var parentChannel: MixChannel;
 
 	var leftGain: GainNode;
 	var rightGain: GainNode;
@@ -265,12 +266,13 @@ class Html5MobileStreamChannel extends BaseChannel {
 	var dopplerRatio: Float = 1.0;
 	var pitch: Float = 1.0;
 
-	public function new(sound: kha.Sound, loop: Bool, parentChannel: MixChannel) {
+	public function new(sound: kha.Sound, loop: Bool, pc: MixChannel) {
 		audioContext = Aura.audioContext;
 		khaChannel = new kha.js.MobileWebAudioChannel(cast sound, loop);
+		parentChannel = pc;
 
-		@:privateAccess khaChannel.gain.disconnect(audioContext.destination);
-		@:privateAccess khaChannel.source.disconnect(@:privateAccess khaChannel.gain);
+		@:privateAccess khaChannel.gain.disconnect();
+		@:privateAccess khaChannel.source.disconnect();
 		@:privateAccess khaChannel.source.onended = stop;
 
 		splitter = audioContext.createChannelSplitter(2);
@@ -304,9 +306,16 @@ class Html5MobileStreamChannel extends BaseChannel {
 		if (retrigger) {
 			khaChannel.position = 0;
 		}
+
 		@:privateAccess khaChannel.source.onended = null;
 		khaChannel.play();
-		@:privateAccess khaChannel.source.onended = stop; // `MobileWebAudioChannel` recreates `khaChannel.source` when `khaChannel.play()` is called
+		// `MobileWebAudioChannel` recreates a 'source' when `khaChannel.play()` is called
+		// Reconnect 'source' and 'gain' to the proper nodes
+		@:privateAccess khaChannel.gain.disconnect();
+		@:privateAccess khaChannel.source.disconnect();
+		@:privateAccess khaChannel.source.connect(splitter);
+		@:privateAccess khaChannel.gain.connect(parentChannel.gain);
+		@:privateAccess khaChannel.source.onended = stop;
 
 		paused = false;
 		finished = false;
