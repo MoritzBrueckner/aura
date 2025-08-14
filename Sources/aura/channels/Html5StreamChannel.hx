@@ -16,6 +16,7 @@ import kha.SystemImpl;
 import kha.js.MobileWebAudio;
 import kha.js.MobileWebAudioChannel;
 
+import aura.Aura;
 import aura.format.audio.OggVorbisReader;
 import aura.threading.Message;
 import aura.types.AudioBuffer;
@@ -59,8 +60,8 @@ class Html5StreamChannel extends BaseChannel {
 	var dopplerRatio: Float = 1.0;
 	var pitch: Float = 1.0;
 
-	public function new(sound: kha.Sound, loop: Bool) {
-		audioContext = new AudioContext();
+	public function new(sound: kha.Sound, loop: Bool, parentChannel: MixChannel) {
+		audioContext = Aura.audioContext;
 		audioElement = Browser.document.createAudioElement();
 		source = audioContext.createMediaElementSource(audioElement);
 
@@ -73,6 +74,9 @@ class Html5StreamChannel extends BaseChannel {
 		audioElement.src = URL.createObjectURL(blob);
 		audioElement.loop = loop;
 		untyped audioElement.preservesPitch = false;
+		audioElement.addEventListener("ended", () -> {
+			stop();
+		});
 
 		splitter = audioContext.createChannelSplitter(2);
 		leftGain = audioContext.createGain();
@@ -100,7 +104,7 @@ class Html5StreamChannel extends BaseChannel {
 		merger.connect(attenuationGain);
 		attenuationGain.connect(gain);
 
-		gain.connect(audioContext.destination);
+		gain.connect(parentChannel.gain);
 
 		if (isVirtual()) {
 			virtualChannels.push(this);
@@ -207,7 +211,6 @@ class Html5StreamChannel extends BaseChannel {
 		attenuationGain = null;
 		gain = null;
 		audioElement = null;
-		audioContext = null;
 	}
 
 	function nextSamples(requestedSamples: AudioBuffer, sampleRate: Hertz) {}
@@ -216,14 +219,14 @@ class Html5StreamChannel extends BaseChannel {
 		switch (message.id) {
 			// Because we're using a HTML implementation here, we cannot use the
 			// LinearInterpolator parameters
-			case ChannelMessageID.PVolume: attenuationGain.gain.value = cast message.data;
+			case ChannelMessageID.PVolume: gain.gain.value = cast message.data;
 			case ChannelMessageID.PPitch:
 				pitch = cast message.data;
 				updatePlaybackRate();
 			case ChannelMessageID.PDopplerRatio:
 				dopplerRatio = cast message.data;
 				updatePlaybackRate();
-			case ChannelMessageID.PDstAttenuation: gain.gain.value = cast message.data;
+			case ChannelMessageID.PDstAttenuation: attenuationGain.gain.value = cast message.data;
 			case ChannelMessageID.PVolumeLeft: leftGain.gain.value = cast message.data;
 			case ChannelMessageID.PVolumeRight: rightGain.gain.value = cast message.data;
 
@@ -252,6 +255,7 @@ class Html5StreamChannel extends BaseChannel {
 class Html5MobileStreamChannel extends BaseChannel {
 	var audioContext: AudioContext;
 	var khaChannel: kha.js.MobileWebAudioChannel;
+	var parentChannel: MixChannel;
 
 	var leftGain: GainNode;
 	var rightGain: GainNode;
@@ -262,20 +266,16 @@ class Html5MobileStreamChannel extends BaseChannel {
 	var dopplerRatio: Float = 1.0;
 	var pitch: Float = 1.0;
 
-	public function new(sound: kha.Sound, loop: Bool) {
-		audioContext = MobileWebAudio._context;
+	public function new(sound: kha.Sound, loop: Bool, pc: MixChannel) {
+		audioContext = Aura.audioContext;
 		khaChannel = new kha.js.MobileWebAudioChannel(cast sound, loop);
-
-		@:privateAccess khaChannel.gain.disconnect(audioContext.destination);
-		@:privateAccess khaChannel.source.disconnect(@:privateAccess khaChannel.gain);
+		parentChannel = pc;
 
 		splitter = audioContext.createChannelSplitter(2);
 		leftGain = audioContext.createGain();
 		rightGain = audioContext.createGain();
 		merger = audioContext.createChannelMerger(2);
 		attenuationGain = audioContext.createGain();
-
-		@:privateAccess khaChannel.source.connect(splitter);
 
 		// TODO: add more cases for Quad and 5.1 ? - https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Basic_concepts_behind_Web_Audio_API#audio_channels
 		switch (sound.channels) {
@@ -294,14 +294,19 @@ class Html5MobileStreamChannel extends BaseChannel {
 		merger.connect(attenuationGain);
 		attenuationGain.connect(@:privateAccess khaChannel.gain);
 
-		@:privateAccess khaChannel.gain.connect(audioContext.destination);
+		reconnectKhaChannelNodes();
 	}
 
 	public function play(retrigger: Bool) {
 		if (retrigger) {
 			khaChannel.position = 0;
 		}
+
+		@:privateAccess khaChannel.source.onended = null;
 		khaChannel.play();
+		// `MobileWebAudioChannel` recreates a 'source' when `khaChannel.play()` is called
+		// Reconnect 'source' and 'gain' to the proper nodes
+		reconnectKhaChannelNodes();
 
 		paused = false;
 		finished = false;
@@ -324,13 +329,14 @@ class Html5MobileStreamChannel extends BaseChannel {
 		Usage: `#if (kha_html5 || kha_debug_html5) untyped cast(@:privateAccess BaseChannelHandle.channel).cleanUp(); #end`.
 	**/
 	@:keep public function cleanUp() {
-		@:privateAccess khaChannel.gain.disconnect();
+		@:privateAccess khaChannel.source.onended = null;
 		@:privateAccess khaChannel.source.disconnect();
 		splitter.disconnect();
 		leftGain.disconnect();
 		rightGain.disconnect();
 		merger.disconnect();
 		attenuationGain.disconnect();
+		@:privateAccess khaChannel.gain.disconnect();
 		khaChannel.stop();
 
 		@:privateAccess khaChannel.gain = null;
@@ -340,7 +346,6 @@ class Html5MobileStreamChannel extends BaseChannel {
 		rightGain = null;
 		merger = null;
 		attenuationGain = null;
-		audioContext = null;
 		khaChannel = null;
 	}
 
@@ -371,6 +376,14 @@ class Html5MobileStreamChannel extends BaseChannel {
 			@:privateAccess khaChannel.source.playbackRate.value = pitch * dopplerRatio;
 		}
 		catch (e) {}
+	}
+
+	function reconnectKhaChannelNodes() {
+		@:privateAccess khaChannel.gain.disconnect();
+		@:privateAccess khaChannel.source.disconnect();
+		@:privateAccess khaChannel.source.connect(splitter);
+		@:privateAccess khaChannel.source.onended = stop;
+		@:privateAccess khaChannel.gain.connect(parentChannel.gain);
 	}
 }
 

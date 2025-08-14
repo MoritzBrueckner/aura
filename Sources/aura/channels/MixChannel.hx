@@ -6,6 +6,12 @@ import haxe.ds.Vector;
 import sys.thread.Mutex;
 #end
 
+#if (kha_html5 || kha_debug_html5)
+import aura.Aura;
+import js.html.audio.AudioContext;
+import js.html.audio.GainNode;
+#end
+
 import aura.channels.BaseChannel.BaseChannelHandle;
 import aura.threading.BufferCache;
 import aura.threading.Message;
@@ -89,7 +95,18 @@ class MixChannel extends BaseChannel {
 	**/
 	var inputChannelsCopy: Vector<BaseChannel>;
 
+	#if (kha_html5 || kha_debug_html5)
+	public var gain: GainNode;
+	var audioContext: AudioContext;
+	#end
+
 	public function new() {
+		#if (kha_html5 || kha_debug_html5)
+		audioContext = Aura.audioContext;
+		gain = audioContext.createGain();
+		gain.connect(audioContext.destination);
+		#end
+
 		inputChannels = new Vector<BaseChannel>(channelSize);
 
 		// Make sure super.isPlayable() is true until we find better semantics
@@ -296,4 +313,18 @@ class MixChannel extends BaseChannel {
 			}
 		}
 	}
+
+	#if (kha_html5 || kha_debug_html5)
+	//TODO: add the rest of the messages for effects or create a separate `Html5MixChannel` class?
+	override function parseMessage(message: Message) {
+		switch (message.id) {
+			// Because we're using a HTML implementation here, we cannot use the
+			// LinearInterpolator parameters
+			case ChannelMessageID.PVolume: gain.gain.value = cast message.data;
+
+			default:
+				super.parseMessage(message);
+		}
+	}
+	#end
 }
