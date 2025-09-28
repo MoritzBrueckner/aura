@@ -8,6 +8,9 @@ import aura.threading.Message;
 import aura.types.AudioBuffer;
 import aura.utils.Interpolator.LinearInterpolator;
 import aura.utils.MathUtils;
+#if (kha_html5 || kha_debug_html5)
+import js.html.audio.GainNode;
+#end
 
 /**
 	Main-thread handle to an audio channel in the audio thread.
@@ -105,6 +108,12 @@ class BaseChannelHandle {
 		final success = @:privateAccess mixChannelHandle.addInputChannel(this);
 		if (success) {
 			parentHandle = mixChannelHandle;
+			#if (kha_html5 || kha_debug_html5)
+			if (channel is MixChannel) {
+				channel.gain.disconnect();
+				channel.gain.connect(@:privateAccess parentHandle.getMixChannel().gain);
+			}
+			#end
 		} else {
 			parentHandle = null;
 		}
@@ -163,6 +172,10 @@ abstract class BaseChannel {
 
 	var paused: Bool = false;
 	var finished: Bool = true;
+
+	#if (kha_html5 || kha_debug_html5)
+	public var gain: GainNode;
+	#end
 
 	abstract function nextSamples(requestedSamples: AudioBuffer, sampleRate: Hertz): Void;
 

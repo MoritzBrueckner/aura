@@ -9,7 +9,6 @@ import sys.thread.Mutex;
 #if (kha_html5 || kha_debug_html5)
 import aura.Aura;
 import js.html.audio.AudioContext;
-import js.html.audio.GainNode;
 #end
 
 import aura.channels.BaseChannel.BaseChannelHandle;
@@ -96,7 +95,6 @@ class MixChannel extends BaseChannel {
 	var inputChannelsCopy: Vector<BaseChannel>;
 
 	#if (kha_html5 || kha_debug_html5)
-	public var gain: GainNode;
 	var audioContext: AudioContext;
 	#end
 

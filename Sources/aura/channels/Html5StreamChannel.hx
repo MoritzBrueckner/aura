@@ -47,7 +47,6 @@ class Html5StreamChannel extends BaseChannel {
 	var audioElement: AudioElement;
 	var source: MediaElementAudioSourceNode;
 
-	var gain: GainNode;
 	var leftGain: GainNode;
 	var rightGain: GainNode;
 	var attenuationGain: GainNode;
