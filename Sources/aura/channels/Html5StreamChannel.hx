@@ -47,6 +47,7 @@ class Html5StreamChannel extends BaseChannel {
 	var audioElement: AudioElement;
 	var source: MediaElementAudioSourceNode;
 
+	var masterGain: GainNode;
 	var leftGain: GainNode;
 	var rightGain: GainNode;
 	var attenuationGain: GainNode;
@@ -82,7 +83,7 @@ class Html5StreamChannel extends BaseChannel {
 		rightGain = audioContext.createGain();
 		attenuationGain = audioContext.createGain();
 		merger = audioContext.createChannelMerger(2);
-		gain = audioContext.createGain();
+		masterGain = audioContext.createGain();
 
 		source.connect(splitter);
 
@@ -101,9 +102,9 @@ class Html5StreamChannel extends BaseChannel {
 		leftGain.connect(merger, 0, 0);
 		rightGain.connect(merger, 0, 1);
 		merger.connect(attenuationGain);
-		attenuationGain.connect(gain);
+		attenuationGain.connect(masterGain);
 
-		gain.connect(parentChannel.gain);
+		masterGain.connect(parentChannel.gain);
 
 		if (isVirtual()) {
 			virtualChannels.push(this);
@@ -197,7 +198,7 @@ class Html5StreamChannel extends BaseChannel {
 		rightGain.disconnect();
 		merger.disconnect();
 		attenuationGain.disconnect();
-		gain.disconnect();
+		masterGain.disconnect();
 		audioElement.pause();
 		audioElement.src = "";
 		URL.revokeObjectURL(audioElement.src);
@@ -208,7 +209,7 @@ class Html5StreamChannel extends BaseChannel {
 		rightGain = null;
 		merger = null;
 		attenuationGain = null;
-		gain = null;
+		masterGain = null;
 		audioElement = null;
 	}
 
@@ -218,7 +219,7 @@ class Html5StreamChannel extends BaseChannel {
 		switch (message.id) {
 			// Because we're using a HTML implementation here, we cannot use the
 			// LinearInterpolator parameters
-			case ChannelMessageID.PVolume: gain.gain.value = cast message.data;
+			case ChannelMessageID.PVolume: masterGain.gain.value = cast message.data;
 			case ChannelMessageID.PPitch:
 				pitch = cast message.data;
 				updatePlaybackRate();
