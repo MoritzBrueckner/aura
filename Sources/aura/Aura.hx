@@ -73,7 +73,7 @@ class Aura {
 			audioContext = kha.js.MobileWebAudio._context;
 		}
 		else {
-			audioContext = new js.html.audio.AudioContext();
+			audioContext = kha.audio2.Audio._context;
 		}
 		#end
 
