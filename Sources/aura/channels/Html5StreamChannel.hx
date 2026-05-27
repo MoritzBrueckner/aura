@@ -249,6 +249,7 @@ class Html5StreamChannel extends BaseChannel {
 	See https://github.com/Kode/Kha/issues/299 and
 	https://github.com/Kode/Kha/commit/12494b1112b64e4286b6a2fafc0f08462c1e7971
 **/
+@:access(kha.js.MobileWebAudioChannel)
 class Html5MobileStreamChannel extends BaseChannel {
 	var audioContext: AudioContext;
 	var khaChannel: kha.js.MobileWebAudioChannel;
@@ -289,7 +290,7 @@ class Html5MobileStreamChannel extends BaseChannel {
 		leftGain.connect(merger, 0, 0);
 		rightGain.connect(merger, 0, 1);
 		merger.connect(attenuationGain);
-		attenuationGain.connect(@:privateAccess khaChannel.gain);
+		attenuationGain.connect(khaChannel.gain);
 
 		reconnectKhaChannelNodes();
 	}
@@ -299,7 +300,9 @@ class Html5MobileStreamChannel extends BaseChannel {
 			khaChannel.position = 0;
 		}
 
-		@:privateAccess khaChannel.source.onended = null;
+		khaChannel.source.onended = null;
+		khaChannel.stopped = true;
+		khaChannel.paused = true;
 		khaChannel.play();
 		// `MobileWebAudioChannel` recreates a 'source' when `khaChannel.play()` is called
 		// Reconnect 'source' and 'gain' to the proper nodes
@@ -323,18 +326,18 @@ class Html5MobileStreamChannel extends BaseChannel {
 		Clean up Web Audio nodes. Called automatically when `BaseChannelHandle.setMixChannel(null)` is used.
 	**/
 	override function cleanUp() {
-		@:privateAccess khaChannel.source.onended = null;
-		@:privateAccess khaChannel.source.disconnect();
+		khaChannel.source.onended = null;
+		khaChannel.source.disconnect();
 		splitter.disconnect();
 		leftGain.disconnect();
 		rightGain.disconnect();
 		merger.disconnect();
 		attenuationGain.disconnect();
-		@:privateAccess khaChannel.gain.disconnect();
+		khaChannel.gain.disconnect();
 		khaChannel.stop();
 
-		@:privateAccess khaChannel.gain = null;
-		@:privateAccess khaChannel.source = null;
+		khaChannel.gain = null;
+		khaChannel.source = null;
 		splitter = null;
 		leftGain = null;
 		rightGain = null;
@@ -367,17 +370,17 @@ class Html5MobileStreamChannel extends BaseChannel {
 
 	function updatePlaybackRate() {
 		try {
-			@:privateAccess khaChannel.source.playbackRate.value = pitch * dopplerRatio;
+			khaChannel.source.playbackRate.value = pitch * dopplerRatio;
 		}
 		catch (e) {}
 	}
 
 	function reconnectKhaChannelNodes() {
-		@:privateAccess khaChannel.gain.disconnect();
-		@:privateAccess khaChannel.source.disconnect();
-		@:privateAccess khaChannel.source.connect(splitter);
-		@:privateAccess khaChannel.source.onended = stop;
-		@:privateAccess khaChannel.gain.connect(parentChannel.gain);
+		khaChannel.gain.disconnect();
+		khaChannel.source.disconnect();
+		khaChannel.source.connect(splitter);
+		khaChannel.source.onended = stop;
+		khaChannel.gain.connect(parentChannel.gain);
 	}
 }
 
