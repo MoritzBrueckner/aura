@@ -302,7 +302,6 @@ class Html5MobileStreamChannel extends BaseChannel {
 
 		khaChannel.source.onended = null;
 		khaChannel.stopped = true;
-		khaChannel.paused = true;
 		khaChannel.play();
 		// `MobileWebAudioChannel` recreates a 'source' when `khaChannel.play()` is called
 		// Reconnect 'source' and 'gain' to the proper nodes
@@ -334,7 +333,7 @@ class Html5MobileStreamChannel extends BaseChannel {
 		merger.disconnect();
 		attenuationGain.disconnect();
 		khaChannel.gain.disconnect();
-		khaChannel.stop();
+		if (!finished && !paused) khaChannel.stop();
 
 		khaChannel.gain = null;
 		khaChannel.source = null;
