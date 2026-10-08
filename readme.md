@@ -161,8 +161,8 @@
   var mySoundHandle = Aura.createUncompBufferChannel(mySound);
 
   // Create a panner for the sound handle (choose one)
-  new StereoPanner(channel); // Simple left-right panner
-  new HRTFPanner(channel, Aura.getHRTF("myHRTF_mhr"));  // More realistic panning using head-related transfer functions, but slower to calculate
+  new StereoPanner(mySoundHandle); // Simple left-right panner
+  new HRTFPanner(mySoundHandle, Aura.getHRTF("myHRTF_mhr"));  // More realistic panning using head-related transfer functions, but slower to calculate
 
   // Set the 3D location and view direction of the listener
   var cam = getCurrentCamera(); // <-- dummy function
