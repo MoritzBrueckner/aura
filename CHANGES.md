@@ -107,3 +107,7 @@ _The dates below are given as **YYYY.MM.DD**._
   In addition to that, sounds are no longer auto-played to make it easier to
   pre-initialize their handles. To play them, call `play()` on the returned
   handle.
+
+- **2021.12.14** ([`3afcd78`](https://github.com/MoritzBrueckner/aura/commit/3afcd78086cf0d8f4340068ef69eefad54ce5576)):
+
+  `Aura.loadSounds()` was renamed to `Aura.loadAssets()`.

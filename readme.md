@@ -65,7 +65,7 @@
       hrtf: ["myHRTF_mhr"],
   };
 
-  Aura.loadSounds(loadConfig, () -> {
+  Aura.loadAssets(loadConfig, () -> {
       // Access a loaded sound
       var mySound: kha.Sound = Aura.getSound("MySoundFile");
   });
