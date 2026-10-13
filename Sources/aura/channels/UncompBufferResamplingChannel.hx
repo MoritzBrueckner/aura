@@ -88,6 +88,9 @@ class UncompBufferResamplingChannel extends UncompBufferChannel {
 							}
 						}
 						else {
+							if (!finished) {
+								finishCount++;
+							}
 							stop();
 							reachedEndOfData = true;
 							break;
