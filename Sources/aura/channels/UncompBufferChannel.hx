@@ -99,7 +99,7 @@ class UncompBufferChannel extends BaseChannel {
 	/**
 		The original audio source data for this channel.
 	**/
-	final data: AudioBuffer;
+	var data: AudioBuffer;
 
 	/**
 		The audio data used for playback. This might be different than `this.data`
@@ -111,6 +111,24 @@ class UncompBufferChannel extends BaseChannel {
 		this.data = this.playbackData = new AudioBuffer(2, Std.int(data.length / 2));
 		this.data.deinterleaveFromFloat32Array(data, 2);
 		this.looping = looping;
+	}
+
+	override function cleanUp() {
+		super.cleanUp();
+
+		while (sourceEffects.length > 0) {
+			removeSourceEffect(sourceEffects[0]);
+		}
+
+		if (playbackData != data && playbackData != null) {
+			playbackData.dispose();
+		}
+		playbackData = null;
+
+		if (data != null) {
+			data.dispose();
+		}
+		data = null;
 	}
 
 	override function parseMessage(message: Message) {

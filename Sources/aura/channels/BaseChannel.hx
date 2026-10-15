@@ -232,7 +232,19 @@ abstract class BaseChannel {
 		}
 	}
 
-	function cleanUp() {}
+	// TODO: tested with UncompBufferChannel. Pending tests for HTML5 and CompBufferChannel
+	function cleanUp() {
+		var message: Null<Message>;
+		while ((message = messages.tryPop()) != null) {
+			// Discard the message without processing it
+		}
+
+		while (inserts.length > 0) {
+			removeInsert(inserts[0]);
+		}
+
+		panner = null;
+	}
 
 	function parseMessage(message: Message) {
 		switch (message.id) {

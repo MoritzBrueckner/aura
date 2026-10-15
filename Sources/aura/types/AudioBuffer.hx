@@ -3,6 +3,9 @@ package aura.types;
 import haxe.ds.Vector;
 
 import kha.FastFloat;
+#if cpp
+import kha.arrays.ByteArray;
+#end
 import kha.arrays.Float32Array;
 
 import aura.utils.BufferUtils;
@@ -50,6 +53,23 @@ class AudioBuffer {
 		for (c in 0...numChannels) {
 			channelViews[c] = this.rawData.subarray(channelLength * c, channelLength * (c + 1));
 		}
+	}
+
+	public function dispose(): Void {
+		#if (hl || cpp)
+			#if cpp
+			for (c in 0...numChannels) {
+				freeFloat32Array(channelViews[c]);
+			}
+			freeFloat32Array(rawData);
+			#else
+			rawData.free();
+			#end
+
+			for (c in 0...numChannels) {
+				channelViews[c] = null;
+			}
+		#end
 	}
 
 	/**
@@ -155,6 +175,14 @@ class AudioBuffer {
 			}
 		}
 	}
+
+	#if cpp
+	static var parked: Array<Any> = [];
+	inline function freeFloat32Array(array: Float32Array) {
+		(array:ByteArray).buffer.subRef();
+		parked.push(array);
+	}
+	#end
 }
 
 /**
