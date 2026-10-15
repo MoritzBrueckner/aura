@@ -28,7 +28,7 @@ abstract class Panner extends DSP {
 	public var maxDistance = 10.0;
 	// public var minDistance = 1;
 
-	var handle: BaseChannelHandle;
+	@:keep var handle: BaseChannelHandle;
 
 	/**
 		The location of this audio source in world space.

@@ -41,8 +41,8 @@ class BaseChannelHandle {
 	var parentHandle: Null<MixChannelHandle> = null;
 
 	// Parameter cache for getter functions
-	var _volume: Float = 1.0;
-	var _pitch: Float = 1.0;
+	@:keep var _volume: Float = 1.0;
+	@:keep var _pitch: Float = 1.0;
 
 	public inline function new(channel: BaseChannel) {
 		this.channel = channel;
