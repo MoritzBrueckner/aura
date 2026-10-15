@@ -177,6 +177,7 @@ class UncompBufferChannel extends BaseChannel {
 				}
 				else {
 					finished = true;
+					finishCount++;
 					break;
 				}
 			}

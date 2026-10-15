@@ -47,8 +47,9 @@ class StreamChannel extends BaseChannel {
 		khaChannel.nextSamples(khaBuffer, requestedSamples.numChannels * requestedSamples.channelLength, sampleRate);
 		requestedSamples.deinterleaveFromFloat32Array(khaBuffer, requestedSamples.numChannels);
 
-		if (khaChannel.finished) {
+		if (khaChannel.finished && !finished) {
 			finished = true;
+			finishCount++;
 		}
 	}
 

@@ -44,8 +44,40 @@ class BaseChannelHandle {
 	var _volume: Float = 1.0;
 	var _pitch: Float = 1.0;
 
+	var finishedCallback: Null<Void->Void> = null;
+	var lastSeenFinishCount: Int = 0;
+	var finishTaskId: Int = -1;
+
 	public inline function new(channel: BaseChannel) {
 		this.channel = channel;
+	}
+
+	public function onFinished(callback: Null<Void->Void>) {
+		if (callback == null) {
+			finishedCallback = null;
+			if (finishTaskId != -1) {
+				kha.Scheduler.removeFrameTask(finishTaskId);
+				finishTaskId = -1;
+			}
+			return;
+		}
+
+		if (finishTaskId == -1) {
+			lastSeenFinishCount = channel.finishCount;
+			finishTaskId = kha.Scheduler.addFrameTask(checkFinished, 0);
+		}
+		finishedCallback = callback;
+	}
+
+	function checkFinished() {
+		final count: Int = channel.finishCount;
+		var pending: Int = count - lastSeenFinishCount;
+		lastSeenFinishCount = count;
+
+		while (pending > 0 && finishedCallback != null) {
+			pending--;
+			finishedCallback();
+		}
 	}
 
 	/**
@@ -93,6 +125,7 @@ class BaseChannelHandle {
 		}
 
 		if (mixChannelHandle == null) {
+			onFinished(null);
 			channel.cleanUp();
 			return true;
 		}
@@ -173,6 +206,7 @@ abstract class BaseChannel {
 
 	var paused: Bool = false;
 	var finished: Bool = true;
+	var finishCount: Int = 0;
 
 	#if (kha_html5 || kha_debug_html5)
 	public var gain: GainNode;
