@@ -68,7 +68,7 @@ function optionallyWarnAtomicSafety() {
 	#end
 }
 
-#if (haxe_ver >= 4.3 && hl_ver >= version("1.12.0") && !js)
+#if (haxe_ver >= 4.3 && hl_ver >= version("1.13.0") && !js)
 
 	@:forward
 	@:forwardStatics
