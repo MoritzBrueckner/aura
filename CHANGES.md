@@ -5,9 +5,9 @@ Non-breaking changes (e.g. new features) are _not_ listed here.
 
 _The dates below are given as **YYYY.MM.DD**._
 
-- **2026.11.25** ([]()):
+- **2026.11.25** ([ca2895e](https://github.com/MoritzBrueckner/aura/commit/ca2895e022d2305ee3455339fbb1c3e3b16149c8)):
 
-  The optional `failed` callback of `Aura.loadAssets()` now takes two parameters: `failed: Void->Void` becomes `failed: (assetName: String, error: Null<kha.AssetError>)`.
+  The optional `failed` callback of `Aura.loadAssets()` now takes two parameters: `failed: Void->Void` becomes `failed: (assetName: String, error: Null<kha.AssetError>) -> Void`.
 
 - **2024.06.25** ([a8a66f6](https://github.com/MoritzBrueckner/aura/commit/a8a66f6d86fc812512dca2e7d5ba07ef0d804cd4)):
 
