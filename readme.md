@@ -193,7 +193,7 @@ Aura.createUncompBufferChannel(someAlreadyLoadedSound, false, Aura.mixChannels["
 
 ## Effects
 
-Aura comes with a few built-in effects that you can insert on a given channel by means of `addInsert()`:
+Aura comes with a few built-in effects that you can insert on a given channel by means of `addInsert()` (the naming follows the common differentiation between *insert* and *send effects* in audio software):
 
 ```haxe
 import aura.dsp.Filter;
