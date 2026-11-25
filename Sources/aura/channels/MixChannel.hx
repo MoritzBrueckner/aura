@@ -109,7 +109,7 @@ class MixChannel extends BaseChannel {
 
 		// Make sure super.isPlayable() is true until we find better semantics
 		// for MixChannel.play()/pause()/stop()
-		this.finished = false;
+		this.finished.store(false);
 	}
 
 	/**

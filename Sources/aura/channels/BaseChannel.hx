@@ -1,5 +1,7 @@
 package aura.channels;
 
+import aura.Types.AtomicBool;
+import aura.Types.AtomicInt;
 import aura.channels.MixChannel.MixChannelHandle;
 import aura.dsp.DSP;
 import aura.dsp.panner.Panner;
@@ -22,14 +24,14 @@ class BaseChannelHandle {
 		Whether the playback of the handle's channel is currently paused.
 	**/
 	public var paused(get, never): Bool;
-	inline function get_paused(): Bool { return channel.paused; }
+	inline function get_paused(): Bool { return channel.paused.load(); }
 
 	/**
 		Whether the playback of the handle's channel has finished.
 		On `MixerChannel`s this value is always `false`.
 	**/
 	public var finished(get, never): Bool;
-	inline function get_finished(): Bool { return channel.finished; }
+	inline function get_finished(): Bool { return channel.finished.load(); }
 
 	public var panner(get, null): Null<Panner>;
 	inline function get_panner(): Null<Panner> { return channel.panner; }
@@ -63,14 +65,14 @@ class BaseChannelHandle {
 		}
 
 		if (finishTaskId == -1) {
-			lastSeenFinishCount = channel.finishCount;
+			lastSeenFinishCount = channel.finishCount.load();
 			finishTaskId = kha.Scheduler.addFrameTask(checkFinished, 0);
 		}
 		finishedCallback = callback;
 	}
 
 	function checkFinished() {
-		final count: Int = channel.finishCount;
+		final count: Int = channel.finishCount.load();
 		var pending: Int = count - lastSeenFinishCount;
 		lastSeenFinishCount = count;
 
@@ -204,9 +206,9 @@ abstract class BaseChannel {
 
 	var treeLevel(default, null): Int = 0;
 
-	var paused: Bool = false;
-	var finished: Bool = true;
-	var finishCount: Int = 0;
+	var paused: AtomicBool = new AtomicBool(false);
+	var finished: AtomicBool = new AtomicBool(true);
+	var finishCount: AtomicInt = new AtomicInt(0);
 
 	#if (kha_html5 || kha_debug_html5)
 	public var gain: GainNode;
@@ -219,7 +221,7 @@ abstract class BaseChannel {
 	abstract function stop(): Void;
 
 	function isPlayable(): Bool {
-		return !paused && !finished;
+		return !paused.load() && !finished.load();
 	}
 
 	function setTreeLevel(level: Int) {

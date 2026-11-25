@@ -18,10 +18,10 @@ class SwapBuffer {
 	final readerCount: Vector<AtomicInt>;
 	final newerBuf: Vector<AtomicInt>;
 
-	var latestWriteRow: AtomicInt = 0;
-	var curWriteBufIdx: AtomicInt = 0;
-	var curWriteRowIdx: AtomicInt = 0;
-	var curReadRowIdx: AtomicInt = 0;
+	var latestWriteRow: AtomicInt = new AtomicInt(0);
+	var curWriteBufIdx: AtomicInt = new AtomicInt(0);
+	var curWriteRowIdx: AtomicInt = new AtomicInt(0);
+	var curReadRowIdx: AtomicInt = new AtomicInt(0);
 
 	public function new(length: Int) {
 		this.length = length;
@@ -36,12 +36,12 @@ class SwapBuffer {
 
 		this.readerCount = new Vector(ROW_COUNT);
 		for (i in 0...ROW_COUNT) {
-			readerCount[i] = 0;
+			readerCount[i].store(0);
 		}
 
 		this.newerBuf = new Vector(ROW_COUNT);
 		for (i in 0...ROW_COUNT) {
-			newerBuf[i] = 0;
+			newerBuf[i].store(0);
 		}
 	}
 
@@ -50,7 +50,8 @@ class SwapBuffer {
 		#if cpp
 			readerCount[curReadRowIdx] = AtomicInt.atomicInc(readerCount[curReadRowIdx].toPtr());
 		#else
-			readerCount[curReadRowIdx]++;
+			// Put array access in parentheses to make compiler happy in case of HL: "Don't know how to cast i32 to array"
+			(readerCount[curReadRowIdx.load()])++;
 		#end
 	}
 
@@ -58,31 +59,31 @@ class SwapBuffer {
 		#if cpp
 			readerCount[curReadRowIdx] = AtomicInt.atomicDec(readerCount[curReadRowIdx].toPtr());
 		#else
-			readerCount[curReadRowIdx]--;
+			(readerCount[curReadRowIdx.load()])--;
 		#end
 	}
 
 	public inline function read(dst: Float32Array, dstStart: Int, srcStart: Int, length: Int) {
-		final bufIdx = newerBuf[curReadRowIdx];
+		final bufIdx = newerBuf[curReadRowIdx.load()];
 		for (i in 0...length) {
-			dst[dstStart + i] = data[curReadRowIdx][bufIdx][srcStart + i];
+			dst[dstStart + i] = data[curReadRowIdx.load()][bufIdx.load()][srcStart + i];
 		}
 	}
 
 	public inline function beginWrite() {
 		for (i in 0...ROW_COUNT) {
-			if (readerCount[i] == 0) {
-				curWriteRowIdx = i;
+			if (readerCount[i].load() == 0) {
+				curWriteRowIdx.store(i);
 				break;
 			}
 		}
 
 		// Select the least current row buffer
-		curWriteBufIdx = 1 - newerBuf[curWriteRowIdx];
+		curWriteBufIdx.store(1 - newerBuf[curWriteRowIdx.load()].load());
 	}
 
 	public inline function endWrite() {
-		newerBuf[curWriteRowIdx] = curWriteBufIdx;
+		newerBuf[curWriteRowIdx.load()].store(curWriteBufIdx.load());
 		latestWriteRow = curWriteRowIdx;
 	}
 
@@ -91,7 +92,7 @@ class SwapBuffer {
 			length = src.length - srcStart;
 		}
 		for (i in srcStart...srcStart + length) {
-			data[curWriteRowIdx][curWriteBufIdx][dstStart + i] = src[i]; // TODO: Investigate possible memory leaks through allocating
+			data[curWriteRowIdx.load()][curWriteBufIdx.load()][dstStart + i] = src[i]; // TODO: Investigate possible memory leaks through allocating
 		}
 	}
 
@@ -100,13 +101,13 @@ class SwapBuffer {
 			length = src.length - srcStart;
 		}
 		for (i in srcStart...srcStart + length) {
-			data[curWriteRowIdx][curWriteBufIdx][dstStart + i] = src[i];
+			data[curWriteRowIdx.load()][curWriteBufIdx.load()][dstStart + i] = src[i];
 		}
 	}
 
 	public inline function writeZero(dstStart: Int, dstEnd: Int) {
 		for (i in dstStart...dstEnd) {
-			data[curWriteRowIdx][curWriteBufIdx][i] = 0;
+			data[curWriteRowIdx.load()][curWriteBufIdx.load()][i] = 0;
 		}
 	}
 }

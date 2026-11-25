@@ -88,7 +88,7 @@ class UncompBufferResamplingChannel extends UncompBufferChannel {
 							}
 						}
 						else {
-							if (!finished) {
+							if (!finished.load()) {
 								finishCount++;
 							}
 							stop();

@@ -121,7 +121,7 @@ class Html5StreamChannel extends BaseChannel {
 			channel.updateVirtualPosition();
 			channel.audioElement.currentTime = channel.virtualPosition;
 
-			if (!channel.finished && !channel.paused) {
+			if (!channel.finished.load() && !channel.paused.load()) {
 				channel.audioElement.play();
 			}
 		}
@@ -131,10 +131,10 @@ class Html5StreamChannel extends BaseChannel {
 	inline function updateVirtualPosition() {
 		final now = kha.Scheduler.realTime();
 
-		if (finished) {
+		if (finished.load()) {
 			virtualPosition = 0;
 		}
-		else if (!paused) {
+		else if (!paused.load()) {
 			virtualPosition += now - lastUpdateTime;
 			while (virtualPosition > audioElement.duration) {
 				virtualPosition -= audioElement.duration;
@@ -158,8 +158,8 @@ class Html5StreamChannel extends BaseChannel {
 			}
 		}
 
-		paused = false;
-		finished = false;
+		paused.store(false);
+		finished.store(false);
 	}
 
 	public function pause() {
@@ -170,7 +170,7 @@ class Html5StreamChannel extends BaseChannel {
 			audioElement.pause();
 		}
 
-		paused = true;
+		paused.store(true);
 	}
 
 	public function stop() {
@@ -182,7 +182,7 @@ class Html5StreamChannel extends BaseChannel {
 			audioElement.currentTime = 0;
 		}
 
-		finished = true;
+		finished.store(true);
 	}
 
 	/**
@@ -307,18 +307,18 @@ class Html5MobileStreamChannel extends BaseChannel {
 		// Reconnect 'source' and 'gain' to the proper nodes
 		reconnectKhaChannelNodes();
 
-		paused = false;
-		finished = false;
+		paused.store(false);
+		finished.store(false);
 	}
 
 	public function pause() {
 		khaChannel.pause();
-		paused = true;
+		paused.store(true);
 	}
 
 	public function stop() {
 		khaChannel.stop();
-		finished = true;
+		finished.store(true);
 	}
 
 	/**
@@ -333,7 +333,7 @@ class Html5MobileStreamChannel extends BaseChannel {
 		merger.disconnect();
 		attenuationGain.disconnect();
 		khaChannel.gain.disconnect();
-		if (!finished && !paused) khaChannel.stop();
+		if (!finished.load() && !paused.load()) khaChannel.stop();
 
 		khaChannel.gain = null;
 		khaChannel.source = null;

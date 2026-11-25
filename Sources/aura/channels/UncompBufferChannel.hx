@@ -176,7 +176,7 @@ class UncompBufferChannel extends BaseChannel {
 					optionallyApplySourceEffects();
 				}
 				else {
-					finished = true;
+					finished.store(true);
 					finishCount++;
 					break;
 				}
@@ -199,24 +199,24 @@ class UncompBufferChannel extends BaseChannel {
 	}
 
 	function play(retrigger: Bool): Void {
-		if (finished || retrigger || !appliedSourceEffects) {
+		if (finished.load() || retrigger || !appliedSourceEffects) {
 			optionallyApplySourceEffects();
 		}
 
-		paused = false;
-		finished = false;
+		paused.store(false);
+		finished.store(false);
 		if (retrigger) {
 			playbackPosition = 0;
 		}
 	}
 
 	function pause(): Void {
-		paused = true;
+		paused.store(true);
 	}
 
 	function stop(): Void {
 		playbackPosition = 0;
-		finished = true;
+		finished.store(true);
 	}
 
 	inline function addSourceEffect(audioSourceEffect: SourceEffect) {

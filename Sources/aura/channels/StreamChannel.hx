@@ -19,8 +19,8 @@ class StreamChannel extends BaseChannel {
 	}
 
 	public function play(retrigger: Bool) {
-		paused = false;
-		finished = false;
+		paused.store(false);
+		finished.store(false);
 		khaChannel.play();
 		if (retrigger) {
 			khaChannel.position = 0;
@@ -28,12 +28,12 @@ class StreamChannel extends BaseChannel {
 	}
 
 	public function pause() {
-		paused = true;
+		paused.store(true);
 		khaChannel.pause();
 	}
 
 	public function stop() {
-		finished = true;
+		finished.store(true);
 		khaChannel.stop();
 	}
 
@@ -47,8 +47,8 @@ class StreamChannel extends BaseChannel {
 		khaChannel.nextSamples(khaBuffer, requestedSamples.numChannels * requestedSamples.channelLength, sampleRate);
 		requestedSamples.deinterleaveFromFloat32Array(khaBuffer, requestedSamples.numChannels);
 
-		if (khaChannel.finished && !finished) {
-			finished = true;
+		if (khaChannel.finished && !finished.load()) {
+			finished.store(true);
 			finishCount++;
 		}
 	}
