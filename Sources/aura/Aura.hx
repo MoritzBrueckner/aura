@@ -126,13 +126,13 @@ class Aura {
 		of assets in the `loadConfig` (second parameter), as well as the name
 		of the current asset (third parameter).
 	**/
-	public static function loadAssets(loadConfig: AuraLoadConfig, done: Void->Void, ?failed: Void->Void, ?onProgress:Int->Int->String->Void) {
+	public static function loadAssets(loadConfig: AuraLoadConfig, done: Void->Void, ?failed: (assetName: String, error: Null<kha.AssetError>) -> Void, ?onProgress:Int->Int->String->Void) {
 		final length = loadConfig.getEntryCount();
 		var count = 0;
 
 		for (soundName in loadConfig.compressed) {
 			if (!doesSoundExist(soundName)) {
-				onLoadingError(null, failed, soundName);
+				onLoadingError(failed, null, soundName);
 				continue;
 			}
 			Assets.loadSound(soundName, (sound: kha.Sound) -> {
@@ -167,12 +167,12 @@ class Aura {
 				#else
 					onChannelCountInitialized();
 				#end
-			}, (error: kha.AssetError) -> { onLoadingError(error, failed, soundName); });
+			}, (error: kha.AssetError) -> { onLoadingError(failed, error, soundName); });
 		}
 
 		for (soundName in loadConfig.uncompressed) {
 			if (!doesSoundExist(soundName)) {
-				onLoadingError(null, failed, soundName);
+				onLoadingError(failed, null, soundName);
 				continue;
 			}
 			Assets.loadSound(soundName, (sound: kha.Sound) -> {
@@ -202,12 +202,12 @@ class Aura {
 						return;
 					}
 				}
-			}, (error: kha.AssetError) -> { onLoadingError(error, failed, soundName); });
+			}, (error: kha.AssetError) -> { onLoadingError(failed, error, soundName); });
 		}
 
 		for (hrtfName in loadConfig.hrtf) {
 			if (!doesBlobExist(hrtfName)) {
-				onLoadingError(null, failed, hrtfName);
+				onLoadingError(failed, null, hrtfName);
 				continue;
 			}
 			Assets.loadBlob(hrtfName, (blob: kha.Blob) -> {
@@ -216,10 +216,10 @@ class Aura {
 					hrtf = MHRReader.read(blob.toBytes());
 				}
 				catch (e: Exception) {
-					trace('Could not load hrtf $hrtfName: ${e.details()}');
-					if (failed != null) {
-						failed();
-					}
+					final desc = Reflect.field(Assets.blobs, hrtfName + "Description");
+					final url = desc == null ? "" : desc.files.join(",");
+
+					onLoadingError(failed, {error: e.details(), url: url}, hrtfName);
 					return;
 				}
 				hrtfs[hrtfName] = hrtf;
@@ -234,21 +234,13 @@ class Aura {
 					done();
 					return;
 				}
-			}, (error: kha.AssetError) -> { onLoadingError(error, failed, hrtfName); });
+			}, (error: kha.AssetError) -> { onLoadingError(failed, error, hrtfName); });
 		}
 	}
 
-	static function onLoadingError(error: Null<kha.AssetError>, failed: Null<Void->Void>, assetName: String) {
-		final errorInfo = error == null ? "" : "\nOriginal error: " + error.url + "..." + error.error;
-
-		trace(
-			'Could not load asset "$assetName", make sure that all assets are named\n'
-			+ "  correctly and that they are included in the khafile.js."
-			+ errorInfo
-		);
-
+	static inline function onLoadingError(failed: (assetName: String, error: Null<kha.AssetError>) -> Void, error: Null<kha.AssetError>, assetName: String) {
 		if (failed != null) {
-			failed();
+			failed(assetName, error);
 		}
 	}
 
