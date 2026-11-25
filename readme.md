@@ -55,7 +55,7 @@ Aura.init();
 ## Load sounds
 
 > [!NOTE]
-> The way in which Aura loads sounds and other assets is currently reworked in the [new-asset-loading](https://github.com/MoritzBrueckner/aura/tree/new-asset-loading) branch, so the following will likely change in the future.
+> The way in which Aura loads sounds and other assets is currently being reworked in the [new-asset-loading](https://github.com/MoritzBrueckner/aura/tree/new-asset-loading) branch, so the following will likely change in the future.
 > Once this is finished, a list of breaking changes will be listed in [CHANGES.md](https://github.com/MoritzBrueckner/aura/blob/master/CHANGES.md).
 
 Aura can load a sound in two different ways:
